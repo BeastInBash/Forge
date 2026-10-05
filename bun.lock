@@ -5,6 +5,8 @@
     "": {
       "name": "forge",
       "dependencies": {
+        "@expo-google-fonts/archivo": "^0.4.2",
+        "@expo-google-fonts/big-shoulders-display": "^0.2.3",
         "@expo/ui": "~57.0.10",
         "expo": "~57.0.12",
         "expo-constants": "~57.0.10",
@@ -183,6 +185,10 @@
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
 
     "@egjs/hammerjs": ["@egjs/hammerjs@2.0.17", "", { "dependencies": { "@types/hammerjs": "^2.0.36" } }, "sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A=="],
+
+    "@expo-google-fonts/archivo": ["@expo-google-fonts/archivo@0.4.2", "", {}, "sha512-FLhI4/ZVIFSHHxx15Z7Rr4QX/4ZrJozEebBEFSdHSRRwULGCuSIpbb3dz56Hslux6LZEnJ1mVpZ6CyVpUzLwIg=="],
+
+    "@expo-google-fonts/big-shoulders-display": ["@expo-google-fonts/big-shoulders-display@0.2.3", "", {}, "sha512-inKhKz/42DhH27R7RyKc4Ff/bF4LmGzc3kwo+w0jKHw90K/ljQ+nkp1DwNx6y+/PfxhX30f6DwSy0CWZu7XZWg=="],
 
     "@expo-google-fonts/material-symbols": ["@expo-google-fonts/material-symbols@0.4.43", "", {}, "sha512-jJzgVcbkJnl48X5iBFNaL5CQHwoBElJapl8unc2Ri8DnyuBR+gRiuAD4gu3ESZjjo3sknIoYIwloOsWzKbLknQ=="],
 
