@@ -6,7 +6,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientText } from '@/components/ui/gradient-text';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
+
+// The dark logo's figure is partly drawn by its dark background showing through, so light mode
+// uses a version with the body drawn in iron.
+const LOGOS = {
+  light: require('@/assets/images/logo-light.png'),
+  dark: require('@/assets/images/splash-icon.png'),
+};
 
 type Props = {
   /** Small line above the heading, like the date on the home screen. */
@@ -22,6 +30,7 @@ type Props = {
  */
 export function AuthScreen({ eyebrow, heading, children, footer }: Props) {
   const theme = useTheme();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const insets = useSafeAreaInsets();
 
   return (
@@ -34,7 +43,7 @@ export function AuthScreen({ eyebrow, heading, children, footer }: Props) {
         ]}>
         <View style={styles.hero}>
           <Image
-            source={require('@/assets/images/splash-icon.png')}
+            source={LOGOS[scheme]}
             style={styles.logo}
             contentFit="contain"
             accessibilityIgnoresInvertColors

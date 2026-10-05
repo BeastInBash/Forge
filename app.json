@@ -8,7 +8,11 @@
     "scheme": "forge",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "in.besaif.forge.fitness"
+      "bundleIdentifier": "in.besaif.forge.fitness",
+      "icon": {
+        "light": "./assets/images/icon-light.png",
+        "dark": "./assets/images/icon.png"
+      }
     },
     "android": {
       "package": "in.besaif.forge.fitness",
@@ -21,17 +25,20 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#15181C",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200
+          "backgroundColor": "#ECEEF1",
+          "image": "./assets/images/logo-light.png",
+          "imageWidth": 200,
+          "dark": {
+            "backgroundColor": "#15181C",
+            "image": "./assets/images/splash-icon.png"
+          }
         }
       ],
       "expo-secure-store"
