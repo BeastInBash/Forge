@@ -25,6 +25,8 @@ export const Colors = {
     /** Primary action colour — straw, the first tempering colour. */
     accent: '#E4B95B',
     onAccent: '#1F1A0E',
+    /** Validation and failure messages — overheated steel. */
+    danger: '#B3412E',
   },
   dark: {
     background: '#15181C',
@@ -38,6 +40,7 @@ export const Colors = {
     ironLine: '#3A424C',
     accent: '#E4B95B',
     onAccent: '#1F1A0E',
+    danger: '#E8765F',
   },
 } as const;
 

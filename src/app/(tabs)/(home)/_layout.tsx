@@ -3,7 +3,7 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { Radius } from '@/constants/theme';
-import { SAMPLE_USER } from '@/features/home/data';
+import { useSession } from '@/features/auth/session';
 import { useStackOptions } from '@/hooks/use-stack-options';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -19,6 +19,7 @@ export default function HomeLayout() {
 
 function ProfileButton() {
   const theme = useTheme();
+  const { session } = useSession();
   return (
     <Link href="/profile" asChild>
       <Pressable
@@ -26,7 +27,7 @@ function ProfileButton() {
         accessibilityLabel="Open profile"
         style={StyleSheet.flatten([styles.avatar, { backgroundColor: theme.text }])}>
         <Text variant="bodyStrong" style={{ color: theme.background }}>
-          {SAMPLE_USER.name.charAt(0)}
+          {session?.user.name.trim().charAt(0).toUpperCase() || '?'}
         </Text>
       </Pressable>
     </Link>

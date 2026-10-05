@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useSession } from '@/features/auth/session';
 import { useTheme } from '@/hooks/use-theme';
 import type { Weekday } from '@/types/training';
 
@@ -43,6 +44,10 @@ function buildWeek(now: Date): WeekDay[] {
   });
 }
 
+function firstName(name: string | undefined) {
+  return name?.trim().split(/\s+/)[0] || 'there';
+}
+
 function greeting(hour: number) {
   if (hour < 12) return 'Good morning';
   if (hour < 18) return 'Good afternoon';
@@ -52,6 +57,7 @@ function greeting(hour: number) {
 export function HomeScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const { session } = useSession();
   const [now] = useState(() => new Date());
   const today = WEEKDAYS[mondayIndex(now)];
   const [selected, setSelected] = useState<Weekday>(today);
@@ -71,7 +77,7 @@ export function HomeScreen() {
           {dateFormat.format(now)}
         </Text>
         <Text variant="title">
-          {greeting(now.getHours())}, {SAMPLE_USER.name}
+          {greeting(now.getHours())}, {firstName(session?.user.name)}
         </Text>
       </View>
 

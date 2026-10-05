@@ -10,9 +10,10 @@ import {
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Colors } from '@/constants/theme';
+import { SessionProvider, useSession } from '@/features/auth/session';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemeColorsProvider } from '@/hooks/use-theme';
 
@@ -56,19 +57,42 @@ export default function RootLayout() {
   });
   const ready = fontsLoaded || fontError !== null;
 
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
-  }, [ready]);
-
   if (!ready) return null;
 
   return (
     <ThemeColorsProvider scheme={scheme}>
       <ThemeProvider value={navigationThemes[scheme]}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <SessionProvider>
+          <RootNavigator />
+        </SessionProvider>
       </ThemeProvider>
     </ThemeColorsProvider>
+  );
+}
+
+/** Signed in, only the tabs are reachable; signed out, only the auth screens. */
+function RootNavigator() {
+  const { session, isLoading } = useSession();
+  // Latches once the stored session has been checked, so later refetches never unmount the stack.
+  const [booted, setBooted] = useState(false);
+
+  useEffect(() => {
+    if (isLoading) return;
+    setBooted(true);
+    SplashScreen.hideAsync();
+  }, [isLoading]);
+
+  // The splash screen stays up meanwhile, so a signed-in user never sees the login screen flash.
+  if (!booted) return null;
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={session !== null}>
+        <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={session === null}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+    </Stack>
   );
 }
