@@ -10,7 +10,7 @@ import {
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { Colors } from '@/constants/theme';
 import { SessionProvider, useSession } from '@/features/auth/session';
@@ -73,17 +73,13 @@ export default function RootLayout() {
 /** Signed in, only the tabs are reachable; signed out, only the auth screens. */
 function RootNavigator() {
   const { session, isLoading } = useSession();
-  // Latches once the stored session has been checked, so later refetches never unmount the stack.
-  const [booted, setBooted] = useState(false);
 
   useEffect(() => {
-    if (isLoading) return;
-    setBooted(true);
-    SplashScreen.hideAsync();
+    if (!isLoading) SplashScreen.hideAsync();
   }, [isLoading]);
 
   // The splash screen stays up meanwhile, so a signed-in user never sees the login screen flash.
-  if (!booted) return null;
+  if (isLoading) return null;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
