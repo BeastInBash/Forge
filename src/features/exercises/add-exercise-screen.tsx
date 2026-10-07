@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
+import type { ImagePickerAsset } from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -17,7 +17,7 @@ import { addToCache } from './exercise-cache';
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
-function imageError(image: ImagePicker.ImagePickerAsset | undefined) {
+function imageError(image: ImagePickerAsset | undefined) {
   if (!image) return 'Pick an image.';
   if (image.mimeType && !ACCEPTED_TYPES.includes(image.mimeType)) return 'Use a PNG, JPEG or WebP image.';
   if (image.fileSize && image.fileSize > MAX_IMAGE_BYTES) return 'That image is over 4 MB. Pick a smaller one.';
@@ -29,7 +29,7 @@ export function AddExerciseScreen() {
   const theme = useTheme();
   const router = useRouter();
   const [name, setName] = useState('');
-  const [image, setImage] = useState<ImagePicker.ImagePickerAsset>();
+  const [image, setImage] = useState<ImagePickerAsset>();
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string>();
@@ -40,6 +40,15 @@ export function AddExerciseScreen() {
   };
 
   async function pickImage() {
+    // Loaded on demand: in development Expo Router imports every route at startup, and a build
+    // made before expo-image-picker was added would otherwise fail to launch at all.
+    let ImagePicker: typeof import('expo-image-picker');
+    try {
+      ImagePicker = await import('expo-image-picker');
+    } catch {
+      setFormError('This build can’t pick images yet. Rebuild the app (npx expo run:android).');
+      return;
+    }
     // No permission prompt is needed for the library picker. Editing stays off: Android's
     // cropper re-encodes to JPEG, which would drop a transparent background.
     // `legacy` (Android only) opens the system file chooser instead of the Photo Picker, which
