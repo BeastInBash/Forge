@@ -42,7 +42,14 @@ export function AddExerciseScreen() {
   async function pickImage() {
     // No permission prompt is needed for the library picker. Editing stays off: Android's
     // cropper re-encodes to JPEG, which would drop a transparent background.
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', quality: 1 });
+    // `legacy` (Android only) opens the system file chooser instead of the Photo Picker, which
+    // only lists indexed photos and cloud providers; the chooser also reaches local folders
+    // such as Downloads and the phone's own gallery app.
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      quality: 1,
+      legacy: true,
+    });
     if (!result.canceled) setImage(result.assets[0]);
   }
 
