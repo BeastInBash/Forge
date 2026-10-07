@@ -27,7 +27,7 @@ export type WorkoutExercise = {
   exercise: Exercise;
   sets: number;
   repetition: number;
-  /** Working weight in kg; null or absent for bodyweight. */
+  /** Barbell or dumbbell load in kg; null or absent when not set. */
   weight?: number | null;
   order: number;
 };

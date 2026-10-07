@@ -15,7 +15,7 @@ export type DraftExercise = {
   icon: string | null;
   sets: number;
   repetition: number;
-  /** kg; null means bodyweight. */
+  /** Barbell or dumbbell load in kg; null when not set. */
   weight: number | null;
 };
 
@@ -32,7 +32,7 @@ function formatWeight(weight: number | null) {
   return weight === null ? '' : String(weight);
 }
 
-/** "62.5" → 62.5, "" → null (bodyweight), anything unparseable → undefined (ignored). */
+/** "62.5" → 62.5, "" → null (not set), anything unparseable → undefined (ignored). */
 function parseWeight(text: string): number | null | undefined {
   const clean = text.replace(',', '.').trim();
   if (!clean) return null;
@@ -124,13 +124,13 @@ export function PlanExerciseCard({ item, index, count, onChange, onMove, onRemov
                 if (weight !== undefined) onChange({ ...item, weight });
               }}
               onBlur={() => setWeightText(formatWeight(item.weight))}
-              placeholder="BW"
+              placeholder="–"
               placeholderTextColor={theme.textSecondary}
               keyboardType="decimal-pad"
               inputMode="decimal"
               maxLength={6}
               selectTextOnFocus
-              accessibilityLabel={`${item.name} weight in kilograms, empty for bodyweight`}
+              accessibilityLabel={`${item.name} weight in kilograms`}
               style={[styles.weightInput, { color: theme.text }]}
             />
             <Text variant="caption" color="textSecondary">
@@ -189,17 +189,23 @@ const styles = StyleSheet.create({
   weightBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 30,
+    height: 32,
     paddingHorizontal: Spacing.two,
     borderRadius: Radius.small,
     gap: Spacing.one,
   },
+  // Same face and size as the sets/reps values. Android insets TextInput text with font padding
+  // and doesn't centre it vertically, so both are set explicitly against a fixed height.
   weightInput: {
-    width: 52,
+    width: 56,
     minWidth: 0,
-    padding: 0,
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: 18,
+    height: '100%',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    fontFamily: FontFamily.displayBold,
+    fontSize: 22,
     textAlign: 'right',
   },
 });

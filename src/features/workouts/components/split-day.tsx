@@ -23,9 +23,9 @@ type Props = {
   onEdit: () => void;
 };
 
-/** "4 × 8 · 60 kg", or "3 × 12 · BW" for bodyweight. */
+/** "4 × 8 · 60 kg", or "3 × 12" when no weight is set. */
 function prescription(sets: number, reps: number, weight?: number | null) {
-  return `${sets} × ${reps} · ${weight == null ? 'BW' : `${weight} kg`}`;
+  return weight == null ? `${sets} × ${reps}` : `${sets} × ${reps} · ${weight} kg`;
 }
 
 /**
