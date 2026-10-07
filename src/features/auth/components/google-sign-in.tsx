@@ -82,7 +82,8 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
   },
   button: {
-    height: 52,
+    minHeight: 52,
+    paddingHorizontal: Spacing.three,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
     borderWidth: 1,

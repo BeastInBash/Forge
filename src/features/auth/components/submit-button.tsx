@@ -43,7 +43,7 @@ export function SubmitButton({
 const styles = StyleSheet.create({
   button: {
     marginTop: Spacing.two,
-    height: 52,
+    minHeight: 52,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
     alignItems: 'center',
