@@ -7,6 +7,7 @@
  */
 
 import { createContext, use, useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
 
 import { authClient } from '@/lib/auth-client';
 
@@ -95,8 +96,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (error) throw toError(error);
     },
     async signInWithGoogle() {
-      // Native opens an auth session and returns through forge://; web redirects the page.
-      const { error } = await authClient.signIn.social({ provider: 'google', callbackURL: '/' });
+      // Native opens an auth session and returns through forge:// (the Expo plugin turns '/' into
+      // a deep link). Web redirects the page, and a relative URL would resolve against the
+      // backend, so it gets the app's own origin.
+      const callbackURL = Platform.OS === 'web' ? `${window.location.origin}/` : '/';
+      const { error } = await authClient.signIn.social({ provider: 'google', callbackURL });
       if (error) throw toError(error);
     },
     async signOut() {
