@@ -28,7 +28,7 @@ export function thumbnailUrl(url: string, sizePt: number) {
   return url.replace('/upload/', `/upload/c_fill,w_${px},h_${px},f_auto,q_auto/`);
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function send(path: string, init?: RequestInit) {
   let response: Response;
   try {
     response = await fetch(`${apiURL}${path}`, {
@@ -40,12 +40,35 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (init?.signal?.aborted) throw error;
     throw new Error('Can’t reach Forge right now. Check your connection.');
   }
-  const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.message || 'Something went wrong. Try again.');
+  // A 304 has no body.
+  const body = response.status === 304 ? null : await response.json().catch(() => null);
+  if (!response.ok && response.status !== 304) {
+    throw new Error(body?.message || 'Something went wrong. Try again.');
+  }
+  return { response, body };
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const { body } = await send(path, init);
   return body.data;
 }
 
-export const fetchExercises = (signal?: AbortSignal) => request<Exercise[]>('/api/v1/exercise', { signal });
+export type CatalogResult = { notModified: true } | { notModified: false; data: Exercise[]; etag?: string };
+
+/**
+ * The catalog, as a conditional request: with the `etag` of a cached copy, an unchanged catalog
+ * comes back as a bodiless 304 (`notModified`) instead of the full list.
+ */
+export async function fetchExercises(etag?: string, signal?: AbortSignal): Promise<CatalogResult> {
+  const { response, body } = await send('/api/v1/exercise', {
+    signal,
+    headers: etag ? { 'If-None-Match': etag } : undefined,
+    // Our own cache does the revalidation; keep the browser's HTTP cache out of it.
+    cache: 'no-store',
+  });
+  if (response.status === 304) return { notModified: true };
+  return { notModified: false, data: body.data, etag: response.headers.get('etag') ?? undefined };
+}
 
 /** Sends the name and picked image as one multipart request; the backend uploads to Cloudinary. */
 export async function createExercise(name: string, image: ImagePickerAsset) {

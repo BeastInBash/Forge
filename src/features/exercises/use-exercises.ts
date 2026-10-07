@@ -1,41 +1,35 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 
-import { errorMessage } from '@/features/auth/validation';
+import { getSnapshot, revalidate, subscribe } from './exercise-cache';
 
-import { fetchExercises, type Exercise } from './api';
-
-/** The exercise catalog, reloaded whenever the screen regains focus (e.g. after adding one). */
+/**
+ * The exercise catalog from the shared cache: shown at once from memory or disk, then checked
+ * with the server whenever the screen gains focus. `refresh` (pull-to-refresh, retry) always
+ * asks the server.
+ */
 export function useExercises() {
-  const [exercises, setExercises] = useState<Exercise[]>();
-  const [error, setError] = useState<string>();
+  const { exercises, error } = useSyncExternalStore(subscribe, getSnapshot);
   const [refreshing, setRefreshing] = useState(false);
-  const controller = useRef<AbortController>(null);
-
-  const load = useCallback(async () => {
-    controller.current?.abort();
-    const current = new AbortController();
-    controller.current = current;
-    try {
-      setExercises(await fetchExercises(current.signal));
-      setError(undefined);
-    } catch (e) {
-      if (!current.signal.aborted) setError(errorMessage(e));
-    }
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      load();
-      return () => controller.current?.abort();
-    }, [load])
+      revalidate();
+    }, [])
   );
 
   async function refresh() {
     setRefreshing(true);
-    await load();
+    await revalidate({ force: true });
     setRefreshing(false);
   }
 
-  return { exercises, error, refreshing, refresh, loading: !exercises && !error };
+  return {
+    exercises,
+    // Cached data stays on screen when a background check fails.
+    error: exercises ? undefined : error,
+    refreshing,
+    refresh,
+    loading: !exercises && !error,
+  };
 }

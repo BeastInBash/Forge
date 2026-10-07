@@ -13,6 +13,7 @@ import { errorMessage } from '@/features/auth/validation';
 import { useTheme } from '@/hooks/use-theme';
 
 import { createExercise, MAX_IMAGE_BYTES } from './api';
+import { addToCache } from './exercise-cache';
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
@@ -51,7 +52,7 @@ export function AddExerciseScreen() {
     if (errors.name || errors.image || !image) return;
     setSaving(true);
     try {
-      await createExercise(name.trim(), image);
+      addToCache(await createExercise(name.trim(), image));
       router.back();
     } catch (e) {
       setFormError(errorMessage(e));

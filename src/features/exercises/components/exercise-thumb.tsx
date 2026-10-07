@@ -27,6 +27,8 @@ export function ExerciseThumb({ url, size }: { url: string | null; size: number 
       source={thumbnailUrl(url, size)}
       style={[styles.tile, frame, { backgroundColor: '#FFFFFF' }]}
       contentFit="contain"
+      // Thumbnails rarely change (a replaced image gets a new versioned URL), so keep them on disk.
+      cachePolicy="memory-disk"
       transition={150}
       recyclingKey={url}
     />
