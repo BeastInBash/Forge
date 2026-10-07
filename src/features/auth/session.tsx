@@ -9,6 +9,7 @@
 import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
+import { clearPlans } from '@/features/plans/plans-store';
 import { authClient } from '@/lib/auth-client';
 
 export type Session = {
@@ -106,6 +107,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     async signOut() {
       const { error } = await authClient.signOut();
       if (error) throw toError(error);
+      clearPlans();
     },
   };
 

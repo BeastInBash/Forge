@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/session';
 import { useTheme } from '@/hooks/use-theme';
+import { mondayIndex, WEEKDAYS } from '@/lib/week';
 import type { Weekday } from '@/types/training';
 
 import { MealsCard } from './components/meals-card';
@@ -13,26 +14,11 @@ import { SessionCard } from './components/session-card';
 import { WeekStrip, type WeekDay } from './components/week-strip';
 import { SAMPLE_MEALS, SAMPLE_USER, SAMPLE_WEEK } from './data';
 
-const WEEKDAYS: Weekday[] = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-];
-
 const dateFormat = new Intl.DateTimeFormat(undefined, {
   weekday: 'long',
   day: 'numeric',
   month: 'long',
 });
-
-/** JS weeks start on Sunday; Forge weeks start on Monday. */
-function mondayIndex(date: Date) {
-  return (date.getDay() + 6) % 7;
-}
 
 function buildWeek(now: Date): WeekDay[] {
   const monday = new Date(now);

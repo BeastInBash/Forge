@@ -11,6 +11,10 @@ export default function WorkoutsLayout() {
       <Stack.Screen name="workouts" options={{ title: 'Workouts' }} />
       <Stack.Screen name="exercises" options={{ title: 'Exercise library' }} />
       <Stack.Screen
+        name="plan"
+        options={{ title: 'Plan', presentation: 'modal', headerLargeTitle: false }}
+      />
+      <Stack.Screen
         name="add-exercise"
         options={{ title: 'Add exercise', presentation: 'modal', headerLargeTitle: false }}
       />
