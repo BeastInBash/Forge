@@ -1,0 +1,27 @@
+{
+  "cli": {
+    "version": ">= 16.3.2",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://forge-backend-peach.vercel.app"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://forge-backend-peach.vercel.app"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
