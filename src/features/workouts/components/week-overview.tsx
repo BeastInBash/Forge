@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { plural } from '@/lib/plural';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 /** Same estimate as the session card: about three minutes per working set, rest included. */
@@ -39,14 +40,14 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
           This week · {rangeLabel}
         </Text>
         <Text variant="hero" style={{ color: theme.ironText }}>
-          {plans.length} sessions
+          {plans.length ? plural(plans.length, 'session') : 'No sessions yet'}
         </Text>
       </View>
 
       <View
         style={styles.band}
         accessible
-        accessibilityLabel={`${plans.length} training days, ${7 - plans.length} rest days`}>
+        accessibilityLabel={`${plural(plans.length, 'training day')}, ${plural(7 - plans.length, 'rest day')}`}>
         {days.map(({ day, plan }) => (
           <View key={day} style={styles.segmentColumn}>
             <View
@@ -71,8 +72,11 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
       </View>
 
       <View style={[styles.stats, { borderTopColor: theme.ironLine }]}>
-        <Stat value={`${7 - plans.length}`} unit="rest days" />
-        <Stat value={`${sets}`} unit="working sets" />
+        <Stat
+          value={`${7 - plans.length}`}
+          unit={7 - plans.length === 1 ? 'rest day' : 'rest days'}
+        />
+        <Stat value={`${sets}`} unit={sets === 1 ? 'working set' : 'working sets'} />
         <Stat value={formatDuration(sets * MINUTES_PER_SET)} unit="est. time" />
       </View>
     </View>

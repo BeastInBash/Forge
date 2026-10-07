@@ -92,7 +92,10 @@ export function WorkoutsScreen() {
           <View style={styles.days}>
             {days.map(({ day, date, plan }) => (
               <SplitDay
-                key={day}
+                // Rest and plan cards differ in key so switching between them mounts a new view:
+                // Android failed to redraw the reused view after its dashed border was removed,
+                // leaving a blank card until the screen was rebuilt.
+                key={plan ? `${day}-${plan.id}` : `${day}-rest`}
                 day={day}
                 date={date.getDate()}
                 plan={plan}

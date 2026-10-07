@@ -4,6 +4,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
+import { plural } from '@/lib/plural';
 import { useTheme } from '@/hooks/use-theme';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
@@ -87,7 +88,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
       onPress={onToggle}
       accessibilityRole="button"
       accessibilityState={{ expanded }}
-      accessibilityLabel={`${day}, ${plan.muscleGroup}, ${plan.exercises.length} exercises`}
+      accessibilityLabel={`${day}, ${plan.muscleGroup}, ${plural(plan.exercises.length, 'exercise')}`}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: theme.surface },
@@ -111,8 +112,8 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
               )}
             </View>
             <Text variant="caption" color="textSecondary">
-              {timeFormat.format(new Date(plan.time))} · {plan.exercises.length} exercises · {sets}{' '}
-              sets
+              {timeFormat.format(new Date(plan.time))} · {plural(plan.exercises.length, 'exercise')}{' '}
+              · {plural(sets, 'set')}
             </Text>
           </View>
           <Icon
