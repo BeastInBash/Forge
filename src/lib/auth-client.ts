@@ -37,6 +37,9 @@ type ExpoPlugin = Omit<typeof expo, 'getActions'> & {
   getActions: (...args: any[]) => ReturnType<typeof expo.getActions>;
 };
 
+/** forge-backend's origin, for calls to its own API (`/api/v1/...`). */
+export const apiURL = baseURL;
+
 export const authClient = createAuthClient({
   baseURL,
   plugins: [expo as ExpoPlugin],
