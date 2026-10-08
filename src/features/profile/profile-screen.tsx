@@ -10,6 +10,7 @@ import { errorMessage } from '@/features/auth/validation';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { Profile } from './api';
+import { AppearanceSection } from './components/appearance-section';
 import { ProfileHeader } from './components/profile-header';
 import { Badge, Row, Section } from './components/section';
 import { daysSince, describeDevice, formatDate, formatDateTime, providerLabel, timeAgo } from './format';
@@ -78,6 +79,8 @@ export function ProfileScreen() {
       )}
 
       {profile && <ProfileDetails profile={profile} />}
+
+      <AppearanceSection />
 
       <View style={styles.signOutBlock}>
         {signOutError && (

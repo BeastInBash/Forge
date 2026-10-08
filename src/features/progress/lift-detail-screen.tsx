@@ -17,7 +17,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { deleteLift, type Lift } from './api';
 import { AnimatedNumber } from './components/animated-number';
 import { LiftChart } from './components/lift-chart';
-import { Segmented } from './components/segmented';
+import { Segmented } from '@/components/ui/segmented';
 import { SessionRow } from './components/session-row';
 import { removeLiftLocally } from './lifts-store';
 import {

@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '@/constants/theme';
 import { SessionProvider, useSession } from '@/features/auth/session';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useThemePreference } from '@/lib/theme-preference';
 import { ThemeColorsProvider } from '@/hooks/use-theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -56,7 +57,9 @@ export default function RootLayout() {
     BigShouldersDisplay_700Bold,
     BigShouldersDisplay_800ExtraBold,
   });
-  const ready = fontsLoaded || fontError !== null;
+  // Wait for the saved theme too, so a dark-mode choice doesn't flash light on launch.
+  const { loaded: themeLoaded } = useThemePreference();
+  const ready = (fontsLoaded || fontError !== null) && themeLoaded;
 
   if (!ready) return null;
 
