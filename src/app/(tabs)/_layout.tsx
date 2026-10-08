@@ -24,6 +24,10 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>Workouts</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="dumbbell" md="fitness_center" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="(progress)">
+        <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="chart.line.uptrend.xyaxis" md="show_chart" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="(nutrition)">
         <NativeTabs.Trigger.Label>Nutrition</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'fork.knife', selected: 'fork.knife' }} md="restaurant" />

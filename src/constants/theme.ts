@@ -27,6 +27,8 @@ export const Colors = {
     onAccent: '#1F1A0E',
     /** Validation and failure messages — overheated steel. */
     danger: '#B3412E',
+    /** A lift going up — the green of a quenched, sound piece. */
+    up: '#2F8A5B',
   },
   dark: {
     background: '#15181C',
@@ -41,6 +43,7 @@ export const Colors = {
     accent: '#E4B95B',
     onAccent: '#1F1A0E',
     danger: '#E8765F',
+    up: '#5CC48C',
   },
 } as const;
 

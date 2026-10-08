@@ -28,12 +28,12 @@ type Props = {
   onRemove: () => void;
 };
 
-function formatWeight(weight: number | null) {
+export function formatWeight(weight: number | null) {
   return weight === null ? '' : String(weight);
 }
 
 /** "62.5" → 62.5, "" → null (not set), anything unparseable → undefined (ignored). */
-function parseWeight(text: string): number | null | undefined {
+export function parseWeight(text: string): number | null | undefined {
   const clean = text.replace(',', '.').trim();
   if (!clean) return null;
   const value = Number(clean);

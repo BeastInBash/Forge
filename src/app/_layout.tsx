@@ -11,6 +11,7 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Colors } from '@/constants/theme';
 import { SessionProvider, useSession } from '@/features/auth/session';
@@ -60,13 +61,15 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <ThemeColorsProvider scheme={scheme}>
-      <ThemeProvider value={navigationThemes[scheme]}>
-        <SessionProvider>
-          <RootNavigator />
-        </SessionProvider>
-      </ThemeProvider>
-    </ThemeColorsProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeColorsProvider scheme={scheme}>
+        <ThemeProvider value={navigationThemes[scheme]}>
+          <SessionProvider>
+            <RootNavigator />
+          </SessionProvider>
+        </ThemeProvider>
+      </ThemeColorsProvider>
+    </GestureHandlerRootView>
   );
 }
 

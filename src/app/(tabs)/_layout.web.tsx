@@ -28,6 +28,9 @@ export default function TabsLayout() {
           <TabTrigger name="(workouts)" href="/workouts" asChild>
             <TabButton icon="fitness_center">Workouts</TabButton>
           </TabTrigger>
+          <TabTrigger name="(progress)" href="/progress" asChild>
+            <TabButton icon="show_chart">Progress</TabButton>
+          </TabTrigger>
           <TabTrigger name="(nutrition)" href="/nutrition" asChild>
             <TabButton icon="restaurant">Nutrition</TabButton>
           </TabTrigger>
