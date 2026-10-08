@@ -1,10 +1,22 @@
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 
+import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
+import { CSS_EASE_OUT } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-/** The straw primary action, same shape as "Start workout" on the session card. */
+const FADE = {
+  transitionProperty: 'opacity',
+  transitionDuration: 150,
+  transitionTimingFunction: CSS_EASE_OUT,
+} as const;
+
+/**
+ * The straw primary action, same shape as "Start workout" on the session card. The label and
+ * spinner are both always mounted and crossfade, so the button never changes size mid-submit.
+ */
 export function SubmitButton({
   label,
   loading,
@@ -18,42 +30,45 @@ export function SubmitButton({
 }) {
   const theme = useTheme();
   return (
-    <Pressable
+    <PressScale
       onPress={onPress}
       disabled={loading || disabled}
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ busy: loading, disabled: loading || disabled }}
-      style={({ pressed }) => [
+      style={[
         styles.button,
         { backgroundColor: theme.accent },
-        pressed && styles.pressed,
         disabled && !loading && styles.disabled,
       ]}>
-      {loading ? (
-        <ActivityIndicator color={theme.onAccent} />
-      ) : (
+      <Animated.View style={[FADE, { opacity: loading ? 0 : 1 }]}>
         <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
           {label}
         </Text>
-      )}
-    </Pressable>
+      </Animated.View>
+      <Animated.View
+        style={[StyleSheet.absoluteFill, styles.center, FADE, { opacity: loading ? 1 : 0 }]}>
+        {loading && <ActivityIndicator color={theme.onAccent} />}
+      </Animated.View>
+    </PressScale>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    marginTop: Spacing.two,
-    minHeight: 52,
+    marginTop: Spacing.one,
+    minHeight: 54,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  center: {
+    pointerEvents: 'none',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   disabled: {
     opacity: 0.5,
-  },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.99 }],
   },
 });

@@ -1,7 +1,8 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -39,23 +40,26 @@ export function GoogleSignIn({ disabled, onBusyChange, onError }: Props) {
 
   return (
     <>
-      <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View
+        style={styles.divider}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants">
         <View style={[styles.rule, { backgroundColor: theme.line }]} />
-        <Text variant="caption" color="textSecondary">
-          or
+        <Text variant="caption" color="textSecondary" style={styles.or}>
+          OR
         </Text>
         <View style={[styles.rule, { backgroundColor: theme.line }]} />
       </View>
 
-      <Pressable
+      <PressScale
         onPress={press}
         disabled={disabled || loading}
         accessibilityRole="button"
+        accessibilityLabel="Continue with Google"
         accessibilityState={{ busy: loading, disabled: disabled || loading }}
-        style={({ pressed }) => [
+        style={[
           styles.button,
           { backgroundColor: theme.surface, borderColor: theme.line },
-          pressed && { backgroundColor: theme.line },
           disabled && !loading && styles.disabled,
         ]}>
         {loading ? (
@@ -66,7 +70,7 @@ export function GoogleSignIn({ disabled, onBusyChange, onError }: Props) {
             <Text variant="bodyStrong">Continue with Google</Text>
           </>
         )}
-      </Pressable>
+      </PressScale>
     </>
   );
 }
@@ -81,8 +85,11 @@ const styles = StyleSheet.create({
     flex: 1,
     height: StyleSheet.hairlineWidth,
   },
+  or: {
+    letterSpacing: 1.2,
+  },
   button: {
-    minHeight: 52,
+    minHeight: 54,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',

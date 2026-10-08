@@ -1,12 +1,16 @@
+import * as Haptics from 'expo-haptics';
 import { Link } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { Text } from '@/components/ui/text';
-import { FontFamily } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
 
 import { AuthScreen } from './components/auth-screen';
+import { FormError } from './components/form-error';
 import { GoogleSignIn } from './components/google-sign-in';
+import { useShake } from './components/motion';
 import { SubmitButton } from './components/submit-button';
 import { TextField } from './components/text-field';
 import { useSession } from './session';
@@ -23,6 +27,7 @@ export function SignupScreen() {
   const [loading, setLoading] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [formError, setFormError] = useState<string>();
+  const fields = useShake();
 
   const errors = {
     name: name.trim() ? undefined : 'Enter your name.',
@@ -37,14 +42,21 @@ export function SignupScreen() {
     if (googleBusy) return;
     setSubmitted(true);
     setFormError(undefined);
-    if (errors.name || errors.email || errors.password) return;
+    if (errors.name || errors.email || errors.password) return reject();
     setLoading(true);
     try {
       await signUp({ name: name.trim(), email: email.trim(), password });
     } catch (error) {
       setFormError(errorMessage(error));
       setLoading(false);
+      reject();
     }
+  }
+
+  /** The haptic and the shake land on the same frame the errors appear. */
+  function reject() {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    fields.shake();
   }
 
   return (
@@ -63,54 +75,57 @@ export function SignupScreen() {
           </Link>
         </>
       }>
-      <TextField
-        label="Name"
-        value={name}
-        onChangeText={setName}
-        error={submitted ? errors.name : undefined}
-        placeholder="What should we call you?"
-        autoCapitalize="words"
-        autoComplete="name"
-        textContentType="name"
-        returnKeyType="next"
-        submitBehavior="submit"
-        onSubmitEditing={() => emailRef.current?.focus()}
+      <Animated.View style={[styles.fields, fields.style]}>
+        <TextField
+          label="Name"
+          value={name}
+          onChangeText={setName}
+          error={submitted ? errors.name : undefined}
+          placeholder="What should we call you?"
+          autoCapitalize="words"
+          autoComplete="name"
+          textContentType="name"
+          returnKeyType="next"
+          submitBehavior="submit"
+          onSubmitEditing={() => emailRef.current?.focus()}
+        />
+        <TextField
+          ref={emailRef}
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          error={submitted ? errors.email : undefined}
+          placeholder="you@example.com"
+          autoCapitalize="none"
+          autoComplete="email"
+          textContentType="emailAddress"
+          keyboardType="email-address"
+          returnKeyType="next"
+          submitBehavior="submit"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+        />
+        <TextField
+          ref={passwordRef}
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          error={submitted ? errors.password : undefined}
+          hint={`At least ${MIN_PASSWORD_LENGTH} characters.`}
+          secure
+          autoCapitalize="none"
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="go"
+          onSubmitEditing={submit}
+        />
+      </Animated.View>
+      {formError && <FormError message={formError} />}
+      <SubmitButton
+        label="Create account"
+        loading={loading}
+        disabled={googleBusy}
+        onPress={submit}
       />
-      <TextField
-        ref={emailRef}
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        error={submitted ? errors.email : undefined}
-        placeholder="you@example.com"
-        autoCapitalize="none"
-        autoComplete="email"
-        textContentType="emailAddress"
-        keyboardType="email-address"
-        returnKeyType="next"
-        submitBehavior="submit"
-        onSubmitEditing={() => passwordRef.current?.focus()}
-      />
-      <TextField
-        ref={passwordRef}
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        error={submitted ? errors.password : undefined}
-        hint={`At least ${MIN_PASSWORD_LENGTH} characters.`}
-        secure
-        autoCapitalize="none"
-        autoComplete="new-password"
-        textContentType="newPassword"
-        returnKeyType="go"
-        onSubmitEditing={submit}
-      />
-      {formError && (
-        <Text variant="label" color="danger" accessibilityRole="alert">
-          {formError}
-        </Text>
-      )}
-      <SubmitButton label="Create account" loading={loading} disabled={googleBusy} onPress={submit} />
       <GoogleSignIn
         disabled={loading}
         onBusyChange={(busy) => {
@@ -124,6 +139,9 @@ export function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
+  fields: {
+    gap: Spacing.three,
+  },
   link: {
     fontFamily: FontFamily.bodySemiBold,
   },
