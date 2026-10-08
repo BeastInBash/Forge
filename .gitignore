@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+# Local CI/CD setup notes
+CI_CD.md
