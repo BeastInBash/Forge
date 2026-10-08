@@ -73,9 +73,12 @@ export default function RootLayout() {
   );
 }
 
-/** Signed in, only the tabs are reachable; signed out, only the auth screens. */
+/**
+ * Signed out, only the auth screens are reachable. Signed in, onboarding comes first until it is
+ * finished or skipped; after that, only the tabs.
+ */
 function RootNavigator() {
-  const { session, isLoading } = useSession();
+  const { session, isLoading, onboarded } = useSession();
 
   useEffect(() => {
     if (!isLoading) SplashScreen.hideAsync();
@@ -86,8 +89,11 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={session !== null}>
+      <Stack.Protected guard={session !== null && onboarded}>
         <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={session !== null && !onboarded}>
+        <Stack.Screen name="onboarding" />
       </Stack.Protected>
       <Stack.Protected guard={session === null}>
         <Stack.Screen name="(auth)" />

@@ -9,6 +9,7 @@
 import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
+import { saveOnboarding, type OnboardingAnswers } from '@/features/onboarding/api';
 import { clearPlans } from '@/features/plans/plans-store';
 import { clearLifts } from '@/features/progress/lifts-store';
 import { clearSession } from '@/features/session/session-store';
@@ -25,6 +26,10 @@ type SessionContextValue = {
   session: Session | null;
   /** True until the launch session check settles (or times out); never true again after. */
   isLoading: boolean;
+  /** The signed-in user has finished or skipped onboarding. */
+  onboarded: boolean;
+  /** Saves the onboarding answers; on success the route guard moves the user to the tabs. */
+  completeOnboarding: (answers: OnboardingAnswers) => Promise<void>;
   signIn: (input: SignInInput) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
   /** Signs in, or creates the account on first use — Google doesn't distinguish the two. */
@@ -38,7 +43,8 @@ const SessionContext = createContext<SessionContextValue | null>(null);
 const MESSAGES: Record<string, string> = {
   INVALID_EMAIL_OR_PASSWORD: 'That email and password don’t match.',
   USER_ALREADY_EXISTS: 'An account with this email already exists. Sign in instead.',
-  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: 'An account with this email already exists. Sign in instead.',
+  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
+    'An account with this email already exists. Sign in instead.',
   PASSWORD_TOO_SHORT: 'That password is too short.',
   PASSWORD_TOO_LONG: 'That password is too long.',
   INVALID_EMAIL: 'That email doesn’t look right.',
@@ -86,10 +92,19 @@ function useSessionChecked() {
 export function SessionProvider({ children }: { children: ReactNode }) {
   const { data } = authClient.useSession();
   const checked = useSessionChecked();
+  // Set the moment the save succeeds, so the guard flips without waiting on a session refetch.
+  const [onboardedNow, setOnboardedNow] = useState(false);
 
   const value: SessionContextValue = {
     session: data ? { user: data.user } : null,
     isLoading: !checked,
+    onboarded: Boolean(data?.user.onboardedAt) || onboardedNow,
+    async completeOnboarding(answers) {
+      await saveOnboarding(answers);
+      setOnboardedNow(true);
+      // Refetch in the background so the session's own `onboardedAt` catches up.
+      authClient.$store.notify('$sessionSignal');
+    },
     async signIn({ email, password }) {
       const { error } = await authClient.signIn.email({ email, password });
       if (error) throw toError(error);
@@ -109,6 +124,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     async signOut() {
       const { error } = await authClient.signOut();
       if (error) throw toError(error);
+      setOnboardedNow(false);
       clearPlans();
       clearLifts();
       clearSession();
