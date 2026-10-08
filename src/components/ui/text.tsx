@@ -10,7 +10,7 @@ export type TextProps = RNTextProps & {
   color?: ThemeColor;
 };
 
-/** App text. Display variants use Big Shoulders; everything else is Archivo. */
+/** App text. Display variants use Roboto; everything else is Inter. */
 export function Text({ variant = 'body', color = 'text', style, ...rest }: TextProps) {
   const theme = useTheme();
   return <RNText style={[styles[variant], { color: theme[color] }, style]} {...rest} />;
@@ -19,21 +19,22 @@ export function Text({ variant = 'body', color = 'text', style, ...rest }: TextP
 const styles = StyleSheet.create({
   hero: {
     fontFamily: FontFamily.display,
-    fontSize: 52,
-    lineHeight: 50,
-    letterSpacing: -0.5,
+    fontSize: 40,
+    lineHeight: 46,
+    letterSpacing: -1,
   },
   display: {
     fontFamily: FontFamily.display,
-    fontSize: 40,
-    lineHeight: 42,
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -0.5,
     fontVariant: ['tabular-nums'],
   },
   title: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 24,
-    lineHeight: 28,
-    letterSpacing: 0.2,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: -0.2,
   },
   body: {
     fontFamily: FontFamily.body,

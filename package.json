@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "dependencies": {
     "@better-auth/expo": "1.6.27",
-    "@expo-google-fonts/archivo": "^0.4.2",
-    "@expo-google-fonts/big-shoulders-display": "^0.2.3",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/roboto": "^0.4.3",
     "@expo/ui": "~57.0.10",
     "@react-native-masked-view/masked-view": "0.3.2",
     "better-auth": "1.6.27",

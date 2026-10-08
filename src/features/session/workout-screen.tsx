@@ -419,8 +419,9 @@ const styles = StyleSheet.create({
   },
   sessionClock: {
     fontFamily: FontFamily.display,
-    fontSize: 64,
-    lineHeight: 66,
+    fontSize: 52,
+    lineHeight: 60,
+    letterSpacing: -1,
     fontVariant: ['tabular-nums'],
   },
   track: {

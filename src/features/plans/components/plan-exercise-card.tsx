@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: 'center',
     fontFamily: FontFamily.displayBold,
-    fontSize: 22,
+    fontSize: 18,
     textAlign: 'right',
   },
 });

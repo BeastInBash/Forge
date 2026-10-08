@@ -1,12 +1,9 @@
-import {
-  Archivo_400Regular,
-  Archivo_500Medium,
-  Archivo_600SemiBold,
-} from '@expo-google-fonts/archivo';
-import {
-  BigShouldersDisplay_700Bold,
-  BigShouldersDisplay_800ExtraBold,
-} from '@expo-google-fonts/big-shoulders-display';
+// Per-weight entry points, so the bundle carries only these five files rather than every weight.
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { Roboto_700Bold } from '@expo-google-fonts/roboto/700Bold';
+import { Roboto_800ExtraBold } from '@expo-google-fonts/roboto/800ExtraBold';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -51,11 +48,11 @@ export default function RootLayout() {
   // Loaded at runtime so the app keeps working in Expo Go. In a development or store build,
   // these can move to the `expo-font` config plugin in app.json and be embedded instead.
   const [fontsLoaded, fontError] = useFonts({
-    Archivo_400Regular,
-    Archivo_500Medium,
-    Archivo_600SemiBold,
-    BigShouldersDisplay_700Bold,
-    BigShouldersDisplay_800ExtraBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Roboto_700Bold,
+    Roboto_800ExtraBold,
   });
   // Wait for the saved theme too, so a dark-mode choice doesn't flash light on launch.
   const { loaded: themeLoaded } = useThemePreference();

@@ -153,8 +153,8 @@ const styles = StyleSheet.create({
   },
   initialsText: {
     fontFamily: FontFamily.display,
-    fontSize: 30,
-    lineHeight: 34,
+    fontSize: 26,
+    lineHeight: 32,
   },
   names: {
     flex: 1,

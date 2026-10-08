@@ -355,8 +355,9 @@ const styles = StyleSheet.create({
   },
   value: {
     fontFamily: FontFamily.display,
-    fontSize: 48,
-    lineHeight: 52,
+    fontSize: 40,
+    lineHeight: 46,
+    letterSpacing: -1,
     minWidth: 40,
   },
   noData: {

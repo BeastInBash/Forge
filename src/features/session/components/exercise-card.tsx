@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   clock: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 24,
+    fontSize: 20,
     fontVariant: ['tabular-nums'],
   },
   startTimer: {

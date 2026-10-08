@@ -66,11 +66,11 @@ export type TemperKey = keyof typeof Temper;
 
 /** Families registered by `useFonts` in the root layout. */
 export const FontFamily = {
-  display: 'BigShouldersDisplay_800ExtraBold',
-  displayBold: 'BigShouldersDisplay_700Bold',
-  body: 'Archivo_400Regular',
-  bodyMedium: 'Archivo_500Medium',
-  bodySemiBold: 'Archivo_600SemiBold',
+  display: 'Roboto_800ExtraBold',
+  displayBold: 'Roboto_700Bold',
+  body: 'Inter_400Regular',
+  bodyMedium: 'Inter_500Medium',
+  bodySemiBold: 'Inter_600SemiBold',
 } as const;
 
 export const Fonts = Platform.select({
