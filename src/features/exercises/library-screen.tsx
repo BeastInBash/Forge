@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Vie
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { useIsAdmin } from '@/features/auth/use-is-admin';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ExerciseThumb } from './components/exercise-thumb';
@@ -11,22 +12,25 @@ import { useExercises } from './use-exercises';
 
 const THUMB_SIZE = 56;
 
-/** The whole exercise catalog with images; the header button opens the add form. */
+/** The whole exercise catalog with images; for admins, the header button opens the add form. */
 export function ExerciseLibraryScreen() {
   const theme = useTheme();
+  const isAdmin = useIsAdmin();
   const { exercises, error, loading, refreshing, refresh } = useExercises();
 
   return (
     <>
       <Stack.Screen
         options={{
-          headerRight: () => (
-            <Link href="/add-exercise" asChild>
-              <Pressable accessibilityRole="button" accessibilityLabel="Add exercise" hitSlop={8} style={styles.headerButton}>
-                <Icon ios="plus" material="add" size={24} color={theme.text} />
-              </Pressable>
-            </Link>
-          ),
+          headerRight: isAdmin
+            ? () => (
+                <Link href="/add-exercise" asChild>
+                  <Pressable accessibilityRole="button" accessibilityLabel="Add exercise" hitSlop={8} style={styles.headerButton}>
+                    <Icon ios="plus" material="add" size={24} color={theme.text} />
+                  </Pressable>
+                </Link>
+              )
+            : undefined,
         }}
       />
       <FlatList
@@ -49,7 +53,10 @@ export function ExerciseLibraryScreen() {
           ) : error ? (
             <EmptyState title="Couldn’t load exercises" detail={error} actionLabel="Try again" onAction={refresh} />
           ) : (
-            <EmptyState title="No exercises yet" detail="Add the first one with its image." />
+            <EmptyState
+              title="No exercises yet"
+              detail={isAdmin ? 'Add the first one with its image.' : 'Check back soon.'}
+            />
           )
         }
         renderItem={({ item, index }) => (

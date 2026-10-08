@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
+import { useIsAdmin } from '@/features/auth/use-is-admin';
 import type { Exercise } from '@/features/exercises/api';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,10 +12,11 @@ import { useTheme } from '@/hooks/use-theme';
 const PREVIEW_COUNT = 5;
 const THUMB_SIZE = 48;
 
-/** Entry to the exercise library: count, a strip of image thumbnails, and a quick add. */
+/** Entry to the exercise library: count, a strip of image thumbnails, and (for admins) a quick add. */
 export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; error?: string }) {
   const theme = useTheme();
   const router = useRouter();
+  const isAdmin = useIsAdmin();
   const preview = exercises?.slice(0, PREVIEW_COUNT) ?? [];
   const more = (exercises?.length ?? 0) - preview.length;
 
@@ -74,17 +76,19 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
         </Pressable>
       )}
 
-      <Pressable
-        onPress={() => router.push('/add-exercise')}
-        accessibilityRole="button"
-        style={({ pressed }) => [
-          styles.add,
-          { borderColor: theme.line },
-          pressed && { backgroundColor: theme.line },
-        ]}>
-        <Icon ios="plus" material="add" size={18} color={theme.text} />
-        <Text variant="bodyStrong">Add exercise</Text>
-      </Pressable>
+      {isAdmin && (
+        <Pressable
+          onPress={() => router.push('/add-exercise')}
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            styles.add,
+            { borderColor: theme.line },
+            pressed && { backgroundColor: theme.line },
+          ]}>
+          <Icon ios="plus" material="add" size={18} color={theme.text} />
+          <Text variant="bodyStrong">Add exercise</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
