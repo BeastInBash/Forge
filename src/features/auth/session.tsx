@@ -11,6 +11,7 @@ import { Platform } from 'react-native';
 
 import { clearPlans } from '@/features/plans/plans-store';
 import { clearLifts } from '@/features/progress/lifts-store';
+import { clearSession } from '@/features/session/session-store';
 import { authClient } from '@/lib/auth-client';
 
 export type Session = {
@@ -110,6 +111,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (error) throw toError(error);
       clearPlans();
       clearLifts();
+      clearSession();
     },
   };
 

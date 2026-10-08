@@ -1,8 +1,11 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
+import { isClockRunning, type WorkoutSession } from '@/features/session/session-store';
+import { formatClock, formatSpan, sessionDuration } from '@/features/session/timing';
+import { useNow } from '@/features/session/use-session';
 import { useTheme } from '@/hooks/use-theme';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
@@ -17,12 +20,33 @@ type Props = {
   dayLabel: string;
   isToday: boolean;
   plan?: WorkoutPlan;
+  /** The plans are still loading. */
+  loading?: boolean;
+  /** A started or finished session of this plan. */
+  workout?: WorkoutSession;
   onStart: () => void;
   onPlan: () => void;
 };
 
-export function SessionCard({ day, dayLabel, isToday, plan, onStart, onPlan }: Props) {
+export function SessionCard({
+  day,
+  dayLabel,
+  isToday,
+  plan,
+  loading,
+  workout,
+  onStart,
+  onPlan,
+}: Props) {
   const theme = useTheme();
+
+  if (loading) {
+    return (
+      <View style={[styles.card, styles.loadingCard, { backgroundColor: theme.iron }]}>
+        <ActivityIndicator color={theme.ironTextSecondary} />
+      </View>
+    );
+  }
 
   if (!plan) {
     return (
@@ -68,7 +92,10 @@ export function SessionCard({ day, dayLabel, isToday, plan, onStart, onPlan }: P
               <Text variant="title" style={[styles.order, { color: theme.ironTextSecondary }]}>
                 {item.order + 1}
               </Text>
-              <Text variant="body" numberOfLines={1} style={[styles.name, { color: theme.ironText }]}>
+              <Text
+                variant="body"
+                numberOfLines={1}
+                style={[styles.name, { color: theme.ironText }]}>
                 {item.exercise.name}
               </Text>
               <Text variant="label" style={{ color: theme.ironTextSecondary }}>
@@ -78,7 +105,14 @@ export function SessionCard({ day, dayLabel, isToday, plan, onStart, onPlan }: P
           ))}
         </View>
 
-        {isToday ? (
+        {workout?.finishedAt !== undefined ? (
+          <SecondaryButton
+            label={`Done in ${formatSpan(sessionDuration(workout, workout.finishedAt))} · View`}
+            onPress={onStart}
+          />
+        ) : workout && workout.clock.length > 0 ? (
+          <ResumeButton workout={workout} onPress={onStart} />
+        ) : isToday || workout ? (
           <Pressable
             onPress={onStart}
             accessibilityRole="button"
@@ -97,6 +131,35 @@ export function SessionCard({ day, dayLabel, isToday, plan, onStart, onPlan }: P
         )}
       </View>
     </View>
+  );
+}
+
+/** "Resume workout" with the session clock beside it, still counting unless stopped. */
+function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: () => void }) {
+  const theme = useTheme();
+  const running = isClockRunning(workout);
+  const now = useNow(running);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.primary,
+        { backgroundColor: theme.accent },
+        pressed && styles.pressed,
+      ]}>
+      <Icon ios="timer" material="timer" size={18} color={theme.onAccent} />
+      <Text variant="bodyStrong" numberOfLines={1} style={{ color: theme.onAccent }}>
+        Resume workout
+      </Text>
+      <Text
+        variant="label"
+        numberOfLines={1}
+        style={[styles.resumeClock, { color: theme.onAccent }]}>
+        {formatClock(sessionDuration(workout, now))}
+        {running ? '' : ' · stopped'}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -137,6 +200,15 @@ const styles = StyleSheet.create({
     borderRadius: Radius.large,
     borderCurve: 'continuous',
     overflow: 'hidden',
+  },
+  resumeClock: {
+    opacity: 0.75,
+    flexShrink: 1,
+  },
+  loadingCard: {
+    height: 240,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   temper: {
     height: 6,
@@ -197,6 +269,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.99 }],
+    transform: [{ scale: 0.97 }],
   },
 });
