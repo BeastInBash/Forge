@@ -7,7 +7,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useIsAdmin } from '@/features/auth/use-is-admin';
 import type { Exercise } from '@/features/exercises/api';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 const PREVIEW_COUNT = 5;
 const THUMB_SIZE = 48;
@@ -15,6 +15,7 @@ const THUMB_SIZE = 48;
 /** Entry to the exercise library: count, a strip of image thumbnails, and (for admins) a quick add. */
 export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; error?: string }) {
   const theme = useTheme();
+  const clay = useClay();
   const router = useRouter();
   const isAdmin = useIsAdmin();
   const preview = exercises?.slice(0, PREVIEW_COUNT) ?? [];
@@ -27,7 +28,7 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
       : 'Loading…';
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
       <Pressable
         onPress={() => router.push('/exercises')}
         accessibilityRole="button"
@@ -52,6 +53,7 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
               key={exercise.id}
               style={[
                 styles.thumbFrame,
+                clay.soft,
                 {
                   borderColor: theme.surface,
                   marginLeft: i === 0 ? 0 : -10,
@@ -65,6 +67,7 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
             <View
               style={[
                 styles.more,
+                clay.sunken,
                 {
                   backgroundColor: theme.background,
                   borderColor: theme.surface,
@@ -82,8 +85,8 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
           accessibilityRole="button"
           style={({ pressed }) => [
             styles.add,
-            { borderColor: theme.line },
-            pressed && { backgroundColor: theme.line },
+            { backgroundColor: theme.surface },
+            pressed ? clay.sunken : clay.soft,
           ]}>
           <Icon ios="plus" material="add" size={18} color={theme.text} />
           <Text variant="bodyStrong">Add exercise</Text>
@@ -136,7 +139,6 @@ const styles = StyleSheet.create({
     minHeight: 48,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -13,7 +13,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { Text } from '@/components/ui/text';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 /** Distance between ticks. Wide enough to land on a value with a thumb. */
 const TICK = 12;
@@ -39,6 +39,7 @@ type Props = {
  */
 export function RulerPicker({ min, max, step, majorEvery, value, onChange, label, unit }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const ref = useAnimatedRef<Animated.ScrollView>();
   const [width, setWidth] = useState(0);
   const count = Math.round((max - min) / step) + 1;
@@ -156,7 +157,7 @@ export function RulerPicker({ min, max, step, majorEvery, value, onChange, label
         end={{ x: 1, y: 0 }}
         style={[styles.edge, styles.right]}
       />
-      <View style={[styles.needle, { backgroundColor: theme.accent }]} />
+      <View style={[styles.needle, { backgroundColor: theme.accent }, clay.accent]} />
     </View>
   );
 }
@@ -221,9 +222,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignSelf: 'center',
     top: 8,
-    width: 3,
-    height: 48,
-    borderRadius: 2,
+    width: 6,
+    height: 52,
+    borderRadius: 3,
     pointerEvents: 'none',
   },
 });

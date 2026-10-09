@@ -3,7 +3,7 @@ import Animated from 'react-native-reanimated';
 
 import { CSS_EASE_OUT } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 /**
  * One segment per step, filled up to the current one. Each fill is absolutely positioned and
@@ -11,6 +11,7 @@ import { useTheme } from '@/hooks/use-theme';
  */
 export function StepProgress({ step, total }: { step: number; total: number }) {
   const theme = useTheme();
+  const clay = useClay();
   return (
     <View
       style={styles.row}
@@ -23,7 +24,7 @@ export function StepProgress({ step, total }: { step: number; total: number }) {
         text: `Step ${step + 1} of ${total}`,
       }}>
       {Array.from({ length: total }, (_, i) => (
-        <View key={i} style={[styles.track, { backgroundColor: theme.line }]}>
+        <View key={i} style={[styles.track, { backgroundColor: theme.background }, clay.sunken]}>
           <Animated.View
             style={[
               styles.fill,
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
   },
   track: {
     flex: 1,
-    height: 4,
+    height: 8,
     borderRadius: Radius.pill,
     overflow: 'hidden',
   },

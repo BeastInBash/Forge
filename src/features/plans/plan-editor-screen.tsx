@@ -14,7 +14,7 @@ import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
 import { errorMessage } from '@/features/auth/validation';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import { WEEKDAYS } from '@/lib/week';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
@@ -99,6 +99,7 @@ function PlanEditor({
   initialDay: Weekday;
 }) {
   const theme = useTheme();
+  const clay = useClay();
   const router = useRouter();
   const [day, setDay] = useState<Weekday>(initialDay);
   const [muscleGroup, setMuscleGroup] = useState(existing?.muscleGroup ?? '');
@@ -201,11 +202,11 @@ function PlanEditor({
                   style={[
                     styles.dayChip,
                     selected
-                      ? { backgroundColor: theme.text }
-                      : { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1 },
+                      ? [{ backgroundColor: theme.accent }, clay.accent]
+                      : [{ backgroundColor: theme.surface }, clay.soft],
                     taken && styles.taken,
                   ]}>
-                  <Text variant="label" style={{ color: selected ? theme.background : theme.text }}>
+                  <Text variant="label" style={{ color: selected ? theme.onAccent : theme.text }}>
                     {weekday.slice(0, 3)}
                   </Text>
                 </Pressable>
@@ -224,9 +225,10 @@ function PlanEditor({
             style={[
               styles.nameBox,
               {
-                backgroundColor: theme.surface,
-                borderColor: submitted && errors.muscleGroup ? theme.danger : theme.line,
+                backgroundColor: theme.background,
+                borderColor: submitted && errors.muscleGroup ? theme.danger : 'transparent',
               },
+              clay.sunken,
             ]}>
             {muscleGroup.trim() ? (
               <View style={[styles.splitDot, { backgroundColor: Temper[splitFor(muscleGroup)] }]} />
@@ -245,6 +247,7 @@ function PlanEditor({
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
+            style={styles.suggestionsScroll}
             contentContainerStyle={styles.suggestions}>
             {MUSCLE_GROUP_SUGGESTIONS.map((suggestion) => {
               const active = suggestion === muscleGroup.trim();
@@ -255,10 +258,8 @@ function PlanEditor({
                   accessibilityRole="button"
                   style={[
                     styles.suggestion,
-                    {
-                      borderColor: active ? theme.accent : theme.line,
-                      backgroundColor: active ? theme.accent : 'transparent',
-                    },
+                    { backgroundColor: active ? theme.accent : theme.surface },
+                    active ? clay.accent : clay.soft,
                   ]}>
                   <View
                     style={[
@@ -279,7 +280,7 @@ function PlanEditor({
             </Text>
           ) : null}
 
-          <View style={[styles.timeRow, { backgroundColor: theme.surface }]}>
+          <View style={[styles.timeRow, { backgroundColor: theme.surface }, clay.raised]}>
             <Icon ios="clock" material="schedule" size={18} color={theme.textSecondary} />
             <Text variant="bodyStrong" style={styles.timeLabel}>
               Time
@@ -313,8 +314,11 @@ function PlanEditor({
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.addExercise,
-              { borderColor: submitted && errors.items ? theme.danger : theme.line },
-              pressed && { backgroundColor: theme.line },
+              {
+                backgroundColor: theme.surface,
+                borderColor: submitted && errors.items ? theme.danger : 'transparent',
+              },
+              pressed ? clay.sunken : clay.soft,
             ]}>
             <Icon ios="plus" material="add" size={18} color={theme.text} />
             <Text variant="bodyStrong">
@@ -345,8 +349,11 @@ function PlanEditor({
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.delete,
-              { borderColor: confirmDelete ? theme.danger : theme.line },
-              pressed && { backgroundColor: theme.line },
+              {
+                backgroundColor: theme.surface,
+                borderColor: confirmDelete ? theme.danger : 'transparent',
+              },
+              pressed ? clay.sunken : clay.soft,
             ]}>
             <Icon ios="trash" material="delete" size={18} color={theme.danger} />
             <Text variant="bodyStrong" color="danger">
@@ -395,6 +402,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 function TimeButton({ icon, onPress }: { icon: 'minus' | 'plus'; onPress: () => void }) {
   const theme = useTheme();
+  const clay = useClay();
   return (
     <Pressable
       onPress={onPress}
@@ -403,8 +411,8 @@ function TimeButton({ icon, onPress }: { icon: 'minus' | 'plus'; onPress: () => 
       accessibilityLabel={icon === 'minus' ? '15 minutes earlier' : '15 minutes later'}
       style={({ pressed }) => [
         styles.timeButton,
-        { backgroundColor: theme.background },
-        pressed && { backgroundColor: theme.line },
+        { backgroundColor: theme.surface },
+        pressed ? clay.sunken : clay.soft,
       ]}>
       <Icon
         ios={icon}
@@ -434,7 +442,7 @@ const styles = StyleSheet.create({
     gap: Spacing.four,
   },
   section: {
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   sectionTitle: {
     paddingHorizontal: Spacing.one,
@@ -462,7 +470,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
+    borderWidth: 1.5,
     gap: Spacing.two,
   },
   splitDot: {
@@ -477,9 +485,15 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: 17,
   },
+  // Bleeds to the screen edges with matching padding, so the chips' clay shadows aren't clipped.
+  suggestionsScroll: {
+    marginHorizontal: -Spacing.three,
+    marginVertical: -Spacing.two,
+  },
   suggestions: {
     gap: Spacing.two,
-    paddingVertical: Spacing.half,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.three,
   },
   suggestion: {
     flexDirection: 'row',
@@ -488,7 +502,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     height: 34,
     borderRadius: Radius.pill,
-    borderWidth: 1,
   },
   suggestionDot: {
     width: 8,
@@ -525,7 +538,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
     borderWidth: 1.5,
-    borderStyle: 'dashed',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -535,7 +547,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
+    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

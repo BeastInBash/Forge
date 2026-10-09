@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { Stepper } from './stepper';
 
@@ -44,6 +44,7 @@ export function parseWeight(text: string): number | null | undefined {
 /** One exercise in the plan being edited: order controls, sets, reps and working weight. */
 export function PlanExerciseCard({ item, index, count, onChange, onMove, onRemove }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   // The text is kept separately so "62." can be typed on the way to "62.5".
   const [weightText, setWeightText] = useState(formatWeight(item.weight));
 
@@ -62,7 +63,7 @@ export function PlanExerciseCard({ item, index, count, onChange, onMove, onRemov
       accessibilityLabel={label}
       style={({ pressed }) => [
         styles.iconButton,
-        pressed && { backgroundColor: theme.line },
+        pressed && [{ backgroundColor: theme.background }, clay.sunken],
         disabled && styles.disabled,
       ]}>
       <Icon ios={ios} material={material} size={18} color={theme.textSecondary} />
@@ -70,7 +71,7 @@ export function PlanExerciseCard({ item, index, count, onChange, onMove, onRemov
   );
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
       <View style={styles.header}>
         <Text variant="label" color="textSecondary" style={styles.order}>
           {index + 1}
@@ -115,7 +116,7 @@ export function PlanExerciseCard({ item, index, count, onChange, onMove, onRemov
           <Text variant="caption" color="textSecondary">
             Weight
           </Text>
-          <View style={[styles.weightBox, { backgroundColor: theme.background }]}>
+          <View style={[styles.weightBox, { backgroundColor: theme.background }, clay.sunken]}>
             <TextInput
               value={weightText}
               onChangeText={(text) => {

@@ -10,7 +10,7 @@ import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
 import { TextField } from '@/features/auth/components/text-field';
 import { errorMessage } from '@/features/auth/validation';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { createExercise, MAX_IMAGE_BYTES } from './api';
 import { addToCache } from './exercise-cache';
@@ -27,6 +27,7 @@ function imageError(image: ImagePickerAsset | undefined) {
 /** Name plus image for a new catalog exercise; uploads in one request and returns to the library. */
 export function AddExerciseScreen() {
   const theme = useTheme();
+  const clay = useClay();
   const router = useRouter();
   const [name, setName] = useState('');
   const [image, setImage] = useState<ImagePickerAsset>();
@@ -92,16 +93,16 @@ export function AddExerciseScreen() {
           style={({ pressed }) => [
             styles.picker,
             {
-              backgroundColor: image ? '#FFFFFF' : theme.surface,
-              borderColor: showImageError && errors.image ? theme.danger : theme.line,
+              backgroundColor: image ? '#FFFFFF' : theme.background,
+              borderColor: showImageError && errors.image ? theme.danger : 'transparent',
             },
-            !image && styles.pickerEmpty,
+            image ? clay.raised : clay.sunken,
             pressed && styles.pressed,
           ]}>
           {image ? (
             <>
               <Image source={image.uri} style={StyleSheet.absoluteFill} contentFit="contain" />
-              <View style={[styles.change, { backgroundColor: theme.iron }]}>
+              <View style={[styles.change, { backgroundColor: theme.iron }, clay.ironSoft]}>
                 <Icon ios="photo" material="image" size={14} color={theme.ironText} />
                 <Text variant="caption" style={{ color: theme.ironText }}>
                   Change image
@@ -110,7 +111,7 @@ export function AddExerciseScreen() {
             </>
           ) : (
             <View style={styles.placeholder}>
-              <View style={[styles.placeholderIcon, { backgroundColor: theme.background }]}>
+              <View style={[styles.placeholderIcon, { backgroundColor: theme.surface }, clay.soft]}>
                 <Icon ios="photo.badge.plus" material="add_photo_alternate" size={28} color={theme.text} />
               </View>
               <Text variant="bodyStrong">Pick an image</Text>
@@ -169,17 +170,13 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: Radius.large,
     borderCurve: 'continuous',
-    borderWidth: 1,
+    borderWidth: 1.5,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pickerEmpty: {
-    borderStyle: 'dashed',
-    borderWidth: 2,
-  },
   pressed: {
-    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
   placeholder: {
     alignItems: 'center',

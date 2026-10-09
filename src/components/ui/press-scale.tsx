@@ -7,6 +7,8 @@ import { CSS_EASE_OUT } from '@/constants/motion';
 type Props = Omit<PressableProps, 'style' | 'children'> & {
   /** Styles the visual surface — the part that scales. */
   style?: StyleProp<ViewStyle>;
+  /** Extra surface styles while pressed, e.g. a clay surface sinking in. */
+  pressedStyle?: StyleProp<ViewStyle>;
   children: ReactNode;
 };
 
@@ -14,13 +16,14 @@ type Props = Omit<PressableProps, 'style' | 'children'> & {
  * A pressable whose surface dips to 97% on press-in and springs back on release. The Pressable
  * itself never scales, so the touch target stays put under the finger.
  */
-export function PressScale({ style, children, ...rest }: Props) {
+export function PressScale({ style, pressedStyle, children, ...rest }: Props) {
   return (
     <Pressable pressRetentionOffset={16} {...rest}>
       {({ pressed }) => (
         <Animated.View
           style={[
             style,
+            pressed && pressedStyle,
             {
               transform: [{ scale: pressed ? 0.97 : 1 }],
               transitionProperty: 'transform',

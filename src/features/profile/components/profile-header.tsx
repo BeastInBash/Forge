@@ -6,7 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing, Temper } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { formatMonth, initials } from '../format';
 
@@ -28,13 +28,14 @@ type Props = {
 /** Cast-iron identity card: avatar, name, email, verification and membership, then the bio. */
 export function ProfileHeader({ name, email, image, bio, emailVerified, createdAt }: Props) {
   const theme = useTheme();
+  const clay = useClay();
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }]}>
+    <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
       <LinearGradient colors={TEMPER_BAND} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.band} />
       <View style={styles.body}>
         <View style={styles.identity}>
-          <View style={[styles.avatarRing, { borderColor: theme.accent }]}>
+          <View style={[styles.avatarRing, { backgroundColor: theme.accent }, clay.accent]}>
             {image ? (
               <Image
                 source={image}
@@ -108,9 +109,15 @@ function Chip({
   highlight?: boolean;
 }) {
   const theme = useTheme();
+  const clay = useClay();
   const color = highlight ? theme.accent : theme.ironTextSecondary;
   return (
-    <View style={[styles.chip, { borderColor: highlight ? theme.accent : theme.ironLine }]}>
+    <View
+      style={[
+        styles.chip,
+        clay.ironSunken,
+        { backgroundColor: theme.iron, borderColor: highlight ? theme.accent : 'transparent' },
+      ]}>
       <Icon ios={icon.ios} material={icon.material} size={14} color={color} />
       <Text variant="caption" style={{ color: highlight ? theme.ironText : theme.ironTextSecondary }}>
         {label}
@@ -138,9 +145,8 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   avatarRing: {
-    padding: 3,
+    padding: 4,
     borderRadius: Radius.pill,
-    borderWidth: 2,
   },
   avatar: {
     width: AVATAR_SIZE,

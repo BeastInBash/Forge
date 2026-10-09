@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
 import { describeSets, formatSet } from '@/features/progress/metrics';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import {
   isTimerRunning,
@@ -36,6 +36,7 @@ type Props = {
  */
 export function ExerciseCard({ exercise, index, locked }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const started = exercise.timer.length > 0;
   const done = exercise.completedAt !== undefined;
   const running = isTimerRunning(exercise) && !done && !locked;
@@ -85,6 +86,7 @@ export function ExerciseCard({ exercise, index, locked }: Props) {
       style={[
         styles.card,
         { backgroundColor: theme.surface, borderColor: done ? theme.accent : 'transparent' },
+        clay.raised,
       ]}>
       <View style={styles.header}>
         <ExerciseThumb url={exercise.iconUrl} size={48} />
@@ -106,7 +108,7 @@ export function ExerciseCard({ exercise, index, locked }: Props) {
       </View>
 
       {done ? (
-        <View style={[styles.timer, { backgroundColor: theme.background }]}>
+        <View style={[styles.timer, { backgroundColor: theme.background }, clay.sunken]}>
           <Icon ios="checkmark.seal.fill" material="verified" size={18} color={theme.up} />
           <Text variant="label" style={styles.timerLabel}>
             {elapsed === null ? 'Done' : 'Done in'}
@@ -114,7 +116,7 @@ export function ExerciseCard({ exercise, index, locked }: Props) {
           {elapsed !== null && <Text style={styles.clock}>{formatClock(elapsed)}</Text>}
         </View>
       ) : started ? (
-        <View style={[styles.timer, { backgroundColor: theme.background }]}>
+        <View style={[styles.timer, { backgroundColor: theme.background }, clay.sunken]}>
           {running ? (
             <Animated.View
               style={[
@@ -178,8 +180,8 @@ export function ExerciseCard({ exercise, index, locked }: Props) {
           accessibilityRole="button"
           style={({ pressed }) => [
             styles.startTimer,
-            { borderColor: theme.accent },
-            pressed && styles.pressed,
+            { backgroundColor: theme.surface },
+            pressed ? [styles.pressed, clay.sunken] : clay.soft,
             locked && styles.disabled,
           ]}>
           <Icon ios="timer" material="timer" size={18} color={theme.text} />
@@ -252,6 +254,8 @@ function TimerButton({
   fill: string;
   onPress: () => void;
 }) {
+  const theme = useTheme();
+  const clay = useClay();
   return (
     <Pressable
       onPress={onPress}
@@ -261,7 +265,7 @@ function TimerButton({
       style={({ pressed }) => [
         styles.timerButton,
         { backgroundColor: fill, transitionProperty: 'backgroundColor', transitionDuration: 150 },
-        pressed && styles.pressed,
+        pressed ? [styles.pressed, clay.sunken] : fill === theme.surface ? clay.soft : clay.accent,
       ]}>
       <Icon ios={ios} material={material} size={16} color={tint} />
     </Pressable>
@@ -320,14 +324,12 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
   },
   pressed: {
-    opacity: 0.85,
     transform: [{ scale: 0.97 }],
   },
   disabled: {

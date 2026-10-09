@@ -5,7 +5,7 @@ import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanim
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import type { Lift } from '../api';
 import { formatSet } from '../metrics';
@@ -28,6 +28,7 @@ type Props = {
 /** One logged session: its date, every set, and how it compares to the one before. */
 export function SessionRow({ lift, delta, isRecord, onDelete }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -56,7 +57,7 @@ export function SessionRow({ lift, delta, isRecord, onDelete }: Props) {
   return (
     <Animated.View
       layout={LinearTransition.duration(200)}
-      style={[styles.card, { backgroundColor: theme.surface }]}>
+      style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
       <Pressable
         onPress={() => {
           setOpen((o) => !o);
@@ -69,7 +70,7 @@ export function SessionRow({ lift, delta, isRecord, onDelete }: Props) {
           <View style={styles.dateRow}>
             <Text variant="bodyStrong">{dateFormat.format(new Date(lift.performedAt))}</Text>
             {isRecord && (
-              <View style={[styles.record, { backgroundColor: theme.accent }]}>
+              <View style={[styles.record, { backgroundColor: theme.accent }, clay.accent]}>
                 <Icon ios="trophy.fill" material="emoji_events" size={12} color={theme.onAccent} />
                 <Text variant="caption" style={[styles.recordText, { color: theme.onAccent }]}>
                   PR
@@ -96,7 +97,7 @@ export function SessionRow({ lift, delta, isRecord, onDelete }: Props) {
 
       <View style={styles.sets}>
         {lift.sets.map((set, i) => (
-          <View key={set.id} style={[styles.set, { backgroundColor: theme.background }]}>
+          <View key={set.id} style={[styles.set, { backgroundColor: theme.background }, clay.sunken]}>
             <Text variant="caption" color="textSecondary">
               {i + 1}
             </Text>
@@ -121,8 +122,8 @@ export function SessionRow({ lift, delta, isRecord, onDelete }: Props) {
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.delete,
-              { borderColor: confirm ? theme.danger : theme.line },
-              pressed && { backgroundColor: theme.line },
+              { backgroundColor: theme.surface, borderColor: confirm ? theme.danger : 'transparent' },
+              pressed ? clay.sunken : clay.soft,
             ]}>
             {deleting ? (
               <ActivityIndicator color={theme.danger} />
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
+    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

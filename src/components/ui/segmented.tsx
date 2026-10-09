@@ -4,7 +4,7 @@ import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-rea
 
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 
@@ -23,6 +23,7 @@ export function Segmented<T extends string>({
   accessibilityLabel,
 }: Props<T>) {
   const theme = useTheme();
+  const clay = useClay();
   const [layouts, setLayouts] = useState<Record<string, { x: number; width: number }>>({});
   const selected = layouts[value];
 
@@ -37,8 +38,8 @@ export function Segmented<T extends string>({
     <View
       accessibilityRole="tablist"
       accessibilityLabel={accessibilityLabel}
-      style={[styles.track, { backgroundColor: theme.surface }]}>
-      <Animated.View style={[styles.thumb, { backgroundColor: theme.text }, thumbStyle]} />
+      style={[styles.track, { backgroundColor: theme.background }, clay.sunken]}>
+      <Animated.View style={[styles.thumb, { backgroundColor: theme.accent }, clay.accent, thumbStyle]} />
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -56,7 +57,7 @@ export function Segmented<T extends string>({
             <Text
               variant="label"
               numberOfLines={1}
-              style={{ color: active ? theme.background : theme.textSecondary }}>
+              style={{ color: active ? theme.onAccent : theme.textSecondary }}>
               {option.label}
             </Text>
           </Pressable>
@@ -69,13 +70,13 @@ export function Segmented<T extends string>({
 const styles = StyleSheet.create({
   track: {
     flexDirection: 'row',
-    padding: Spacing.half + 1,
+    padding: Spacing.one,
     borderRadius: Radius.pill,
   },
   thumb: {
     position: 'absolute',
-    top: Spacing.half + 1,
-    bottom: Spacing.half + 1,
+    top: Spacing.one,
+    bottom: Spacing.one,
     left: 0,
     borderRadius: Radius.pill,
   },

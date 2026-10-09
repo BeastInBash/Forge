@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import { plural } from '@/lib/plural';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
@@ -30,11 +30,12 @@ function formatDuration(minutes: number) {
  */
 export function WeekOverview({ days, today, rangeLabel }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const plans = days.flatMap((d) => (d.plan ? [d.plan] : []));
   const sets = plans.reduce((sum, plan) => sum + plan.exercises.reduce((s, e) => s + e.sets, 0), 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }]}>
+    <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
       <View style={styles.header}>
         <Text variant="label" style={{ color: theme.ironTextSecondary }}>
           This week · {rangeLabel}
@@ -54,8 +55,8 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
               style={[
                 styles.segment,
                 plan
-                  ? { backgroundColor: Temper[plan.split] }
-                  : { borderColor: theme.ironLine, borderWidth: 1.5 },
+                  ? [{ backgroundColor: Temper[plan.split] }, styles.filled]
+                  : clay.ironSunken,
               ]}
             />
             <Text
@@ -118,8 +119,13 @@ const styles = StyleSheet.create({
   },
   segment: {
     alignSelf: 'stretch',
-    height: 10,
+    height: 12,
     borderRadius: Radius.pill,
+  },
+  /** Moulds a filled segment like a small clay bead. */
+  filled: {
+    boxShadow:
+      'inset 1px 2px 2px rgba(255, 255, 255, 0.45), inset -1px -2px 3px rgba(0, 0, 0, 0.3)',
   },
   todayDot: {
     width: 4,

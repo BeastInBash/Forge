@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import type { LiftSummary } from '../api';
 import { percentChange, relativeDay } from '../format';
@@ -21,6 +21,7 @@ type Props = {
 /** One tracked exercise: its last session, best set and recent trend. */
 export function LiftSummaryCard({ summary, index, onPress }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const { exercise, last, best, trend, sessions } = summary;
   const change = percentChange(trend);
   const lineColor =
@@ -38,7 +39,7 @@ export function LiftSummaryCard({ summary, index, onPress }: Props) {
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: theme.surface },
-        pressed && styles.pressed,
+        pressed ? [styles.pressed, clay.sunken] : clay.raised,
       ]}>
       <View style={styles.top}>
         <ExerciseThumb url={exercise.iconUrl} size={48} />
@@ -88,7 +89,6 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   pressed: {
-    opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
   top: {

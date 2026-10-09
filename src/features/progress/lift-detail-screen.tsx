@@ -12,7 +12,7 @@ import {
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { deleteLift, type Lift } from './api';
 import { AnimatedNumber } from './components/animated-number';
@@ -86,6 +86,7 @@ function signed(value: number, metric: Metric) {
 /** One exercise's progress: a chart over time, headline numbers and every logged session. */
 export function LiftDetailScreen() {
   const theme = useTheme();
+  const clay = useClay();
   const router = useRouter();
   const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
   const { history, summary, error, loading, refreshing, refresh } = useLiftHistory(exerciseId);
@@ -151,7 +152,7 @@ export function LiftDetailScreen() {
       {loading ? (
         <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
       ) : error ? (
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
           <Text variant="bodyStrong">Couldn’t load this lift</Text>
           <Text variant="label" color="textSecondary">
             {error}
@@ -161,7 +162,7 @@ export function LiftDetailScreen() {
           </Pressable>
         </View>
       ) : lifts.length === 0 ? (
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
           <Text variant="bodyStrong">Nothing logged yet</Text>
           <Text variant="label" color="textSecondary">
             Log your first session of {name} to start the chart.
@@ -169,7 +170,7 @@ export function LiftDetailScreen() {
         </View>
       ) : (
         <>
-          <View style={[styles.card, styles.chartCard, { backgroundColor: theme.surface }]}>
+          <View style={[styles.card, styles.chartCard, { backgroundColor: theme.surface }, clay.raised]}>
             <View style={styles.readout} accessibilityLiveRegion="polite">
               <Text variant="label" color="textSecondary">
                 {active !== null && focus
@@ -260,7 +261,7 @@ export function LiftDetailScreen() {
             style={({ pressed }) => [
               styles.primary,
               { backgroundColor: theme.accent },
-              pressed && styles.pressed,
+              pressed ? [styles.pressed, clay.sunken] : clay.accent,
             ]}>
             <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
@@ -309,8 +310,9 @@ export function LiftDetailScreen() {
 
 function Tile({ label, value }: { label: string; value: string }) {
   const theme = useTheme();
+  const clay = useClay();
   return (
-    <View style={[styles.tile, { backgroundColor: theme.surface }]}>
+    <View style={[styles.tile, { backgroundColor: theme.surface }, clay.soft]}>
       <Text variant="caption" color="textSecondary" numberOfLines={1}>
         {label}
       </Text>
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
     paddingBottom: Spacing.five,
-    gap: Spacing.three,
+    gap: Spacing.four,
   },
   loading: {
     paddingVertical: Spacing.six,
@@ -387,11 +389,10 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   pressed: {
-    opacity: 0.85,
     transform: [{ scale: 0.97 }],
   },
   section: {
-    gap: Spacing.two,
+    gap: Spacing.three,
     marginTop: Spacing.two,
   },
   sectionTitle: {

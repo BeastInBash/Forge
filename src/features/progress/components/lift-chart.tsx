@@ -20,7 +20,7 @@ import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-nativ
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { Text } from '@/components/ui/text';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -155,6 +155,7 @@ function Plot({
   width,
 }: Props & { width: number }) {
   const theme = useTheme();
+  const clay = useClay();
   const plotWidth = width - LEFT - RIGHT;
   const plotHeight = height - TOP - BOTTOM;
   const floor = TOP + plotHeight;
@@ -375,6 +376,7 @@ function Plot({
           style={[
             styles.cursorDot,
             { backgroundColor: color, borderColor: theme.surface },
+            clay.soft,
             cursorDotStyle,
           ]}
         />

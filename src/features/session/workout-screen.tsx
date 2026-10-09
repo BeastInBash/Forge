@@ -15,7 +15,7 @@ import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constant
 import { errorMessage } from '@/features/auth/validation';
 import { logLift } from '@/features/progress/api';
 import { addLiftLocally } from '@/features/progress/lifts-store';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { ExerciseCard } from './components/exercise-card';
 import {
@@ -64,6 +64,7 @@ export function WorkoutScreen() {
 
 function Session({ session }: { session: WorkoutSession }) {
   const theme = useTheme();
+  const clay = useClay();
   const router = useRouter();
   const finished = session.finishedAt !== undefined;
   const clockRunning = isClockRunning(session);
@@ -101,7 +102,7 @@ function Session({ session }: { session: WorkoutSession }) {
       contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: session.muscleGroup }} />
 
-      <View style={[styles.hero, { backgroundColor: theme.iron }]}>
+      <View style={[styles.hero, { backgroundColor: theme.iron }, clay.iron]}>
         <View style={[styles.temper, { backgroundColor: Temper[session.split] }]} />
         <View style={styles.heroBody}>
           <Text variant="label" style={{ color: theme.ironTextSecondary }}>
@@ -146,7 +147,7 @@ function Session({ session }: { session: WorkoutSession }) {
                       transitionProperty: 'backgroundColor',
                       transitionDuration: 150,
                     },
-                    pressed && styles.pressed,
+                    pressed ? [styles.pressed, clay.ironSunken] : clay.ironSoft,
                   ]}>
                   <Icon
                     ios="arrow.counterclockwise"
@@ -171,7 +172,11 @@ function Session({ session }: { session: WorkoutSession }) {
                       transitionProperty: 'backgroundColor',
                       transitionDuration: 150,
                     },
-                    pressed && styles.pressed,
+                    pressed
+                      ? [styles.pressed, clay.ironSunken]
+                      : clockRunning
+                        ? clay.ironSoft
+                        : clay.accent,
                   ]}>
                   <Icon
                     ios={clockRunning ? 'stop.fill' : 'play.fill'}
@@ -188,7 +193,7 @@ function Session({ session }: { session: WorkoutSession }) {
               </View>
             )}
           </View>
-          <View style={[styles.track, { backgroundColor: theme.ironLine }]}>
+          <View style={[styles.track, { backgroundColor: theme.iron }, clay.ironSunken]}>
             <Animated.View style={[styles.fill, { backgroundColor: theme.accent }, barStyle]} />
           </View>
           <Text variant="label" style={{ color: theme.ironTextSecondary }}>
@@ -217,8 +222,8 @@ function Session({ session }: { session: WorkoutSession }) {
           accessibilityRole="button"
           style={({ pressed }) => [
             styles.button,
-            { borderColor: theme.line, backgroundColor: theme.surface },
-            pressed && { backgroundColor: theme.line },
+            { backgroundColor: theme.surface },
+            pressed ? clay.sunken : clay.soft,
           ]}>
           <Text variant="bodyStrong">Close workout</Text>
         </Pressable>
@@ -235,10 +240,10 @@ function Session({ session }: { session: WorkoutSession }) {
           style={({ pressed }) => [
             styles.button,
             {
-              borderColor: confirmFinish ? theme.danger : theme.line,
+              borderColor: confirmFinish ? theme.danger : 'transparent',
               backgroundColor: theme.surface,
             },
-            pressed && { backgroundColor: theme.line },
+            pressed ? clay.sunken : clay.soft,
           ]}>
           <Icon ios="flag.checkered" material="sports_score" size={18} color={theme.text} />
           <Text variant="bodyStrong">
@@ -253,6 +258,7 @@ function Session({ session }: { session: WorkoutSession }) {
 /** How long the session and each exercise took, and a way to log the sets to Progress. */
 function Summary({ session }: { session: WorkoutSession }) {
   const theme = useTheme();
+  const clay = useClay();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const { done, total } = setCounts(session);
@@ -286,7 +292,7 @@ function Summary({ session }: { session: WorkoutSession }) {
   return (
     <Animated.View
       entering={FadeInDown.duration(300)}
-      style={[styles.summary, { backgroundColor: theme.surface }]}>
+      style={[styles.summary, { backgroundColor: theme.surface }, clay.raised]}>
       <View style={styles.summaryHead}>
         <Icon ios="trophy.fill" material="emoji_events" size={22} color={theme.accent} />
         <Text variant="title">{session.endedEarly ? 'Session ended' : 'Session complete'}</Text>
@@ -336,7 +342,7 @@ function Summary({ session }: { session: WorkoutSession }) {
             style={({ pressed }) => [
               styles.save,
               { backgroundColor: theme.accent },
-              pressed && styles.pressed,
+              pressed ? [styles.pressed, clay.sunken] : clay.accent,
             ]}>
             {saving ? (
               <ActivityIndicator color={theme.onAccent} />
@@ -425,8 +431,8 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   track: {
-    height: 8,
-    borderRadius: 4,
+    height: 12,
+    borderRadius: 6,
     overflow: 'hidden',
     marginTop: Spacing.one,
   },
@@ -435,7 +441,8 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    borderRadius: 4,
+    borderRadius: 6,
+    boxShadow: 'inset 1px 2px 2px rgba(255, 255, 255, 0.5), inset -1px -2px 3px rgba(0, 0, 0, 0.25)',
   },
   summary: {
     borderRadius: Radius.large,
@@ -484,14 +491,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   pressed: {
-    opacity: 0.85,
     transform: [{ scale: 0.97 }],
   },
   button: {
     minHeight: 52,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
+    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -13,7 +13,7 @@ import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useExercises } from '@/features/exercises/use-exercises';
 import { usePlans } from '@/features/plans/use-plans';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import { mondayIndex, startOfWeek, WEEKDAYS } from '@/lib/week';
 import type { Weekday } from '@/types/training';
 
@@ -29,6 +29,7 @@ const dayMonth = new Intl.DateTimeFormat(undefined, {
 /** The user's weekly split from forge-backend, and the exercise library. */
 export function WorkoutsScreen() {
   const theme = useTheme();
+  const clay = useClay();
   const [now] = useState(() => new Date());
   const today = WEEKDAYS[mondayIndex(now)];
   const [expanded, setExpanded] = useState<Weekday | undefined>(today);
@@ -72,7 +73,7 @@ export function WorkoutsScreen() {
         {plansLoading ? (
           <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
         ) : plansError ? (
-          <View style={[styles.error, { backgroundColor: theme.surface }]}>
+          <View style={[styles.error, { backgroundColor: theme.surface }, clay.raised]}>
             <Text variant="bodyStrong">Couldn’t load your plans</Text>
             <Text variant="label" color="textSecondary">
               {plansError}
@@ -82,8 +83,8 @@ export function WorkoutsScreen() {
               accessibilityRole="button"
               style={({ pressed }) => [
                 styles.retry,
-                { borderColor: theme.line },
-                pressed && { backgroundColor: theme.line },
+                { backgroundColor: theme.surface },
+                pressed ? clay.sunken : clay.soft,
               ]}>
               <Text variant="label">Try again</Text>
             </Pressable>
@@ -93,7 +94,7 @@ export function WorkoutsScreen() {
             {days.map(({ day, date, plan }) => (
               <SplitDay
                 // Rest and plan cards differ in key so switching between them mounts a new view:
-                // Android failed to redraw the reused view after its dashed border was removed,
+                // Android failed to redraw the reused view after its rest-day styling was removed,
                 // leaving a blank card until the screen was rebuilt.
                 key={plan ? `${day}-${plan.id}` : `${day}-rest`}
                 day={day}
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   days: {
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   loading: {
     paddingVertical: Spacing.five,
@@ -152,7 +153,6 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
-    borderWidth: 1,
     justifyContent: 'center',
   },
 });
