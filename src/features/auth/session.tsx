@@ -10,6 +10,7 @@ import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
 import { saveOnboarding, type OnboardingAnswers } from '@/features/onboarding/api';
+import { clearBody } from '@/features/body/body-store';
 import { clearPlans } from '@/features/plans/plans-store';
 import { clearLifts } from '@/features/progress/lifts-store';
 import { clearSession } from '@/features/session/session-store';
@@ -127,6 +128,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setOnboardedNow(false);
       clearPlans();
       clearLifts();
+      clearBody();
       clearSession();
     },
   };

@@ -4,6 +4,7 @@
  * rest of Forge.
  */
 
+import { Temper } from '@/constants/theme';
 import type { FitnessGoal } from '@/features/onboarding/api';
 
 export type Sex = 'male' | 'female';
@@ -22,9 +23,9 @@ export const ACTIVITY: Record<ActivityLevel, { label: string; detail: string; fa
   },
 };
 
-/** Valid input ranges; height and weight match what onboarding and forge-backend accept. */
+/** Valid input ranges, matching what onboarding and forge-backend accept. */
 export const LIMITS = {
-  age: { min: 15, max: 100 },
+  age: { min: 13, max: 100 },
   heightCm: { min: 100, max: 250 },
   weightKg: { min: 30, max: 300 },
 } as const;
@@ -46,6 +47,20 @@ export const BMI_BANDS: { band: BmiBand; label: string; upTo: number }[] = [
 
 export function bmiBand(value: number) {
   return BMI_BANDS.find((b) => value < b.upTo) ?? BMI_BANDS[BMI_BANDS.length - 1];
+}
+
+/** The colour each band wears in the gauge and on the home screen. */
+export function bandColor(band: BmiBand, theme: { up: string; danger: string }) {
+  switch (band) {
+    case 'underweight':
+      return Temper.lower;
+    case 'healthy':
+      return theme.up;
+    case 'overweight':
+      return Temper.push;
+    case 'obese':
+      return theme.danger;
+  }
 }
 
 /** The weights that put this height in the healthy band (BMI 18.5 to 24.9). */

@@ -9,20 +9,26 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { CSS_EASE_OUT } from '@/constants/motion';
 import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
+import { FormError } from '@/features/auth/components/form-error';
+import { SubmitButton } from '@/features/auth/components/submit-button';
 import { TextField } from '@/features/auth/components/text-field';
+import { errorMessage } from '@/features/auth/validation';
+import type { FitnessGoal } from '@/features/onboarding/api';
 import { GoalOption } from '@/features/onboarding/components/goal-option';
-import { useProfile } from '@/features/profile/use-profile';
 import { AnimatedNumber } from '@/features/progress/components/animated-number';
 import { useClay, useTheme } from '@/hooks/use-theme';
 
+import { saveBody } from './body-store';
 import {
   ACTIVITY,
   BMI_BANDS,
   GOAL_TARGETS,
   LIMITS,
+  bandColor,
   bmi,
   bmiBand,
   bmr,
@@ -31,9 +37,9 @@ import {
   parseNumber,
   roundCalories,
   type ActivityLevel,
-  type BmiBand,
   type Sex,
 } from './metrics';
+import { useBody } from './use-body';
 
 const numberFormat = new Intl.NumberFormat();
 
@@ -62,10 +68,16 @@ function prefill(value: number | null | undefined) {
 }
 
 /** The parsed value, or the message to show under the field. Empty is neither. */
-function check(text: string, limits: { min: number; max: number }, name: string) {
+function check(
+  text: string,
+  limits: { min: number; max: number },
+  name: string,
+  { whole = false } = {}
+) {
   if (!text.trim()) return {};
   const value = parseNumber(text);
   if (value === undefined) return { error: 'Enter a number.' };
+  if (whole && !Number.isInteger(value)) return { error: 'Enter a whole number.' };
   if (value < limits.min || value > limits.max) {
     return { error: `Enter ${name} between ${limits.min} and ${limits.max}.` };
   }
@@ -73,22 +85,60 @@ function check(text: string, limits: { min: number; max: number }, name: string)
 }
 
 /**
- * BMI and maintenance calories. Age, height and weight start from the onboarding answers when
- * there are any; results update as the fields change, so there's no submit step.
+ * BMI and maintenance calories. Everything starts from what the user last saved (or answered in
+ * onboarding); results update as the fields change, and saving updates the home screen.
  */
 export function CalculatorScreen() {
   const theme = useTheme();
-  const { profile } = useProfile();
-  // Undefined until the user types, so the profile's answers show through once they load.
+  const { measurements: saved, prefs } = useBody();
+  // Each edit stays undefined until the user changes it, so saved values show through once loaded.
   const [ageText, setAgeText] = useState<string>();
   const [heightText, setHeightText] = useState<string>();
   const [weightText, setWeightText] = useState<string>();
-  const [sex, setSex] = useState<Sex>();
-  const [activity, setActivity] = useState<ActivityLevel>('moderate');
+  const [sexChoice, setSex] = useState<Sex>();
+  const [activityChoice, setActivity] = useState<ActivityLevel>();
+  const [goalChoice, setGoal] = useState<FitnessGoal>();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string>();
+  const [justSaved, setJustSaved] = useState(false);
 
-  const age = check(ageText ?? prefill(profile?.age), LIMITS.age, 'an age');
-  const height = check(heightText ?? prefill(profile?.heightCm), LIMITS.heightCm, 'a height');
-  const weight = check(weightText ?? prefill(profile?.weightKg), LIMITS.weightKg, 'a weight');
+  const sex = sexChoice ?? prefs.sex;
+  const activity = activityChoice ?? prefs.activity;
+  const goal = goalChoice ?? saved?.goal ?? undefined;
+  const age = check(ageText ?? prefill(saved?.age), LIMITS.age, 'an age', { whole: true });
+  const height = check(heightText ?? prefill(saved?.heightCm), LIMITS.heightCm, 'a height');
+  const weight = check(weightText ?? prefill(saved?.weightKg), LIMITS.weightKg, 'a weight');
+  const invalid = Boolean(age.error || height.error || weight.error);
+
+  /** Wraps a setter so any edit clears the "Saved" confirmation. */
+  function edited<T>(set: (value: T) => void) {
+    return (value: T) => {
+      setJustSaved(false);
+      set(value);
+    };
+  }
+
+  async function save() {
+    if (invalid) return;
+    setSaving(true);
+    setSaveError(undefined);
+    try {
+      await saveBody(
+        {
+          age: age.value ?? null,
+          heightCm: height.value ?? null,
+          weightKg: weight.value ?? null,
+          goal: goal ?? null,
+        },
+        { sex, activity }
+      );
+      setJustSaved(true);
+    } catch (e) {
+      setSaveError(errorMessage(e));
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const bodyMass =
     height.value !== undefined && weight.value !== undefined
@@ -104,11 +154,11 @@ export function CalculatorScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.content}>
         <Section title="About you">
-          <SexPicker value={sex} onChange={setSex} />
+          <SexPicker value={sex} onChange={edited(setSex)} />
           <TextField
             label="Age"
-            value={ageText ?? prefill(profile?.age)}
-            onChangeText={setAgeText}
+            value={ageText ?? prefill(saved?.age)}
+            onChangeText={edited(setAgeText)}
             error={age.error}
             placeholder="e.g. 28"
             keyboardType="number-pad"
@@ -119,8 +169,8 @@ export function CalculatorScreen() {
             <View style={styles.flex}>
               <TextField
                 label="Height (cm)"
-                value={heightText ?? prefill(profile?.heightCm)}
-                onChangeText={setHeightText}
+                value={heightText ?? prefill(saved?.heightCm)}
+                onChangeText={edited(setHeightText)}
                 error={height.error}
                 placeholder="e.g. 178"
                 keyboardType="decimal-pad"
@@ -131,8 +181,8 @@ export function CalculatorScreen() {
             <View style={styles.flex}>
               <TextField
                 label="Weight (kg)"
-                value={weightText ?? prefill(profile?.weightKg)}
-                onChangeText={setWeightText}
+                value={weightText ?? prefill(saved?.weightKg)}
+                onChangeText={edited(setWeightText)}
                 error={weight.error}
                 placeholder="e.g. 75"
                 keyboardType="decimal-pad"
@@ -153,7 +203,7 @@ export function CalculatorScreen() {
               material={ACTIVITY_ICONS[level].material}
               tint={ACTIVITY_ICONS[level].tint}
               selected={activity === level}
-              onSelect={() => setActivity(level)}
+              onSelect={() => edited(setActivity)(level)}
             />
           ))}
         </Section>
@@ -175,13 +225,30 @@ export function CalculatorScreen() {
               <CaloriesCard
                 basal={bmr(sex, weight.value, height.value, age.value)}
                 activity={activity}
-                goal={profile?.goal ?? undefined}
+                goal={goal}
+                onSelectGoal={edited(setGoal)}
               />
             </Animated.View>
           ) : (
             <Placeholder
               text={`Add your ${[!sex && 'sex', age.value === undefined && 'age', bodyMass === undefined && 'height and weight'].filter(Boolean).join(', ')} to estimate your maintenance calories.`}
             />
+          )}
+
+          {saveError && <FormError message={saveError} />}
+          <SubmitButton
+            label="Save to my profile"
+            loading={saving}
+            disabled={invalid}
+            onPress={save}
+          />
+          {justSaved && (
+            <Animated.View entering={FadeInDown.duration(200)} style={styles.saved}>
+              <Icon ios="checkmark.circle.fill" material="check_circle" size={18} color={theme.up} />
+              <Text variant="label" style={{ color: theme.up }}>
+                Saved. Your home screen now shows these numbers.
+              </Text>
+            </Animated.View>
           )}
 
           <Text variant="caption" color="textSecondary" style={styles.disclaimer}>
@@ -329,10 +396,12 @@ function CaloriesCard({
   basal,
   activity,
   goal,
+  onSelectGoal,
 }: {
   basal: number;
   activity: ActivityLevel;
-  goal?: string;
+  goal?: FitnessGoal;
+  onSelectGoal: (goal: FitnessGoal) => void;
 }) {
   const theme = useTheme();
   const clay = useClay();
@@ -351,16 +420,25 @@ function CaloriesCard({
       </View>
       <Text variant="caption" style={{ color: theme.ironTextSecondary }}>
         {numberFormat.format(roundCalories(basal))} kcal at rest × {ACTIVITY[activity].factor} for{' '}
-        {ACTIVITY[activity].label.toLowerCase()}
+        {ACTIVITY[activity].label.toLowerCase()}. Tap a goal to make it yours.
       </Text>
 
-      <View style={[styles.targets, { borderTopColor: theme.ironLine }]}>
+      <View
+        style={[styles.targets, { borderTopColor: theme.ironLine }]}
+        accessibilityRole="radiogroup"
+        accessibilityLabel="Your goal">
         {GOAL_TARGETS.map((target) => {
           const yours = target.goal === goal;
           return (
-            <View
+            <Pressable
               key={target.goal}
-              style={[styles.target, yours && [{ backgroundColor: theme.iron }, clay.ironSunken]]}>
+              onPress={() => onSelectGoal(target.goal)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: yours }}
+              style={({ pressed }) => [
+                styles.target,
+                (yours || pressed) && [{ backgroundColor: theme.iron }, clay.ironSunken],
+              ]}>
               <View style={styles.flex}>
                 <View style={styles.targetTitle}>
                   <Text variant="bodyStrong" style={{ color: theme.ironText }}>
@@ -381,7 +459,7 @@ function CaloriesCard({
               <Text variant="bodyStrong" style={{ color: yours ? theme.accent : theme.ironText }}>
                 {numberFormat.format(daily + target.offset)} kcal
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </View>
@@ -399,19 +477,6 @@ function Placeholder({ text }: { text: string }) {
       </Text>
     </View>
   );
-}
-
-function bandColor(band: BmiBand, theme: ReturnType<typeof useTheme>) {
-  switch (band) {
-    case 'underweight':
-      return Temper.lower;
-    case 'healthy':
-      return theme.up;
-    case 'overweight':
-      return Temper.push;
-    case 'obese':
-      return theme.danger;
-  }
 }
 
 const styles = StyleSheet.create({
@@ -553,6 +618,12 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     borderRadius: Radius.large,
     borderCurve: 'continuous',
+  },
+  saved: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
   },
   disclaimer: {
     paddingHorizontal: Spacing.one,

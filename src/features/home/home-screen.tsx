@@ -5,6 +5,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/session';
+import { summarize } from '@/features/body/summary';
+import { useBody } from '@/features/body/use-body';
 import { usePlans } from '@/features/plans/use-plans';
 import { startSession, startSessionClock } from '@/features/session/session-store';
 import { useWorkoutSession } from '@/features/session/use-session';
@@ -12,7 +14,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { mondayIndex, WEEKDAYS } from '@/lib/week';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
-import { CalculatorCard } from './components/calculator-card';
+import { BodyCard } from './components/body-card';
 import { MealsCard } from './components/meals-card';
 import { SessionCard } from './components/session-card';
 import { WeekStrip, type WeekDay } from './components/week-strip';
@@ -53,6 +55,8 @@ export function HomeScreen() {
   const [selected, setSelected] = useState<Weekday>(today);
   const { plans, loading } = usePlans();
   const { session: workout } = useWorkoutSession();
+  const body = useBody();
+  const bodySummary = summarize(body.measurements ?? {}, body.prefs);
 
   const week = buildWeek(now, plans ?? []);
   const selectedPlan = week[WEEKDAYS.indexOf(selected)].plan;
@@ -92,11 +96,15 @@ export function HomeScreen() {
         onPlan={() => router.navigate('/workouts')}
       />
 
-      <CalculatorCard onPress={() => router.push('/calculator')} />
+      <BodyCard
+        summary={bodySummary}
+        loading={body.loading}
+        onOpen={() => router.push('/calculator')}
+      />
 
       <MealsCard
         meals={SAMPLE_MEALS}
-        goal={SAMPLE_USER.dailyCalorieGoal}
+        goal={bodySummary.goal?.calories ?? bodySummary.maintenance ?? SAMPLE_USER.dailyCalorieGoal}
         onLogMeal={() => router.navigate('/nutrition')}
       />
     </ScrollView>
