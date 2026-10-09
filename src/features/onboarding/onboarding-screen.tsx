@@ -256,14 +256,6 @@ export function OnboardingScreen() {
 
           {measure ? (
             <View style={styles.measure}>
-              <View style={styles.readout} importantForAccessibility="no-hide-descendants">
-                <Text variant="hero" style={styles.readoutValue}>
-                  {format(values[measure.key], measure.step)}
-                </Text>
-                <Text variant="title" color="textSecondary">
-                  {measure.unit}
-                </Text>
-              </View>
               <RulerPicker
                 min={measure.min}
                 max={measure.max}
@@ -337,10 +329,6 @@ function without<T>(set: Set<T>, item: T) {
   return next;
 }
 
-function format(value: number, step: number) {
-  return step < 1 ? value.toFixed(1) : String(value);
-}
-
 const styles = StyleSheet.create({
   fill: {
     flex: 1,
@@ -384,17 +372,6 @@ const styles = StyleSheet.create({
     // The ruler runs edge to edge, past the column's padding.
     marginHorizontal: -Spacing.three,
     paddingBottom: Spacing.six,
-  },
-  readout: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    gap: Spacing.two,
-  },
-  readoutValue: {
-    fontSize: 64,
-    lineHeight: 72,
-    fontVariant: ['tabular-nums'],
   },
   goals: {
     gap: Spacing.three,
