@@ -1,3 +1,4 @@
+import type { FitnessGoal } from '@/features/onboarding/api';
 import { apiURL, authHeaders } from '@/lib/auth-client';
 
 /** `GET /api/v1/profile` — everything forge-backend stores about the signed-in user. */
@@ -10,6 +11,11 @@ export type Profile = {
   image: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Onboarding answers; null when the step was skipped. */
+  age: number | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  goal: FitnessGoal | null;
   /** Linked sign-in methods. `credential` is email and password. */
   accounts: { providerId: string; createdAt: string }[];
   /** Unexpired sessions, most recently active first. */

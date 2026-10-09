@@ -16,6 +16,10 @@ export default function HomeLayout() {
     <Stack screenOptions={useStackOptions()}>
       <Stack.Screen name="index" options={{ title: 'Forge', headerRight: ProfileButton }} />
       <Stack.Screen name="workout" options={{ title: 'Workout', headerLargeTitle: false }} />
+      <Stack.Screen
+        name="calculator"
+        options={{ title: 'BMI & calories', headerLargeTitle: false }}
+      />
     </Stack>
   );
 }

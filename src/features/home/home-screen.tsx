@@ -12,6 +12,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { mondayIndex, WEEKDAYS } from '@/lib/week';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
+import { CalculatorCard } from './components/calculator-card';
 import { MealsCard } from './components/meals-card';
 import { SessionCard } from './components/session-card';
 import { WeekStrip, type WeekDay } from './components/week-strip';
@@ -90,6 +91,8 @@ export function HomeScreen() {
         }}
         onPlan={() => router.navigate('/workouts')}
       />
+
+      <CalculatorCard onPress={() => router.push('/calculator')} />
 
       <MealsCard
         meals={SAMPLE_MEALS}
