@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/session';
 import { errorMessage } from '@/features/auth/validation';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import type { Profile } from './api';
 import { AppearanceSection } from './components/appearance-section';
@@ -20,6 +20,7 @@ const numberFormat = new Intl.NumberFormat();
 
 export function ProfileScreen() {
   const theme = useTheme();
+  const clay = useClay();
   const { session, signOut } = useSession();
   const { profile, error, loading, refreshing, refresh } = useProfile();
   const [signingOut, setSigningOut] = useState(false);
@@ -63,7 +64,7 @@ export function ProfileScreen() {
       )}
 
       {error && !profile && (
-        <View style={[styles.errorCard, { backgroundColor: theme.surface, borderColor: theme.line }]}>
+        <View style={[styles.errorCard, { backgroundColor: theme.surface }, clay.raised]}>
           <Text variant="bodyStrong">Couldn’t load your details</Text>
           <Text variant="label" color="textSecondary">
             {error}
@@ -72,7 +73,11 @@ export function ProfileScreen() {
             onPress={refresh}
             disabled={refreshing}
             accessibilityRole="button"
-            style={({ pressed }) => [styles.retry, { borderColor: theme.line }, pressed && { backgroundColor: theme.line }]}>
+            style={({ pressed }) => [
+              styles.retry,
+              { backgroundColor: theme.surface },
+              pressed ? clay.sunken : clay.soft,
+            ]}>
             {refreshing ? <ActivityIndicator color={theme.text} /> : <Text variant="label">Try again</Text>}
           </Pressable>
         </View>
@@ -95,8 +100,8 @@ export function ProfileScreen() {
           accessibilityState={{ busy: signingOut }}
           style={({ pressed }) => [
             styles.signOut,
-            { borderColor: theme.line, backgroundColor: theme.surface },
-            pressed && { backgroundColor: theme.line },
+            { backgroundColor: theme.surface },
+            pressed ? clay.sunken : clay.soft,
           ]}>
           {signingOut ? (
             <ActivityIndicator color={theme.danger} />
@@ -201,8 +206,9 @@ function ProfileDetails({ profile }: { profile: Profile }) {
 
 function StatTile({ value, label }: { value: number; label: string }) {
   const theme = useTheme();
+  const clay = useClay();
   return (
-    <View style={[styles.stat, { backgroundColor: theme.surface }]}>
+    <View style={[styles.stat, { backgroundColor: theme.surface }, clay.raised]}>
       <Text variant="display" numberOfLines={1} adjustsFontSizeToFit>
         {numberFormat.format(value)}
       </Text>
@@ -230,7 +236,6 @@ const styles = StyleSheet.create({
   errorCard: {
     borderRadius: Radius.large,
     borderCurve: 'continuous',
-    borderWidth: 1,
     padding: Spacing.four,
     gap: Spacing.two,
   },
@@ -240,7 +245,6 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
-    borderWidth: 1,
     justifyContent: 'center',
   },
   stats: {
@@ -267,7 +271,6 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
 import { plural } from '@/lib/plural';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 const timeFormat = new Intl.DateTimeFormat(undefined, {
@@ -35,20 +35,23 @@ function prescription(sets: number, reps: number, weight?: number | null) {
  */
 export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const sets = plan?.exercises.reduce((sum, e) => sum + e.sets, 0) ?? 0;
 
   const dateBadge = (
     <View
       style={[
         styles.date,
-        isToday ? { backgroundColor: theme.text } : { backgroundColor: theme.background },
+        isToday
+          ? [{ backgroundColor: theme.accent }, clay.accent]
+          : [{ backgroundColor: theme.background }, clay.sunken],
       ]}>
-      <Text variant="caption" style={{ color: isToday ? theme.background : theme.textSecondary }}>
+      <Text variant="caption" style={{ color: isToday ? theme.onAccent : theme.textSecondary }}>
         {day.slice(0, 3).toUpperCase()}
       </Text>
       <Text
         variant="title"
-        style={[styles.dateNumber, { color: isToday ? theme.background : theme.text }]}>
+        style={[styles.dateNumber, { color: isToday ? theme.onAccent : theme.text }]}>
         {date}
       </Text>
     </View>
@@ -63,8 +66,9 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         style={({ pressed }) => [
           styles.card,
           styles.restCard,
-          { borderColor: theme.line },
-          pressed && { backgroundColor: theme.surface },
+          { backgroundColor: theme.background },
+          clay.sunken,
+          pressed && styles.pressed,
         ]}>
         {dateBadge}
         <View style={styles.body}>
@@ -75,7 +79,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
             {isToday ? 'Today · tap to plan a workout' : 'Tap to plan a workout'}
           </Text>
         </View>
-        <View style={[styles.planPill, { borderColor: theme.line }]}>
+        <View style={[styles.planPill, { backgroundColor: theme.surface }, clay.soft]}>
           <Icon ios="plus" material="add" size={14} color={theme.text} />
           <Text variant="caption">Plan</Text>
         </View>
@@ -92,7 +96,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: theme.surface },
-        pressed && styles.pressed,
+        pressed ? [styles.pressed, clay.sunken] : clay.raised,
       ]}>
       <View style={[styles.temper, { backgroundColor: Temper[plan.split] }]} />
       <View style={styles.main}>
@@ -104,7 +108,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
                 {plan.muscleGroup}
               </Text>
               {isToday && (
-                <View style={[styles.todayPill, { backgroundColor: theme.accent }]}>
+                <View style={[styles.todayPill, { backgroundColor: theme.accent }, clay.accent]}>
                   <Text variant="caption" style={{ color: theme.onAccent }}>
                     Today
                   </Text>
@@ -143,8 +147,8 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
               accessibilityLabel={`Edit ${day} plan`}
               style={({ pressed }) => [
                 styles.edit,
-                { borderColor: theme.line },
-                pressed && { backgroundColor: theme.line },
+                { backgroundColor: theme.surface },
+                pressed ? clay.sunken : clay.soft,
               ]}>
               <Icon ios="pencil" material="edit" size={16} color={theme.text} />
               <Text variant="bodyStrong">Edit plan</Text>
@@ -168,11 +172,9 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     padding: Spacing.three,
     paddingLeft: Spacing.three + 5,
-    borderWidth: 1,
-    borderStyle: 'dashed',
   },
   pressed: {
-    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
   temper: {
     width: 5,
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
   date: {
     width: 48,
     paddingVertical: Spacing.one + Spacing.half,
-    borderRadius: Radius.small + 4,
+    borderRadius: Radius.small + 2,
     borderCurve: 'continuous',
     alignItems: 'center',
   },
@@ -233,14 +235,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.two + Spacing.half,
     paddingVertical: Spacing.one,
     borderRadius: Radius.pill,
-    borderWidth: 1,
   },
   edit: {
     marginTop: Spacing.two,
     minHeight: 44,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

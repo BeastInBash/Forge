@@ -20,7 +20,7 @@ export function FormError({ message }: { message: string }) {
         styles.banner,
         {
           backgroundColor: `${theme.danger}1A`,
-          borderColor: `${theme.danger}40`,
+          boxShadow: `inset 3px 3px 7px ${theme.danger}26, inset -3px -3px 6px rgba(255, 255, 255, 0.08)`,
         },
       ]}>
       <Icon ios="exclamationmark.circle.fill" material="error" size={18} color={theme.danger} />
@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two + Spacing.one,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
   },
   message: {
     flex: 1,

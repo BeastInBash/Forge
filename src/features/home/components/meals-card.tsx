@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import type { MealTime } from '@/types/training';
 
 const numberFormat = new Intl.NumberFormat();
@@ -24,17 +24,22 @@ type Props = {
  */
 export function MealsCard({ meals, goal, onLogMeal }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const eaten = meals.filter((m) => m.logged).reduce((sum, m) => sum + mealCalories(m), 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
       <View style={styles.header}>
         <Text variant="title">Meals today</Text>
         <Pressable
           onPress={onLogMeal}
           accessibilityRole="button"
           hitSlop={8}
-          style={({ pressed }) => [styles.log, { borderColor: theme.line }, pressed && { backgroundColor: theme.line }]}>
+          style={({ pressed }) => [
+            styles.log,
+            { backgroundColor: theme.surface },
+            pressed ? clay.sunken : clay.soft,
+          ]}>
           <Icon ios="plus" material="add" size={16} color={theme.text} />
           <Text variant="label">Log meal</Text>
         </Pressable>
@@ -48,7 +53,7 @@ export function MealsCard({ meals, goal, onLogMeal }: Props) {
       </View>
 
       <View
-        style={[styles.bar, { backgroundColor: theme.line }]}
+        style={[styles.bar, { backgroundColor: theme.background }, clay.sunken]}
         accessible
         accessibilityLabel={`${eaten} of ${goal} calories eaten`}>
         {meals.map((meal) => (
@@ -117,7 +122,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three - Spacing.one,
     height: 34,
     borderRadius: Radius.pill,
-    borderWidth: 1,
   },
   total: {
     flexDirection: 'row',
@@ -126,13 +130,15 @@ const styles = StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
-    height: 10,
+    height: 14,
+    padding: 3,
     borderRadius: Radius.pill,
     overflow: 'hidden',
     gap: 2,
   },
   segment: {
     height: '100%',
+    borderRadius: Radius.pill,
   },
   planned: {
     opacity: 0.25,

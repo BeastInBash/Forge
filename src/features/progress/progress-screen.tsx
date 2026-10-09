@@ -13,7 +13,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import { startOfWeek } from '@/lib/week';
 
 import { LiftSummaryCard } from './components/lift-summary-card';
@@ -22,6 +22,7 @@ import { useLiftSummaries } from './use-lifts';
 /** Every exercise the user has logged, most recently trained first, with its trend. */
 export function ProgressScreen() {
   const theme = useTheme();
+  const clay = useClay();
   const router = useRouter();
   const { summaries, error, loading, refreshing, refresh } = useLiftSummaries();
   const [weekStart] = useState(() => startOfWeek(new Date()).getTime());
@@ -42,7 +43,7 @@ export function ProgressScreen() {
           tintColor={theme.textSecondary}
         />
       }>
-      <View style={[styles.hero, { backgroundColor: theme.iron }]}>
+      <View style={[styles.hero, { backgroundColor: theme.iron }, clay.iron]}>
         <Text variant="label" style={{ color: theme.ironTextSecondary }}>
           Track every set
         </Text>
@@ -60,7 +61,7 @@ export function ProgressScreen() {
           style={({ pressed }) => [
             styles.primary,
             { backgroundColor: theme.accent },
-            pressed && styles.pressed,
+            pressed ? [styles.pressed, clay.sunken] : clay.accent,
           ]}>
           <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
           <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
@@ -76,7 +77,7 @@ export function ProgressScreen() {
         {loading ? (
           <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
         ) : error ? (
-          <View style={[styles.message, { backgroundColor: theme.surface }]}>
+          <View style={[styles.message, { backgroundColor: theme.surface }, clay.raised]}>
             <Text variant="bodyStrong">Couldn’t load your lifts</Text>
             <Text variant="label" color="textSecondary">
               {error}
@@ -86,8 +87,8 @@ export function ProgressScreen() {
               accessibilityRole="button"
               style={({ pressed }) => [
                 styles.retry,
-                { borderColor: theme.line },
-                pressed && { backgroundColor: theme.line },
+                { backgroundColor: theme.surface },
+                pressed ? clay.sunken : clay.soft,
               ]}>
               <Text variant="label">Try again</Text>
             </Pressable>
@@ -110,7 +111,7 @@ export function ProgressScreen() {
             </Animated.View>
           ))
         ) : (
-          <View style={[styles.message, { backgroundColor: theme.surface }]}>
+          <View style={[styles.message, { backgroundColor: theme.surface }, clay.raised]}>
             <Icon
               ios="chart.line.uptrend.xyaxis"
               material="show_chart"
@@ -182,11 +183,10 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   pressed: {
-    opacity: 0.85,
     transform: [{ scale: 0.97 }],
   },
   section: {
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   sectionTitle: {
     paddingHorizontal: Spacing.one,
@@ -208,7 +208,6 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
-    borderWidth: 1,
     justifyContent: 'center',
   },
 });

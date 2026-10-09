@@ -6,7 +6,7 @@ import { Radius, Spacing, Temper } from '@/constants/theme';
 import { isClockRunning, type WorkoutSession } from '@/features/session/session-store';
 import { formatClock, formatSpan, sessionDuration } from '@/features/session/timing';
 import { useNow } from '@/features/session/use-session';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -39,10 +39,11 @@ export function SessionCard({
   onPlan,
 }: Props) {
   const theme = useTheme();
+  const clay = useClay();
 
   if (loading) {
     return (
-      <View style={[styles.card, styles.loadingCard, { backgroundColor: theme.iron }]}>
+      <View style={[styles.card, styles.loadingCard, { backgroundColor: theme.iron }, clay.iron]}>
         <ActivityIndicator color={theme.ironTextSecondary} />
       </View>
     );
@@ -50,7 +51,7 @@ export function SessionCard({
 
   if (!plan) {
     return (
-      <View style={[styles.card, { backgroundColor: theme.iron }]}>
+      <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
         <View style={styles.body}>
           <Text variant="label" style={{ color: theme.ironTextSecondary }}>
             {dayLabel}
@@ -70,7 +71,7 @@ export function SessionCard({
   const totalSets = plan.exercises.reduce((sum, item) => sum + item.sets, 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }]}>
+    <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
       <View style={[styles.temper, { backgroundColor: Temper[plan.split] }]} />
       <View style={styles.body}>
         <Text variant="label" style={{ color: theme.ironTextSecondary }}>
@@ -119,7 +120,7 @@ export function SessionCard({
             style={({ pressed }) => [
               styles.primary,
               { backgroundColor: theme.accent },
-              pressed && styles.pressed,
+              pressed ? [styles.pressed, clay.sunken] : clay.accent,
             ]}>
             <Icon ios="play.fill" material="play_arrow" size={18} color={theme.onAccent} />
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
@@ -137,6 +138,7 @@ export function SessionCard({
 /** "Resume workout" with the session clock beside it, still counting unless stopped. */
 function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: () => void }) {
   const theme = useTheme();
+  const clay = useClay();
   const running = isClockRunning(workout);
   const now = useNow(running);
   return (
@@ -146,7 +148,7 @@ function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: 
       style={({ pressed }) => [
         styles.primary,
         { backgroundColor: theme.accent },
-        pressed && styles.pressed,
+        pressed ? [styles.pressed, clay.sunken] : clay.accent,
       ]}>
       <Icon ios="timer" material="timer" size={18} color={theme.onAccent} />
       <Text variant="bodyStrong" numberOfLines={1} style={{ color: theme.onAccent }}>
@@ -179,14 +181,15 @@ function Stat({ value, unit }: { value: number; unit: string }) {
 
 function SecondaryButton({ label, onPress }: { label: string; onPress: () => void }) {
   const theme = useTheme();
+  const clay = useClay();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       style={({ pressed }) => [
         styles.secondary,
-        { borderColor: theme.ironLine },
-        pressed && { backgroundColor: theme.ironLine },
+        { backgroundColor: theme.ironLine },
+        pressed ? [styles.pressed, clay.ironSunken] : clay.ironSoft,
       ]}>
       <Text variant="bodyStrong" style={{ color: theme.ironText }}>
         {label}
@@ -263,12 +266,10 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: {
-    opacity: 0.85,
     transform: [{ scale: 0.97 }],
   },
 });

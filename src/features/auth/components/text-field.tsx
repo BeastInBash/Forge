@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { CSS_EASE_OUT } from '@/constants/motion';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 type Props = Omit<TextInputProps, 'style'> & {
     label: string;
@@ -26,11 +26,13 @@ const FOCUS = {
 
 export function TextField({ label, error, hint, secure, ref, onFocus, onBlur, ...rest }: Props) {
     const theme = useTheme();
+    const clay = useClay();
     const [focused, setFocused] = useState(false);
     const [revealed, setRevealed] = useState(false);
 
     const tone = error ? theme.danger : theme.accent;
-    const borderColor = error ? theme.danger : focused ? theme.accent : theme.line;
+    // The well is pressed into the page; a border only appears to signal focus or an error.
+    const borderColor = error ? theme.danger : focused ? theme.accent : 'transparent';
 
     return (
         <View style={styles.field}>
@@ -55,8 +57,9 @@ export function TextField({ label, error, hint, secure, ref, onFocus, onBlur, ..
                         styles.box,
                         FOCUS,
                         {
-                            backgroundColor: theme.surface,
+                            backgroundColor: theme.background,
                             borderColor,
+                            ...clay.sunken,
                             transitionProperty: 'borderColor',
                         },
                     ]}>
@@ -133,7 +136,7 @@ const styles = StyleSheet.create({
         minHeight: 52,
         borderRadius: Radius.medium,
         borderCurve: 'continuous',
-        borderWidth: 1,
+        borderWidth: 1.5,
         flexDirection: 'row',
         alignItems: 'stretch',
         overflow: 'hidden',

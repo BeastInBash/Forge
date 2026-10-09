@@ -22,7 +22,7 @@ import { ExercisePicker } from '@/features/plans/components/exercise-picker';
 import { formatWeight, parseWeight } from '@/features/plans/components/plan-exercise-card';
 import { Stepper } from '@/features/plans/components/stepper';
 import { usePlans } from '@/features/plans/use-plans';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { logLift, type LiftExercise } from './api';
 import { relativeDay } from './format';
@@ -52,6 +52,7 @@ function performedAt(daysBack: number) {
  */
 export function LogLiftScreen() {
   const theme = useTheme();
+  const clay = useClay();
   const router = useRouter();
   const params = useLocalSearchParams<{ exerciseId?: string }>();
   const { exercises } = useExercises();
@@ -145,7 +146,7 @@ export function LogLiftScreen() {
           style={({ pressed }) => [
             styles.exercise,
             { backgroundColor: theme.surface },
-            pressed && { opacity: 0.85 },
+            pressed ? clay.sunken : clay.raised,
           ]}>
           <ExerciseThumb url={chosen?.iconUrl ?? null} size={52} />
           <View style={styles.exerciseText}>
@@ -168,7 +169,7 @@ export function LogLiftScreen() {
           />
         </Pressable>
 
-        <View style={[styles.dateRow, { backgroundColor: theme.surface }]}>
+        <View style={[styles.dateRow, { backgroundColor: theme.surface }, clay.raised]}>
           <Icon ios="calendar" material="calendar_today" size={18} color={theme.textSecondary} />
           <Text variant="bodyStrong" style={styles.flex}>
             Date
@@ -202,15 +203,15 @@ export function LogLiftScreen() {
               entering={FadeInDown.duration(220)}
               exiting={FadeOut.duration(150)}
               layout={LinearTransition.duration(200)}
-              style={[styles.set, { backgroundColor: theme.surface }]}>
-              <View style={[styles.setNumber, { backgroundColor: theme.background }]}>
+              style={[styles.set, { backgroundColor: theme.surface }, clay.raised]}>
+              <View style={[styles.setNumber, { backgroundColor: theme.background }, clay.sunken]}>
                 <Text variant="label">{index + 1}</Text>
               </View>
               <View style={styles.weight}>
                 <Text variant="caption" color="textSecondary">
                   Weight
                 </Text>
-                <View style={[styles.weightBox, { backgroundColor: theme.background }]}>
+                <View style={[styles.weightBox, { backgroundColor: theme.background }, clay.sunken]}>
                   <TextInput
                     value={set.weightText}
                     onChangeText={(text) => {
@@ -250,7 +251,7 @@ export function LogLiftScreen() {
                 accessibilityLabel={`Remove set ${index + 1}`}
                 style={({ pressed }) => [
                   styles.remove,
-                  pressed && { backgroundColor: theme.line },
+                  pressed && [{ backgroundColor: theme.background }, clay.sunken],
                   sets.length === 1 && styles.disabled,
                 ]}>
                 <Icon ios="xmark" material="close" size={16} color={theme.textSecondary} />
@@ -267,8 +268,8 @@ export function LogLiftScreen() {
               accessibilityRole="button"
               style={({ pressed }) => [
                 styles.addSet,
-                { borderColor: theme.line },
-                pressed && { backgroundColor: theme.line },
+                { backgroundColor: theme.surface },
+                pressed ? clay.sunken : clay.soft,
               ]}>
               <Icon ios="plus" material="add" size={18} color={theme.text} />
               <Text variant="bodyStrong">Add set</Text>
@@ -288,7 +289,7 @@ export function LogLiftScreen() {
             maxLength={200}
             multiline
             accessibilityLabel="Note"
-            style={[styles.note, { backgroundColor: theme.surface, color: theme.text }]}
+            style={[styles.note, { backgroundColor: theme.background, color: theme.text }, clay.sunken]}
           />
         </View>
 
@@ -337,6 +338,7 @@ function RoundButton({
   onPress: () => void;
 }) {
   const theme = useTheme();
+  const clay = useClay();
   return (
     <Pressable
       onPress={onPress}
@@ -346,8 +348,8 @@ function RoundButton({
       accessibilityLabel={label}
       style={({ pressed }) => [
         styles.round,
-        { backgroundColor: theme.background },
-        pressed && { backgroundColor: theme.line },
+        { backgroundColor: theme.surface },
+        pressed ? clay.sunken : clay.soft,
         disabled && styles.disabled,
       ]}>
       <Icon ios={icon} material={material} size={16} color={theme.text} />
@@ -405,7 +407,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   section: {
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   sectionTitle: {
     paddingHorizontal: Spacing.one,
@@ -434,7 +436,7 @@ const styles = StyleSheet.create({
   weightBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 32,
+    height: 36,
     paddingHorizontal: Spacing.two,
     borderRadius: Radius.small,
     gap: Spacing.one,
@@ -466,8 +468,6 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

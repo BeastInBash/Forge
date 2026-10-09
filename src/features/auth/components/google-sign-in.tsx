@@ -5,7 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { useSession } from '../session';
 import { errorMessage } from '../validation';
@@ -19,10 +19,11 @@ type Props = {
 
 /**
  * "or" divider plus the Google button. Google's button guidelines ask for the full-colour G on a
- * neutral outlined button, so this uses the surface/line pair instead of the straw accent.
+ * neutral button, so this is a plain clay surface instead of the straw accent.
  */
 export function GoogleSignIn({ disabled, onBusyChange, onError }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const { signInWithGoogle } = useSession();
   const [loading, setLoading] = useState(false);
 
@@ -59,9 +60,11 @@ export function GoogleSignIn({ disabled, onBusyChange, onError }: Props) {
         accessibilityState={{ busy: loading, disabled: disabled || loading }}
         style={[
           styles.button,
-          { backgroundColor: theme.surface, borderColor: theme.line },
+          { backgroundColor: theme.surface },
+          clay.soft,
           disabled && !loading && styles.disabled,
-        ]}>
+        ]}
+        pressedStyle={clay.sunken}>
         {loading ? (
           <ActivityIndicator color={theme.text} />
         ) : (
@@ -93,7 +96,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
-    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

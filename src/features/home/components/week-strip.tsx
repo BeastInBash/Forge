@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 export type WeekDay = {
@@ -24,13 +24,14 @@ type Props = {
  */
 export function WeekStrip({ days, today, selected, onSelect }: Props) {
   const theme = useTheme();
+  const clay = useClay();
 
   return (
     <View style={styles.row} accessibilityRole="tablist">
       {days.map(({ day, date, plan }) => {
         const isSelected = day === selected;
         const isToday = day === today;
-        const fg = isSelected ? theme.background : theme.text;
+        const fg = theme.text;
 
         return (
           <Pressable
@@ -41,10 +42,10 @@ export function WeekStrip({ days, today, selected, onSelect }: Props) {
             accessibilityLabel={`${day}${isToday ? ', today' : ''}${plan ? `, ${plan.muscleGroup}` : ', rest day'}`}
             style={({ pressed }) => [
               styles.day,
-              isSelected && { backgroundColor: theme.text },
-              pressed && !isSelected && { backgroundColor: theme.line },
+              isSelected && [{ backgroundColor: theme.surface }, clay.raised],
+              pressed && !isSelected && [{ backgroundColor: theme.background }, clay.sunken],
             ]}>
-            <Text variant="caption" style={{ color: isSelected ? theme.background : theme.textSecondary }}>
+            <Text variant="caption" style={{ color: theme.textSecondary }}>
               {day.slice(0, 3)}
             </Text>
             <Text variant="title" style={{ color: fg }}>
@@ -55,7 +56,7 @@ export function WeekStrip({ days, today, selected, onSelect }: Props) {
                 styles.bar,
                 plan
                   ? { backgroundColor: Temper[plan.split] }
-                  : { borderColor: isSelected ? theme.textSecondary : theme.line, borderWidth: 1 },
+                  : { borderColor: theme.textSecondary, borderWidth: 1, opacity: 0.5 },
               ]}
             />
             {isToday && !isSelected ? (
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     gap: Spacing.one,
-    paddingTop: Spacing.two,
+    paddingTop: Spacing.two + Spacing.half,
     paddingBottom: Spacing.two + Spacing.one,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',

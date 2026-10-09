@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useIsAdmin } from '@/features/auth/use-is-admin';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { ExerciseThumb } from './components/exercise-thumb';
 import { useExercises } from './use-exercises';
@@ -15,6 +15,7 @@ const THUMB_SIZE = 56;
 /** The whole exercise catalog with images; for admins, the header button opens the add form. */
 export function ExerciseLibraryScreen() {
   const theme = useTheme();
+  const clay = useClay();
   const isAdmin = useIsAdmin();
   const { exercises, error, loading, refreshing, refresh } = useExercises();
 
@@ -64,9 +65,7 @@ export function ExerciseLibraryScreen() {
             style={[
               styles.row,
               { backgroundColor: theme.surface },
-              index === 0 && styles.first,
-              index === (exercises?.length ?? 0) - 1 && styles.last,
-              index > 0 && { borderTopColor: theme.line, borderTopWidth: StyleSheet.hairlineWidth },
+              clay.soft,
             ]}>
             <ExerciseThumb url={item.exercise_icon} size={THUMB_SIZE} />
             <Text variant="bodyStrong" numberOfLines={2} style={styles.name}>
@@ -91,8 +90,9 @@ function EmptyState({
   onAction?: () => void;
 }) {
   const theme = useTheme();
+  const clay = useClay();
   return (
-    <View style={[styles.empty, { backgroundColor: theme.surface }]}>
+    <View style={[styles.empty, { backgroundColor: theme.surface }, clay.raised]}>
       <Text variant="bodyStrong">{title}</Text>
       <Text variant="label" color="textSecondary">
         {detail}
@@ -101,7 +101,11 @@ function EmptyState({
         <Pressable
           onPress={onAction}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.retry, { borderColor: theme.line }, pressed && { backgroundColor: theme.line }]}>
+          style={({ pressed }) => [
+            styles.retry,
+            { backgroundColor: theme.surface },
+            pressed ? clay.sunken : clay.soft,
+          ]}>
           <Text variant="label">{actionLabel}</Text>
         </Pressable>
       )}
@@ -117,6 +121,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
     paddingBottom: Spacing.five,
+    gap: Spacing.three,
   },
   headerButton: {
     padding: Spacing.one,
@@ -134,14 +139,8 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two + Spacing.one,
-  },
-  first: {
-    borderTopLeftRadius: Radius.large,
-    borderTopRightRadius: Radius.large,
-  },
-  last: {
-    borderBottomLeftRadius: Radius.large,
-    borderBottomRightRadius: Radius.large,
+    borderRadius: Radius.large,
+    borderCurve: 'continuous',
   },
   name: {
     flex: 1,
@@ -159,7 +158,6 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
-    borderWidth: 1,
     justifyContent: 'center',
   },
 });

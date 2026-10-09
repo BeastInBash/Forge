@@ -16,7 +16,7 @@ import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import type { Exercise } from '@/features/exercises/api';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
 import { useExercises } from '@/features/exercises/use-exercises';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 type Props = {
   visible: boolean;
@@ -32,6 +32,7 @@ type Props = {
  */
 export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   const insets = useSafeAreaInsets();
   const { exercises, error, loading, refresh } = useExercises();
   const [query, setQuery] = useState('');
@@ -58,7 +59,7 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
             style={({ pressed }) => [
               styles.done,
               { backgroundColor: theme.accent },
-              pressed && { opacity: 0.85 },
+              pressed ? clay.sunken : clay.accent,
             ]}>
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
               Done{selectedIds.size ? ` · ${selectedIds.size}` : ''}
@@ -66,7 +67,7 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
           </Pressable>
         </View>
 
-        <View style={[styles.search, { backgroundColor: theme.surface, borderColor: theme.line }]}>
+        <View style={[styles.search, { backgroundColor: theme.background }, clay.sunken]}>
           <Icon ios="magnifyingglass" material="search" size={18} color={theme.textSecondary} />
           <TextInput
             value={query}
@@ -115,7 +116,7 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
                     backgroundColor: theme.surface,
                     borderColor: selected ? theme.accent : 'transparent',
                   },
-                  pressed && { opacity: 0.85 },
+                  pressed ? clay.sunken : clay.raised,
                 ]}>
                 <ExerciseThumb url={item.exercise_icon} size={52} />
                 <Text variant="bodyStrong" numberOfLines={2} style={styles.name}>
@@ -125,8 +126,8 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
                   style={[
                     styles.check,
                     selected
-                      ? { backgroundColor: theme.accent }
-                      : { borderColor: theme.line, borderWidth: 2 },
+                      ? [{ backgroundColor: theme.accent }, clay.accent]
+                      : [{ backgroundColor: theme.background }, clay.sunken],
                   ]}>
                   {selected && (
                     <Icon ios="checkmark" material="check" size={16} color={theme.onAccent} />
@@ -169,7 +170,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     height: 46,
     borderRadius: Radius.medium,
-    borderWidth: 1,
   },
   searchInput: {
     flex: 1,
@@ -180,8 +180,9 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.five,
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   row: {
     flexDirection: 'row',

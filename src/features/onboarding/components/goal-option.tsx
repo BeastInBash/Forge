@@ -7,7 +7,7 @@ import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { CSS_EASE_OUT } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 
 type Props = {
   title: string;
@@ -22,9 +22,13 @@ type Props = {
 
 const CHANGE = { transitionDuration: 150, transitionTimingFunction: CSS_EASE_OUT } as const;
 
-/** One radio card in the goal step. Selection changes colour only; nothing moves or resizes. */
+/**
+ * One radio card in the goal step. Selection changes colour and presses the clay card in;
+ * nothing moves or resizes.
+ */
 export function GoalOption({ title, description, ios, material, tint, selected, onSelect }: Props) {
   const theme = useTheme();
+  const clay = useClay();
   return (
     <PressScale
       onPress={onSelect}
@@ -39,11 +43,12 @@ export function GoalOption({ title, description, ios, material, tint, selected, 
           CHANGE,
           {
             backgroundColor: selected ? `${theme.accent}14` : theme.surface,
-            borderColor: selected ? theme.accent : theme.line,
+            borderColor: selected ? theme.accent : 'transparent',
             transitionProperty: ['backgroundColor', 'borderColor'],
           },
+          selected ? clay.sunken : clay.raised,
         ]}>
-        <View style={[styles.badge, { backgroundColor: `${tint}26` }]}>
+        <View style={[styles.badge, { backgroundColor: `${tint}26` }, clay.soft]}>
           <Icon ios={ios} material={material} size={22} color={tint} />
         </View>
         <View style={styles.copy}>
@@ -57,10 +62,10 @@ export function GoalOption({ title, description, ios, material, tint, selected, 
             styles.check,
             CHANGE,
             {
-              backgroundColor: selected ? theme.accent : 'transparent',
-              borderColor: selected ? theme.accent : theme.line,
-              transitionProperty: ['backgroundColor', 'borderColor'],
+              backgroundColor: selected ? theme.accent : theme.background,
+              transitionProperty: 'backgroundColor',
             },
+            selected ? clay.accent : clay.sunken,
           ]}>
           {selected && (
             <Animated.View entering={FadeIn.duration(120)}>
@@ -79,7 +84,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.large,
     borderCurve: 'continuous',
     borderWidth: 1.5,
   },
@@ -99,7 +104,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -5,7 +5,7 @@ import { Segmented } from '@/components/ui/segmented';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useTheme } from '@/hooks/use-theme';
+import { useClay, useTheme } from '@/hooks/use-theme';
 import {
   setThemePreference,
   useThemePreference,
@@ -23,6 +23,7 @@ const OPTIONS: { value: ThemePreference; label: string }[] = [
 /** Light, dark, or follow the device. */
 export function AppearanceSection() {
   const theme = useTheme();
+  const clay = useClay();
   const { preference } = useThemePreference();
   const dark = useColorScheme() === 'dark';
 
@@ -30,7 +31,7 @@ export function AppearanceSection() {
     <Section title="Appearance">
       <View style={styles.body}>
         <View style={styles.header}>
-          <View style={[styles.iconTile, { backgroundColor: theme.background }]}>
+          <View style={[styles.iconTile, { backgroundColor: theme.background }, clay.sunken]}>
             <Icon
               ios={dark ? 'moon.fill' : 'sun.max.fill'}
               material={dark ? 'dark_mode' : 'light_mode'}
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
   iconTile: {
     width: 40,
     height: 40,
-    borderRadius: Radius.small + 4,
+    borderRadius: Radius.small + 2,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
