@@ -1,7 +1,7 @@
 /**
  * Client-side shapes for training and nutrition data. They mirror the forge-backend Prisma models
- * (`Workout_Plan`, `Workout_Exercise`, `Exercise`, `Meal_Time`, `Food_Items`) with camelCased keys,
- * plus the few presentation fields the app derives (`split`, `logged`).
+ * (`Workout_Plan`, `Workout_Exercise`, `Exercise`) with camelCased keys, plus the few presentation
+ * fields the app derives (`split`).
  */
 
 import type { TemperKey } from '@/constants/theme';
@@ -41,19 +41,4 @@ export type WorkoutPlan = {
   /** Which tempering colour the plan is drawn in. */
   split: Exclude<TemperKey, 'rest'>;
   exercises: WorkoutExercise[];
-};
-
-export type FoodItem = {
-  id: string;
-  name: string;
-  calories: number;
-};
-
-export type MealTime = {
-  id: string;
-  name: string;
-  /** 24h clock, e.g. "08:00". */
-  at: string;
-  foods: FoodItem[];
-  logged: boolean;
 };

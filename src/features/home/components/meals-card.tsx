@@ -1,31 +1,35 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
+import type { MealSummary } from '@/features/meals/api';
+import { mealTimeInfo } from '@/features/meals/nutrients';
 import { useClay, useTheme } from '@/hooks/use-theme';
-import type { MealTime } from '@/types/training';
 
 const numberFormat = new Intl.NumberFormat();
-
-function mealCalories(meal: MealTime) {
-  return meal.foods.reduce((sum, food) => sum + food.calories, 0);
-}
+const timeFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
 
 type Props = {
-  meals: MealTime[];
-  goal: number;
+  /** Today's logged meals, earliest first; undefined while they load. */
+  meals: MealSummary[] | undefined;
+  /** Daily calorie target; without one the bar just shows how the day's calories split. */
+  goal: number | undefined;
+  error?: string;
   onLogMeal: () => void;
+  onOpenMeal: (id: string) => void;
 };
 
 /**
- * Today's food against the calorie goal. The bar is split per meal: logged meals are solid,
- * planned ones are faint, so what's eaten and what's still to come read in one line.
+ * Today's food against the calorie goal, from the meals the user logged. The bar is split per
+ * meal, so each meal's share of the day reads at a glance; each row opens that meal's analysis.
  */
-export function MealsCard({ meals, goal, onLogMeal }: Props) {
+export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) {
   const theme = useTheme();
   const clay = useClay();
-  const eaten = meals.filter((m) => m.logged).reduce((sum, m) => sum + mealCalories(m), 0);
+  const eaten = meals?.reduce((sum, meal) => sum + meal.total.calories, 0) ?? 0;
+  // Past the goal the bar fills with what was eaten rather than overflowing.
+  const scale = Math.max(goal ?? 0, eaten);
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
@@ -48,57 +52,84 @@ export function MealsCard({ meals, goal, onLogMeal }: Props) {
       <View style={styles.total}>
         <Text variant="display">{numberFormat.format(eaten)}</Text>
         <Text variant="label" color="textSecondary">
-          of {numberFormat.format(goal)} kcal
+          {goal ? `of ${numberFormat.format(goal)} kcal` : 'kcal'}
         </Text>
+        {goal && eaten <= goal ? (
+          <Text variant="caption" color="textSecondary" style={styles.left}>
+            {numberFormat.format(goal - eaten)} left
+          </Text>
+        ) : null}
       </View>
 
       <View
         style={[styles.bar, { backgroundColor: theme.background }, clay.sunken]}
         accessible
-        accessibilityLabel={`${eaten} of ${goal} calories eaten`}>
-        {meals.map((meal) => (
-          <View
-            key={meal.id}
-            style={[
-              styles.segment,
-              { flex: mealCalories(meal) / goal, backgroundColor: theme.text },
-              !meal.logged && styles.planned,
-            ]}
-          />
-        ))}
-        <View style={{ flex: Math.max(0, 1 - meals.reduce((s, m) => s + mealCalories(m), 0) / goal) }} />
+        accessibilityLabel={
+          goal ? `${eaten} of ${goal} calories eaten` : `${eaten} calories eaten`
+        }>
+        {scale > 0 &&
+          meals?.map((meal) =>
+            meal.total.calories > 0 ? (
+              <View
+                key={meal.id}
+                style={[
+                  styles.segment,
+                  { flex: meal.total.calories / scale, backgroundColor: theme.text },
+                ]}
+              />
+            ) : null
+          )}
+        {scale > 0 && <View style={{ flex: Math.max(0, 1 - eaten / scale) }} />}
       </View>
 
-      <View>
-        {meals.map((meal, index) => (
-          <View
-            key={meal.id}
-            style={[
-              styles.meal,
-              index > 0 && { borderTopColor: theme.line, borderTopWidth: StyleSheet.hairlineWidth },
-            ]}>
-            <Text variant="label" color="textSecondary" style={styles.time}>
-              {meal.at}
-            </Text>
-            <View style={styles.mealBody}>
-              <Text variant="bodyStrong" color={meal.logged ? 'text' : 'textSecondary'}>
-                {meal.name}
+      {!meals ? (
+        error ? (
+          <Text variant="label" color="textSecondary">
+            {error}
+          </Text>
+        ) : (
+          <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
+        )
+      ) : meals.length === 0 ? (
+        <Text variant="label" color="textSecondary">
+          Nothing logged yet today. Log a meal to see its calories, macros and nutrients.
+        </Text>
+      ) : (
+        <View>
+          {meals.map((meal, index) => (
+            <Pressable
+              key={meal.id}
+              onPress={() => onOpenMeal(meal.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`${mealTimeInfo(meal.mealTime).label}, ${meal.total.calories} calories: ${meal.foods.join(', ')}`}
+              style={({ pressed }) => [
+                styles.meal,
+                index > 0 && {
+                  borderTopColor: theme.line,
+                  borderTopWidth: StyleSheet.hairlineWidth,
+                },
+                pressed && styles.pressed,
+              ]}>
+              <Text variant="label" color="textSecondary" numberOfLines={1} style={styles.time}>
+                {timeFormat.format(new Date(meal.eatenAt))}
               </Text>
-              <Text variant="caption" color="textSecondary" numberOfLines={1}>
-                {meal.foods.map((f) => f.name).join(', ')}
-              </Text>
-            </View>
-            <Text variant="label" color={meal.logged ? 'text' : 'textSecondary'}>
-              {mealCalories(meal)} kcal
-            </Text>
-            {meal.logged ? (
-              <Icon ios="checkmark.circle.fill" material="check_circle" size={20} color={theme.text} />
-            ) : (
-              <Icon ios="circle" material="radio_button_unchecked" size={20} color={theme.line} />
-            )}
-          </View>
-        ))}
-      </View>
+              <View style={styles.mealBody}>
+                <Text variant="bodyStrong">{mealTimeInfo(meal.mealTime).label}</Text>
+                <Text variant="caption" color="textSecondary" numberOfLines={1}>
+                  {meal.foods.join(', ')}
+                </Text>
+              </View>
+              <Text variant="label">{numberFormat.format(meal.total.calories)} kcal</Text>
+              <Icon
+                ios="chevron.right"
+                material="chevron_right"
+                size={16}
+                color={theme.textSecondary}
+              />
+            </Pressable>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -128,6 +159,9 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     gap: Spacing.two,
   },
+  left: {
+    marginLeft: 'auto',
+  },
   bar: {
     flexDirection: 'row',
     height: 14,
@@ -140,8 +174,8 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: Radius.pill,
   },
-  planned: {
-    opacity: 0.25,
+  loading: {
+    paddingVertical: Spacing.two,
   },
   meal: {
     flexDirection: 'row',
@@ -149,8 +183,11 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     paddingVertical: Spacing.three - Spacing.one,
   },
+  pressed: {
+    opacity: 0.6,
+  },
   time: {
-    width: 44,
+    minWidth: 72,
   },
   mealBody: {
     flex: 1,

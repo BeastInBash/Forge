@@ -7,6 +7,8 @@ import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/session';
 import { summarize } from '@/features/body/summary';
 import { useBody } from '@/features/body/use-body';
+import { mealsOn } from '@/features/meals/today';
+import { useMeals } from '@/features/meals/use-meals';
 import { usePlans } from '@/features/plans/use-plans';
 import { startSession, startSessionClock } from '@/features/session/session-store';
 import { useWorkoutSession } from '@/features/session/use-session';
@@ -18,7 +20,6 @@ import { BodyCard } from './components/body-card';
 import { MealsCard } from './components/meals-card';
 import { SessionCard } from './components/session-card';
 import { WeekStrip, type WeekDay } from './components/week-strip';
-import { SAMPLE_MEALS, SAMPLE_USER } from './data';
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {
   weekday: 'long',
@@ -57,6 +58,9 @@ export function HomeScreen() {
   const { session: workout } = useWorkoutSession();
   const body = useBody();
   const bodySummary = summarize(body.measurements ?? {}, body.prefs);
+  const meals = useMeals();
+  // The history is newest first; the card reads the day in order
+  const mealsToday = meals.meals && mealsOn(meals.meals, now).reverse();
 
   const week = buildWeek(now, plans ?? []);
   const selectedPlan = week[WEEKDAYS.indexOf(selected)].plan;
@@ -103,9 +107,11 @@ export function HomeScreen() {
       />
 
       <MealsCard
-        meals={SAMPLE_MEALS}
-        goal={bodySummary.goal?.calories ?? bodySummary.maintenance ?? SAMPLE_USER.dailyCalorieGoal}
-        onLogMeal={() => router.navigate('/nutrition')}
+        meals={mealsToday}
+        goal={bodySummary.goal?.calories ?? bodySummary.maintenance}
+        error={meals.error}
+        onLogMeal={() => router.push('/log-meal')}
+        onOpenMeal={(mealId) => router.push({ pathname: '/meal/[mealId]', params: { mealId } })}
       />
     </ScrollView>
   );
