@@ -13,6 +13,13 @@ export const MACRO_COLORS = {
   fat: Temper.legs,
 } as const;
 
+/** Readable text on each macro colour: white on the blue and violet, dark on the straw. */
+export const MACRO_TEXT_COLORS = {
+  protein: '#FFFFFF',
+  carbs: '#2A210C',
+  fat: '#FFFFFF',
+} as const;
+
 const MACROS = [
   { key: 'protein', label: 'Protein' },
   { key: 'carbs', label: 'Carbs' },

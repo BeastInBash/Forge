@@ -82,7 +82,7 @@ function TabButton({
 }: TabTriggerSlotProps & { icon: TabIcon }) {
   const theme = useTheme();
   const clay = useClay();
-  const color = isFocused ? theme.text : theme.textSecondary;
+  const color = isFocused ? theme.onMint : theme.textSecondary;
 
   return (
     <Pressable
@@ -96,7 +96,7 @@ function TabButton({
       style={({ pressed }) =>
         StyleSheet.flatten([
           styles.tab,
-          isFocused && { backgroundColor: theme.background, ...clay.sunken },
+          isFocused && { backgroundColor: theme.mint, ...clay.sunken },
           pressed && !isFocused && styles.pressed,
         ])
       }>

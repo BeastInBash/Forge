@@ -13,12 +13,12 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { errorMessage } from '@/features/auth/validation';
 import { useClay, useTheme } from '@/hooks/use-theme';
 
 import { deleteMeal, type MealItem, type NutritionReport } from './api';
-import { MacroBar, MACRO_COLORS } from './components/macro-bar';
+import { MacroBar, MACRO_COLORS, MACRO_TEXT_COLORS } from './components/macro-bar';
 import { removeMealLocally } from './meals-store';
 import { dailyPercent, formatAmount, mealTimeInfo, nutrientLabel, NUTRIENT_INFO } from './nutrients';
 import { useMeal } from './use-meals';
@@ -237,9 +237,8 @@ function FoodCard({ item, units }: { item: MealItem; units: Record<string, strin
 
       <View style={styles.foodMacros}>
         {(['protein', 'carbs', 'fat'] as const).map((key) => (
-          <View key={key} style={[styles.chip, { backgroundColor: theme.background }, clay.sunken]}>
-            <View style={[styles.dot, { backgroundColor: MACRO_COLORS[key] }]} />
-            <Text variant="caption">
+          <View key={key} style={[styles.chip, { backgroundColor: MACRO_COLORS[key] }]}>
+            <Text variant="caption" style={[styles.chipText, { color: MACRO_TEXT_COLORS[key] }]}>
               {nutrientLabel(key)} {formatAmount(macros[key] ?? 0)} g
             </Text>
           </View>
@@ -432,15 +431,12 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.one,
-    paddingHorizontal: Spacing.two,
+    paddingHorizontal: Spacing.two + Spacing.one,
     height: 28,
     borderRadius: Radius.pill,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: Radius.pill,
+  chipText: {
+    fontFamily: FontFamily.bodySemiBold,
   },
   unsure: {
     flexDirection: 'row',

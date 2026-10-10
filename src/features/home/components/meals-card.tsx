@@ -10,6 +10,9 @@ import { useClay, useTheme } from '@/hooks/use-theme';
 const numberFormat = new Intl.NumberFormat();
 const timeFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
 
+/** Below this share of the calorie goal, the day's bar turns red. */
+const VERY_LOW_SHARE = 0.25;
+
 type Props = {
   /** Today's logged meals, earliest first; undefined while they load. */
   meals: MealSummary[] | undefined;
@@ -30,6 +33,8 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
   const eaten = meals?.reduce((sum, meal) => sum + meal.total.calories, 0) ?? 0;
   // Past the goal the bar fills with what was eaten rather than overflowing.
   const scale = Math.max(goal ?? 0, eaten);
+  // Without a goal there's nothing to call low, so the bar stays green
+  const barColor = goal && eaten < goal * VERY_LOW_SHARE ? theme.danger : theme.up;
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
@@ -41,11 +46,13 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
           hitSlop={8}
           style={({ pressed }) => [
             styles.log,
-            { backgroundColor: theme.surface },
+            { backgroundColor: theme.mint },
             pressed ? clay.sunken : clay.soft,
           ]}>
-          <Icon ios="plus" material="add" size={16} color={theme.text} />
-          <Text variant="label">Log meal</Text>
+          <Icon ios="plus" material="add" size={16} color={theme.onMint} />
+          <Text variant="label" style={{ color: theme.onMint }}>
+            Log meal
+          </Text>
         </Pressable>
       </View>
 
@@ -74,7 +81,7 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
                 key={meal.id}
                 style={[
                   styles.segment,
-                  { flex: meal.total.calories / scale, backgroundColor: theme.text },
+                  { flex: meal.total.calories / scale, backgroundColor: barColor },
                 ]}
               />
             ) : null

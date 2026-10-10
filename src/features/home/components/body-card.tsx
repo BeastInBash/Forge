@@ -46,15 +46,22 @@ export function BodyCard({ summary, loading, onOpen }: Props) {
         </Text>
       ) : (
         <View style={styles.tiles}>
-          <Tile
-            label="BMI"
-            value={summary.bmi === undefined ? '–' : summary.bmi.toFixed(1)}
-          />
-          <Tile
-            label="Maintain"
-            value={summary.maintenance === undefined ? '–' : numberFormat.format(summary.maintenance)}
-            unit={summary.maintenance === undefined ? undefined : 'kcal'}
-          />
+          <View style={styles.tileRow}>
+            <Tile
+              half
+              label="BMI"
+              value={summary.bmi === undefined ? '–' : summary.bmi.toFixed(1)}
+            />
+            <Tile
+              half
+              label="Maintenance"
+              value={
+                summary.maintenance === undefined ? '–' : numberFormat.format(summary.maintenance)
+              }
+              unit={summary.maintenance === undefined ? undefined : 'kcal'}
+            />
+          </View>
+          {/* The goal target gets its own full-width row: it's the number to eat to */}
           <Tile
             label={summary.goal?.label ?? 'Goal'}
             value={summary.goal ? numberFormat.format(summary.goal.calories) : '–'}
@@ -76,13 +83,16 @@ export function BodyCard({ summary, loading, onOpen }: Props) {
         onPress={onOpen}
         accessibilityRole="button"
         accessibilityHint="Opens the BMI and maintenance calorie calculator"
-        style={[styles.button, { backgroundColor: theme.surface }, clay.soft]}
+        style={[styles.button, { backgroundColor: theme.mint }, clay.soft]}
         pressedStyle={clay.sunken}>
-        <Icon ios="scalemass.fill" material="monitor_weight" size={18} color={theme.text} />
-        <Text variant="bodyStrong" numberOfLines={2} style={styles.buttonLabel}>
+        <Icon ios="plus.forwardslash.minus" material="calculate" size={26} color={theme.onMint} />
+        <Text
+          variant="bodyStrong"
+          numberOfLines={2}
+          style={[styles.buttonLabel, { color: theme.onMint }]}>
           Calculate BMI & Maintenance Calories
         </Text>
-        <Icon ios="chevron.right" material="chevron_right" size={18} color={theme.textSecondary} />
+        <Icon ios="chevron.right" material="chevron_right" size={18} color={theme.onMint} />
       </PressScale>
     </View>
   );
@@ -93,11 +103,14 @@ function Tile({
   value,
   unit,
   highlight = false,
+  half = false,
 }: {
   label: string;
   value: string;
   unit?: string;
   highlight?: boolean;
+  /** One of two tiles sharing a row. */
+  half?: boolean;
 }) {
   const theme = useTheme();
   const clay = useClay();
@@ -105,6 +118,7 @@ function Tile({
     <View
       style={[
         styles.tile,
+        half && styles.half,
         highlight
           ? [{ backgroundColor: theme.accent }, clay.accent]
           : [{ backgroundColor: theme.background }, clay.sunken],
@@ -158,14 +172,20 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
   },
   tiles: {
+    gap: Spacing.two,
+  },
+  tileRow: {
     flexDirection: 'row',
     gap: Spacing.two,
   },
-  tile: {
+  /** Two equal tiles side by side. */
+  half: {
     flex: 1,
     minWidth: 0,
-    paddingVertical: Spacing.two + Spacing.one,
-    paddingHorizontal: Spacing.two + Spacing.half,
+  },
+  tile: {
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.three,
     borderRadius: Radius.medium,
     borderCurve: 'continuous',
     gap: Spacing.half,
@@ -183,5 +203,7 @@ const styles = StyleSheet.create({
   buttonLabel: {
     flex: 1,
     minWidth: 0,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

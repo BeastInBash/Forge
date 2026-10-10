@@ -30,6 +30,9 @@ export const Colors = {
     danger: '#C24A36',
     /** A lift going up — the green of a quenched, sound piece. */
     up: '#2F8A5B',
+    /** Light green fill for health actions (the body calculator), with its text colour. */
+    mint: '#CDEBD8',
+    onMint: '#163D29',
   },
   dark: {
     background: '#1C2027',
@@ -45,6 +48,8 @@ export const Colors = {
     onAccent: '#2A210C',
     danger: '#E8765F',
     up: '#5CC48C',
+    mint: '#A9DBBD',
+    onMint: '#11301F',
   },
 } as const;
 
