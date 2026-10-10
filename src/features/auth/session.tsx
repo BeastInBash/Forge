@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 import { saveOnboarding, type OnboardingAnswers } from '@/features/onboarding/api';
 import { clearBody } from '@/features/body/body-store';
 import { clearPlans } from '@/features/plans/plans-store';
+import { clearMeals } from '@/features/meals/meals-store';
 import { clearLifts } from '@/features/progress/lifts-store';
 import { clearSession } from '@/features/session/session-store';
 import { authClient } from '@/lib/auth-client';
@@ -128,6 +129,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setOnboardedNow(false);
       clearPlans();
       clearLifts();
+      clearMeals();
       clearBody();
       clearSession();
     },

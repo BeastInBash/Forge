@@ -8,6 +8,11 @@ export default function NutritionLayout() {
   return (
     <Stack screenOptions={useStackOptions()}>
       <Stack.Screen name="nutrition" options={{ title: 'Nutrition' }} />
+      <Stack.Screen name="meal/[mealId]" options={{ title: 'Meal', headerLargeTitle: false }} />
+      <Stack.Screen
+        name="log-meal"
+        options={{ title: 'Log a meal', presentation: 'modal', headerLargeTitle: false }}
+      />
     </Stack>
   );
 }
