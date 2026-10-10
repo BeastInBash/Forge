@@ -10,12 +10,14 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { summarize } from '@/features/body/summary';
 import { useBody } from '@/features/body/use-body';
 import { relativeDay } from '@/features/progress/format';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import type { MealSummary } from './api';
 import { MacroBar } from './components/macro-bar';
@@ -40,7 +42,7 @@ function byDay(meals: MealSummary[]) {
 /** Today's food against the calorie goal, then every logged meal, newest first. */
 export function NutritionScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const { meals, error, loading, refreshing, refresh, hasMore, loadingMore, loadMore } =
     useMeals();
@@ -59,10 +61,18 @@ export function NutritionScreen() {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.textSecondary} />
       }>
-      <View style={[styles.hero, { backgroundColor: theme.iron }, clay.iron]}>
-        <Text variant="label" style={{ color: theme.ironTextSecondary }}>
-          Eaten today
-        </Text>
+      <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
+        <View style={styles.eyebrow}>
+          <IconBadge
+            ios="flame"
+            material="local_fire_department"
+            color={theme.accent}
+            background={theme.ironLine}
+          />
+          <Text variant="caption" style={[styles.caps, { color: theme.ironTextSecondary }]}>
+            Eaten today
+          </Text>
+        </View>
         <View style={styles.heroTotal}>
           <Text variant="hero" style={{ color: theme.ironText }}>
             {numberFormat.format(eaten.calories)}
@@ -73,7 +83,7 @@ export function NutritionScreen() {
         </View>
         {goal ? (
           <View
-            style={[styles.goalTrack, { backgroundColor: theme.ironLine }, clay.ironSunken]}
+            style={[styles.goalTrack, { backgroundColor: theme.ironLine }]}
             accessible
             accessibilityLabel={`${eaten.calories} of ${goal} calories eaten`}>
             <View
@@ -94,7 +104,8 @@ export function NutritionScreen() {
           style={({ pressed }) => [
             styles.primary,
             { backgroundColor: theme.accent },
-            pressed ? [styles.pressed, clay.sunken] : clay.accent,
+            surface.accent,
+            pressed && styles.pressed,
           ]}>
           <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
           <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
@@ -106,7 +117,7 @@ export function NutritionScreen() {
       {loading ? (
         <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
       ) : error ? (
-        <View style={[styles.message, { backgroundColor: theme.surface }, clay.raised]}>
+        <View style={[styles.message, { backgroundColor: theme.surface }, surface.raised]}>
           <Text variant="bodyStrong">Couldn’t load your meals</Text>
           <Text variant="label" color="textSecondary">
             {error}
@@ -117,7 +128,7 @@ export function NutritionScreen() {
             style={({ pressed }) => [
               styles.retry,
               { backgroundColor: theme.surface },
-              pressed ? clay.sunken : clay.soft,
+              pressed ? surface.sunken : surface.soft,
             ]}>
             <Text variant="label">Try again</Text>
           </Pressable>
@@ -126,15 +137,16 @@ export function NutritionScreen() {
         <>
           {days.map((day, dayIndex) => (
             <View key={day.key} style={styles.section}>
-              <View style={styles.dayHeader}>
-                <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-                  {day.label.toUpperCase()}
-                </Text>
-                <Text variant="caption" color="textSecondary">
-                  {numberFormat.format(day.meals.reduce((sum, m) => sum + m.total.calories, 0))}{' '}
-                  kcal
-                </Text>
-              </View>
+              <SectionLabel
+                icon={{ ios: 'calendar', material: 'calendar_today' }}
+                trailing={
+                  <Text variant="caption" color="textSecondary">
+                    {numberFormat.format(day.meals.reduce((sum, m) => sum + m.total.calories, 0))}{' '}
+                    kcal
+                  </Text>
+                }>
+                {day.label}
+              </SectionLabel>
               {day.meals.map((meal, index) => (
                 <Animated.View
                   key={meal.id}
@@ -161,7 +173,7 @@ export function NutritionScreen() {
               style={({ pressed }) => [
                 styles.more,
                 { backgroundColor: theme.surface },
-                pressed ? clay.sunken : clay.soft,
+                pressed ? surface.sunken : surface.soft,
               ]}>
               {loadingMore ? (
                 <ActivityIndicator color={theme.textSecondary} />
@@ -172,8 +184,14 @@ export function NutritionScreen() {
           )}
         </>
       ) : (
-        <View style={[styles.message, { backgroundColor: theme.surface }, clay.raised]}>
-          <Icon ios="fork.knife" material="restaurant" size={28} color={theme.textSecondary} />
+        <View style={[styles.message, { backgroundColor: theme.surface }, surface.raised]}>
+          <IconBadge
+            ios="fork.knife"
+            material="restaurant"
+            size={44}
+            color={theme.up}
+            background={theme.mint}
+          />
           <Text variant="bodyStrong">No meals yet</Text>
           <Text variant="label" color="textSecondary">
             Write what you ate and how much, like “Chicken, 250g cooked”. Forge estimates the
@@ -201,26 +219,32 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.three,
   },
+  eyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two + Spacing.half,
+  },
+  caps: {
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
   heroTotal: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: Spacing.two,
-    marginTop: -Spacing.two,
   },
   goalTrack: {
-    height: 14,
-    padding: 3,
-    borderRadius: Radius.pill,
+    height: 8,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   goalFill: {
     height: '100%',
-    borderRadius: Radius.pill,
   },
   primary: {
     marginTop: Spacing.one,
     height: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',
@@ -228,20 +252,10 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   pressed: {
-    transform: [{ scale: 0.97 }],
+    opacity: 0.85,
   },
   section: {
     gap: Spacing.three,
-  },
-  dayHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.one,
-  },
-  sectionTitle: {
-    letterSpacing: 1.2,
-    fontSize: 12,
   },
   loading: {
     paddingVertical: Spacing.five,

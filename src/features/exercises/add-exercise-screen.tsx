@@ -10,7 +10,7 @@ import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
 import { TextField } from '@/features/auth/components/text-field';
 import { errorMessage } from '@/features/auth/validation';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { createExercise, MAX_IMAGE_BYTES } from './api';
 import { addToCache } from './exercise-cache';
@@ -27,7 +27,7 @@ function imageError(image: ImagePickerAsset | undefined) {
 /** Name plus image for a new catalog exercise; uploads in one request and returns to the library. */
 export function AddExerciseScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const [name, setName] = useState('');
   const [image, setImage] = useState<ImagePickerAsset>();
@@ -96,13 +96,13 @@ export function AddExerciseScreen() {
               backgroundColor: image ? '#FFFFFF' : theme.background,
               borderColor: showImageError && errors.image ? theme.danger : 'transparent',
             },
-            image ? clay.raised : clay.sunken,
+            image ? surface.raised : surface.sunken,
             pressed && styles.pressed,
           ]}>
           {image ? (
             <>
               <Image source={image.uri} style={StyleSheet.absoluteFill} contentFit="contain" />
-              <View style={[styles.change, { backgroundColor: theme.iron }, clay.ironSoft]}>
+              <View style={[styles.change, { backgroundColor: theme.iron }, surface.ironSoft]}>
                 <Icon ios="photo" material="image" size={14} color={theme.ironText} />
                 <Text variant="caption" style={{ color: theme.ironText }}>
                   Change image
@@ -111,7 +111,7 @@ export function AddExerciseScreen() {
             </>
           ) : (
             <View style={styles.placeholder}>
-              <View style={[styles.placeholderIcon, { backgroundColor: theme.surface }, clay.soft]}>
+              <View style={[styles.placeholderIcon, { backgroundColor: theme.surface }, surface.soft]}>
                 <Icon ios="photo.badge.plus" material="add_photo_alternate" size={28} color={theme.text} />
               </View>
               <Text variant="bodyStrong">Pick an image</Text>

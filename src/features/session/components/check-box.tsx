@@ -2,7 +2,8 @@ import { Pressable, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { Radius } from '@/constants/theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 type Props = {
   checked: boolean;
@@ -12,10 +13,10 @@ type Props = {
   disabled?: boolean;
 };
 
-/** A round clay well that pops out as a straw bead when ticked. */
+/** A flat square box that fills straw when ticked. */
 export function CheckBox({ checked, onToggle, label, size = 30, disabled }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
     <Pressable
       onPress={onToggle}
@@ -31,12 +32,12 @@ export function CheckBox({ checked, onToggle, label, size = 30, disabled }: Prop
           {
             width: size,
             height: size,
-            borderRadius: size / 2,
+            borderRadius: Radius.small,
             backgroundColor: checked ? theme.accent : theme.background,
             transitionProperty: 'backgroundColor',
             transitionDuration: 150,
           },
-          checked ? clay.accent : clay.sunken,
+          checked ? surface.accent : surface.sunken,
         ]}>
         {checked && (
           <Animated.View entering={FadeIn.duration(120)}>

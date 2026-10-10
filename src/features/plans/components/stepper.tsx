@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 type Props = {
   label: string;
@@ -16,7 +16,7 @@ type Props = {
 /** A labelled −/value/+ control for small whole numbers like sets and reps. */
 export function Stepper({ label, value, min, max, onChange }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
 
   const button = (icon: 'minus' | 'plus', next: number, disabled: boolean) => (
     <Pressable
@@ -28,7 +28,7 @@ export function Stepper({ label, value, min, max, onChange }: Props) {
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: theme.surface },
-        pressed ? clay.sunken : clay.soft,
+        pressed ? surface.sunken : surface.soft,
         disabled && styles.disabled,
       ]}>
       <Icon

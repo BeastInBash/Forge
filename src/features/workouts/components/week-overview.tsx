@@ -1,8 +1,11 @@
+import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 import { plural } from '@/lib/plural';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
@@ -25,21 +28,29 @@ function formatDuration(minutes: number) {
 }
 
 /**
- * Cast-iron summary of the week: a band with one segment per day in its split's tempering
+ * Iron summary of the week: a band with one segment per day in its split's tempering
  * colour (rest days hollow, today marked), then sessions, sets and estimated time.
  */
 export function WeekOverview({ days, today, rangeLabel }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const plans = days.flatMap((d) => (d.plan ? [d.plan] : []));
   const sets = plans.reduce((sum, plan) => sum + plan.exercises.reduce((s, e) => s + e.sets, 0), 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
+    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
       <View style={styles.header}>
-        <Text variant="label" style={{ color: theme.ironTextSecondary }}>
-          This week · {rangeLabel}
-        </Text>
+        <View style={styles.eyebrow}>
+          <IconBadge
+            ios="calendar"
+            material="calendar_month"
+            color={theme.accent}
+            background={theme.ironLine}
+          />
+          <Text variant="caption" style={[styles.eyebrowText, { color: theme.ironTextSecondary }]}>
+            This week · {rangeLabel}
+          </Text>
+        </View>
         <Text variant="hero" style={{ color: theme.ironText }}>
           {plans.length ? plural(plans.length, 'session') : 'No sessions yet'}
         </Text>
@@ -54,9 +65,7 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
             <View
               style={[
                 styles.segment,
-                plan
-                  ? [{ backgroundColor: Temper[plan.split] }, styles.filled]
-                  : clay.ironSunken,
+                plan ? { backgroundColor: Temper[plan.split] } : surface.ironSunken,
               ]}
             />
             <Text
@@ -74,20 +83,38 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
 
       <View style={[styles.stats, { borderTopColor: theme.ironLine }]}>
         <Stat
+          icon={{ ios: 'bed.double', material: 'bedtime' }}
           value={`${7 - plans.length}`}
           unit={7 - plans.length === 1 ? 'rest day' : 'rest days'}
         />
-        <Stat value={`${sets}`} unit={sets === 1 ? 'working set' : 'working sets'} />
-        <Stat value={formatDuration(sets * MINUTES_PER_SET)} unit="est. time" />
+        <Stat
+          icon={{ ios: 'square.stack.3d.up', material: 'layers' }}
+          value={`${sets}`}
+          unit={sets === 1 ? 'working set' : 'working sets'}
+        />
+        <Stat
+          icon={{ ios: 'clock', material: 'schedule' }}
+          value={formatDuration(sets * MINUTES_PER_SET)}
+          unit="est. time"
+        />
       </View>
     </View>
   );
 }
 
-function Stat({ value, unit }: { value: string; unit: string }) {
+function Stat({
+  icon,
+  value,
+  unit,
+}: {
+  icon: Pick<ComponentProps<typeof Icon>, 'ios' | 'material'>;
+  value: string;
+  unit: string;
+}) {
   const theme = useTheme();
   return (
     <View style={styles.stat}>
+      <Icon {...icon} size={16} color={theme.ironTextSecondary} />
       <Text variant="title" style={{ color: theme.ironText }}>
         {value}
       </Text>
@@ -106,7 +133,17 @@ const styles = StyleSheet.create({
     gap: Spacing.four,
   },
   header: {
-    gap: Spacing.one,
+    gap: Spacing.two,
+  },
+  eyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two + Spacing.half,
+  },
+  eyebrowText: {
+    flex: 1,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   band: {
     flexDirection: 'row',
@@ -119,13 +156,8 @@ const styles = StyleSheet.create({
   },
   segment: {
     alignSelf: 'stretch',
-    height: 12,
-    borderRadius: Radius.pill,
-  },
-  /** Moulds a filled segment like a small clay bead. */
-  filled: {
-    boxShadow:
-      'inset 1px 2px 2px rgba(255, 255, 255, 0.45), inset -1px -2px 3px rgba(0, 0, 0, 0.3)',
+    height: 10,
+    borderRadius: 2,
   },
   todayDot: {
     width: 4,
@@ -140,6 +172,6 @@ const styles = StyleSheet.create({
   },
   stat: {
     flex: 1,
-    gap: Spacing.half,
+    gap: Spacing.one,
   },
 });

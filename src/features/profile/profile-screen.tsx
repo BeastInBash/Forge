@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/session';
 import { errorMessage } from '@/features/auth/validation';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import type { Profile } from './api';
 import { AppearanceSection } from './components/appearance-section';
@@ -20,7 +20,7 @@ const numberFormat = new Intl.NumberFormat();
 
 export function ProfileScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const { session, signOut } = useSession();
   const { profile, error, loading, refreshing, refresh } = useProfile();
   const [signingOut, setSigningOut] = useState(false);
@@ -64,7 +64,7 @@ export function ProfileScreen() {
       )}
 
       {error && !profile && (
-        <View style={[styles.errorCard, { backgroundColor: theme.surface }, clay.raised]}>
+        <View style={[styles.errorCard, { backgroundColor: theme.surface }, surface.raised]}>
           <Text variant="bodyStrong">Couldn’t load your details</Text>
           <Text variant="label" color="textSecondary">
             {error}
@@ -76,7 +76,7 @@ export function ProfileScreen() {
             style={({ pressed }) => [
               styles.retry,
               { backgroundColor: theme.surface },
-              pressed ? clay.sunken : clay.soft,
+              pressed ? surface.sunken : surface.soft,
             ]}>
             {refreshing ? <ActivityIndicator color={theme.text} /> : <Text variant="label">Try again</Text>}
           </Pressable>
@@ -101,7 +101,7 @@ export function ProfileScreen() {
           style={({ pressed }) => [
             styles.signOut,
             { backgroundColor: theme.surface },
-            pressed ? clay.sunken : clay.soft,
+            pressed ? surface.sunken : surface.soft,
           ]}>
           {signingOut ? (
             <ActivityIndicator color={theme.danger} />
@@ -125,9 +125,21 @@ function ProfileDetails({ profile }: { profile: Profile }) {
   return (
     <>
       <View style={styles.stats}>
-        <StatTile value={profile.stats.workoutPlans} label={profile.stats.workoutPlans === 1 ? 'Workout plan' : 'Workout plans'} />
-        <StatTile value={profile.stats.exercisesCreated} label="Exercises added" />
-        <StatTile value={daysSince(profile.createdAt)} label="Days on Forge" />
+        <StatTile
+          icon={{ ios: 'list.clipboard', material: 'assignment' }}
+          value={profile.stats.workoutPlans}
+          label={profile.stats.workoutPlans === 1 ? 'Workout plan' : 'Workout plans'}
+        />
+        <StatTile
+          icon={{ ios: 'dumbbell', material: 'fitness_center' }}
+          value={profile.stats.exercisesCreated}
+          label="Exercises added"
+        />
+        <StatTile
+          icon={{ ios: 'calendar', material: 'calendar_month' }}
+          value={daysSince(profile.createdAt)}
+          label="Days on Forge"
+        />
       </View>
 
       <Section title="Sign-in methods">
@@ -204,11 +216,20 @@ function ProfileDetails({ profile }: { profile: Profile }) {
   );
 }
 
-function StatTile({ value, label }: { value: number; label: string }) {
+function StatTile({
+  icon,
+  value,
+  label,
+}: {
+  icon: Pick<ComponentProps<typeof Icon>, 'ios' | 'material'>;
+  value: number;
+  label: string;
+}) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
-    <View style={[styles.stat, { backgroundColor: theme.surface }, clay.raised]}>
+    <View style={[styles.stat, { backgroundColor: theme.surface }, surface.raised]}>
+      <Icon {...icon} size={18} color={theme.textSecondary} />
       <Text variant="display" numberOfLines={1} adjustsFontSizeToFit>
         {numberFormat.format(value)}
       </Text>
@@ -254,11 +275,11 @@ const styles = StyleSheet.create({
   stat: {
     flex: 1,
     minWidth: 0,
-    borderRadius: Radius.large,
+    borderRadius: Radius.medium,
     borderCurve: 'continuous',
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
-    gap: Spacing.half,
+    gap: Spacing.one,
   },
   providerLogo: {
     width: 18,
@@ -269,7 +290,7 @@ const styles = StyleSheet.create({
   },
   signOut: {
     minHeight: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',

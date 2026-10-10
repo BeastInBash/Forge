@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
 import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -14,6 +14,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
 import { EASE_OUT } from '@/constants/motion';
 import { MaxContentWidth, Spacing, Temper } from '@/constants/theme';
@@ -112,6 +113,14 @@ const GOALS: {
     tint: Temper.push,
   },
 ];
+
+/** The marker beside "Step n of 4": one per measure, then the goal. */
+const STEP_ICONS = [
+  { ios: 'birthday.cake', material: 'cake' },
+  { ios: 'ruler', material: 'straighten' },
+  { ios: 'scalemass', material: 'monitor_weight' },
+  { ios: 'target', material: 'track_changes' },
+] satisfies Pick<ComponentProps<typeof Icon>, 'ios' | 'material'>[];
 
 const TOTAL = MEASURES.length + 1;
 const GOAL_STEP = MEASURES.length;
@@ -240,9 +249,16 @@ export function OnboardingScreen() {
 
         <Animated.View key={step} entering={entering} exiting={exiting} style={styles.step}>
           <View style={styles.intro}>
-            <Text variant="label" color="textSecondary">
-              Step {step + 1} of {TOTAL}
-            </Text>
+            <View style={styles.eyebrow}>
+              <IconBadge
+                {...STEP_ICONS[step]}
+                color={theme.onMint}
+                background={theme.mint}
+              />
+              <Text variant="label" color="textSecondary">
+                Step {step + 1} of {TOTAL}
+              </Text>
+            </View>
             <Text variant="display" accessibilityRole="header">
               {measure ? measure.title : 'What are you training for?'}
             </Text>
@@ -364,6 +380,12 @@ const styles = StyleSheet.create({
   },
   intro: {
     gap: Spacing.two,
+  },
+  eyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two + Spacing.half,
+    marginBottom: Spacing.one,
   },
   measure: {
     flex: 1,

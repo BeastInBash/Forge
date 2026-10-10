@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
 import { plural } from '@/lib/plural';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 const timeFormat = new Intl.DateTimeFormat(undefined, {
@@ -35,7 +35,7 @@ function prescription(sets: number, reps: number, weight?: number | null) {
  */
 export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const sets = plan?.exercises.reduce((sum, e) => sum + e.sets, 0) ?? 0;
 
   const dateBadge = (
@@ -43,8 +43,8 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
       style={[
         styles.date,
         isToday
-          ? [{ backgroundColor: theme.accent }, clay.accent]
-          : [{ backgroundColor: theme.background }, clay.sunken],
+          ? [{ backgroundColor: theme.accent }, surface.accent]
+          : [{ backgroundColor: theme.background }, surface.sunken],
       ]}>
       <Text variant="caption" style={{ color: isToday ? theme.onAccent : theme.textSecondary }}>
         {day.slice(0, 3).toUpperCase()}
@@ -66,20 +66,22 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         style={({ pressed }) => [
           styles.card,
           styles.restCard,
-          { backgroundColor: theme.background },
-          clay.sunken,
+          { backgroundColor: theme.background, borderColor: theme.line },
           pressed && styles.pressed,
         ]}>
         {dateBadge}
         <View style={styles.body}>
-          <Text variant="bodyStrong" color="textSecondary">
-            Rest day
-          </Text>
+          <View style={styles.titleRow}>
+            <Icon ios="bed.double" material="bedtime" size={16} color={theme.textSecondary} />
+            <Text variant="bodyStrong" color="textSecondary">
+              Rest day
+            </Text>
+          </View>
           <Text variant="caption" color="textSecondary">
             {isToday ? 'Today · tap to plan a workout' : 'Tap to plan a workout'}
           </Text>
         </View>
-        <View style={[styles.planPill, { backgroundColor: theme.surface }, clay.soft]}>
+        <View style={[styles.planPill, { backgroundColor: theme.surface }, surface.soft]}>
           <Icon ios="plus" material="add" size={14} color={theme.text} />
           <Text variant="caption">Plan</Text>
         </View>
@@ -96,7 +98,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: theme.surface },
-        pressed ? [styles.pressed, clay.sunken] : clay.raised,
+        pressed ? [styles.pressed, surface.sunken] : surface.raised,
       ]}>
       <View style={[styles.temper, { backgroundColor: Temper[plan.split] }]} />
       <View style={styles.main}>
@@ -108,17 +110,20 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
                 {plan.muscleGroup}
               </Text>
               {isToday && (
-                <View style={[styles.todayPill, { backgroundColor: theme.accent }, clay.accent]}>
+                <View style={[styles.todayPill, { backgroundColor: theme.accent }, surface.accent]}>
                   <Text variant="caption" style={{ color: theme.onAccent }}>
                     Today
                   </Text>
                 </View>
               )}
             </View>
-            <Text variant="caption" color="textSecondary">
-              {timeFormat.format(new Date(plan.time))} · {plural(plan.exercises.length, 'exercise')}{' '}
-              · {plural(sets, 'set')}
-            </Text>
+            <View style={styles.meta}>
+              <Icon ios="clock" material="schedule" size={13} color={theme.textSecondary} />
+              <Text variant="caption" color="textSecondary" numberOfLines={1} style={styles.title}>
+                {timeFormat.format(new Date(plan.time))} ·{' '}
+                {plural(plan.exercises.length, 'exercise')} · {plural(sets, 'set')}
+              </Text>
+            </View>
           </View>
           <Icon
             ios={expanded ? 'chevron.up' : 'chevron.down'}
@@ -148,7 +153,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
               style={({ pressed }) => [
                 styles.edit,
                 { backgroundColor: theme.surface },
-                pressed ? clay.sunken : clay.soft,
+                pressed ? surface.sunken : surface.soft,
               ]}>
               <Icon ios="pencil" material="edit" size={16} color={theme.text} />
               <Text variant="bodyStrong">Edit plan</Text>
@@ -168,6 +173,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   restCard: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
@@ -177,7 +184,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   temper: {
-    width: 5,
+    width: 4,
   },
   main: {
     flex: 1,
@@ -192,7 +199,7 @@ const styles = StyleSheet.create({
   date: {
     width: 48,
     paddingVertical: Spacing.one + Spacing.half,
-    borderRadius: Radius.small + 2,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     alignItems: 'center',
   },
@@ -209,6 +216,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
+  },
+  meta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
   },
   title: {
     flexShrink: 1,
@@ -239,7 +251,7 @@ const styles = StyleSheet.create({
   edit: {
     marginTop: Spacing.two,
     minHeight: 44,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',

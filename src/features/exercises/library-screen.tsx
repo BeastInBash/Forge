@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useIsAdmin } from '@/features/auth/use-is-admin';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { ExerciseThumb } from './components/exercise-thumb';
 import { useExercises } from './use-exercises';
@@ -15,7 +15,7 @@ const THUMB_SIZE = 56;
 /** The whole exercise catalog with images; for admins, the header button opens the add form. */
 export function ExerciseLibraryScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const isAdmin = useIsAdmin();
   const { exercises, error, loading, refreshing, refresh } = useExercises();
 
@@ -65,7 +65,7 @@ export function ExerciseLibraryScreen() {
             style={[
               styles.row,
               { backgroundColor: theme.surface },
-              clay.soft,
+              surface.soft,
             ]}>
             <ExerciseThumb url={item.exercise_icon} size={THUMB_SIZE} />
             <Text variant="bodyStrong" numberOfLines={2} style={styles.name}>
@@ -90,9 +90,9 @@ function EmptyState({
   onAction?: () => void;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
-    <View style={[styles.empty, { backgroundColor: theme.surface }, clay.raised]}>
+    <View style={[styles.empty, { backgroundColor: theme.surface }, surface.raised]}>
       <Text variant="bodyStrong">{title}</Text>
       <Text variant="label" color="textSecondary">
         {detail}
@@ -104,7 +104,7 @@ function EmptyState({
           style={({ pressed }) => [
             styles.retry,
             { backgroundColor: theme.surface },
-            pressed ? clay.sunken : clay.soft,
+            pressed ? surface.sunken : surface.soft,
           ]}>
           <Text variant="label">{actionLabel}</Text>
         </Pressable>

@@ -7,7 +7,7 @@ import { CSS_EASE_OUT } from '@/constants/motion';
 type Props = Omit<PressableProps, 'style' | 'children'> & {
   /** Styles the visual surface — the part that scales. */
   style?: StyleProp<ViewStyle>;
-  /** Extra surface styles while pressed, e.g. a clay surface sinking in. */
+  /** Extra surface styles while pressed, e.g. a button taking the page fill. */
   pressedStyle?: StyleProp<ViewStyle>;
   children: ReactNode;
 };

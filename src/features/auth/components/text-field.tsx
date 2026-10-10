@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { CSS_EASE_OUT } from '@/constants/motion';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useTheme } from '@/hooks/use-theme';
 
 type Props = Omit<TextInputProps, 'style'> & {
     label: string;
@@ -26,13 +26,12 @@ const FOCUS = {
 
 export function TextField({ label, error, hint, secure, ref, onFocus, onBlur, ...rest }: Props) {
     const theme = useTheme();
-    const clay = useClay();
     const [focused, setFocused] = useState(false);
     const [revealed, setRevealed] = useState(false);
 
     const tone = error ? theme.danger : theme.accent;
-    // The well is pressed into the page; a border only appears to signal focus or an error.
-    const borderColor = error ? theme.danger : focused ? theme.accent : 'transparent';
+    // A hairline at rest; focus and errors recolour the same border, so nothing shifts.
+    const borderColor = error ? theme.danger : focused ? theme.accent : theme.line;
 
     return (
         <View style={styles.field}>
@@ -47,7 +46,7 @@ export function TextField({ label, error, hint, secure, ref, onFocus, onBlur, ..
                         FOCUS,
                         {
                             borderColor: tone,
-                            opacity: focused ? 0.28 : 0,
+                            opacity: focused ? 0.2 : 0,
                             transitionProperty: 'opacity',
                         },
                     ]}
@@ -57,9 +56,8 @@ export function TextField({ label, error, hint, secure, ref, onFocus, onBlur, ..
                         styles.box,
                         FOCUS,
                         {
-                            backgroundColor: theme.background,
+                            backgroundColor: theme.surface,
                             borderColor,
-                            ...clay.sunken,
                             transitionProperty: 'borderColor',
                         },
                     ]}>
@@ -128,15 +126,15 @@ const styles = StyleSheet.create({
         bottom: -3,
         left: -3,
         borderWidth: 3,
-        borderRadius: Radius.medium + 3,
+        borderRadius: Radius.small + 3,
         borderCurve: 'continuous',
     },
     box: {
         // A minimum rather than a fixed height, so large system font sizes don't clip the text.
         minHeight: 52,
-        borderRadius: Radius.medium,
+        borderRadius: Radius.small,
         borderCurve: 'continuous',
-        borderWidth: 1.5,
+        borderWidth: 1,
         flexDirection: 'row',
         alignItems: 'stretch',
         overflow: 'hidden',

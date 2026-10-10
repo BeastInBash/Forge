@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
-import { Radius, Spacing, Temper } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { Spacing, Temper } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { formatAmount, macroSplit } from '../nutrients';
 
@@ -30,22 +30,17 @@ type Macros = { protein: number; carbs: number; fat: number };
 
 /**
  * The share of calories from protein, carbs and fat as one split bar, with grams below. `onIron`
- * switches the text and track to sit on the cast-iron panel.
+ * switches the text and track to sit on the iron panel.
  */
 export function MacroBar({ macros, onIron = false }: { macros: Macros; onIron?: boolean }) {
   const theme = useTheme();
-  const clay = useClay();
   const split = macroSplit(macros);
   const empty = !macros.protein && !macros.carbs && !macros.fat;
 
   return (
     <View style={styles.wrap}>
       <View
-        style={[
-          styles.track,
-          { backgroundColor: onIron ? theme.ironLine : theme.background },
-          onIron ? clay.ironSunken : clay.sunken,
-        ]}
+        style={[styles.track, { backgroundColor: onIron ? theme.ironLine : theme.line }]}
         accessible
         accessibilityLabel={MACROS.map(
           ({ key, label }) => `${label} ${formatAmount(macros[key])} grams`
@@ -85,15 +80,13 @@ const styles = StyleSheet.create({
   },
   track: {
     flexDirection: 'row',
-    height: 12,
-    padding: 2,
+    height: 8,
     gap: 2,
-    borderRadius: Radius.pill,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   segment: {
     height: '100%',
-    borderRadius: Radius.pill,
   },
   legend: {
     flexDirection: 'row',
@@ -109,6 +102,6 @@ const styles = StyleSheet.create({
   dot: {
     width: 8,
     height: 8,
-    borderRadius: Radius.pill,
+    borderRadius: 2,
   },
 });

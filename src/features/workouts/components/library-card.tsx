@@ -2,12 +2,13 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useIsAdmin } from '@/features/auth/use-is-admin';
 import type { Exercise } from '@/features/exercises/api';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 const PREVIEW_COUNT = 5;
 const THUMB_SIZE = 48;
@@ -15,7 +16,7 @@ const THUMB_SIZE = 48;
 /** Entry to the exercise library: count, a strip of image thumbnails, and (for admins) a quick add. */
 export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; error?: string }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const isAdmin = useIsAdmin();
   const preview = exercises?.slice(0, PREVIEW_COUNT) ?? [];
@@ -28,11 +29,19 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
       : 'Loading…';
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
       <Pressable
         onPress={() => router.push('/exercises')}
         accessibilityRole="button"
         style={({ pressed }) => [styles.top, pressed && styles.pressed]}>
+        <IconBadge
+          ios="books.vertical"
+          material="menu_book"
+          size={40}
+          color={theme.text}
+          background={theme.background}
+          border={theme.line}
+        />
         <View style={styles.text}>
           <Text variant="title">Exercise library</Text>
           <Text variant="label" color="textSecondary">
@@ -53,7 +62,7 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
               key={exercise.id}
               style={[
                 styles.thumbFrame,
-                clay.soft,
+                surface.soft,
                 {
                   borderColor: theme.surface,
                   marginLeft: i === 0 ? 0 : -10,
@@ -67,7 +76,7 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
             <View
               style={[
                 styles.more,
-                clay.sunken,
+                surface.sunken,
                 {
                   backgroundColor: theme.background,
                   borderColor: theme.surface,
@@ -86,7 +95,7 @@ export function LibraryCard({ exercises, error }: { exercises?: Exercise[]; erro
           style={({ pressed }) => [
             styles.add,
             { backgroundColor: theme.surface },
-            pressed ? clay.sunken : clay.soft,
+            pressed ? surface.sunken : surface.soft,
           ]}>
           <Icon ios="plus" material="add" size={18} color={theme.text} />
           <Text variant="bodyStrong">Add exercise</Text>
@@ -121,23 +130,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   thumbFrame: {
-    borderWidth: 3,
-    borderRadius: Radius.small + 7,
+    borderWidth: 2,
+    borderRadius: Radius.medium,
     borderCurve: 'continuous',
   },
   more: {
-    width: THUMB_SIZE + 6,
-    height: THUMB_SIZE + 6,
+    width: THUMB_SIZE + 4,
+    height: THUMB_SIZE + 4,
     marginLeft: -10,
-    borderWidth: 3,
-    borderRadius: Radius.small + 7,
+    borderWidth: 2,
+    borderRadius: Radius.medium,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
   add: {
     minHeight: 48,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',

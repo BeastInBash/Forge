@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -12,10 +12,12 @@ import {
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { errorMessage } from '@/features/auth/validation';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { deleteMeal, type MealItem, type NutritionReport } from './api';
 import { MacroBar, MACRO_COLORS, MACRO_TEXT_COLORS } from './components/macro-bar';
@@ -43,7 +45,7 @@ const macrosOf = (report: NutritionReport) => ({
 /** One logged meal: its totals, each food's estimate, and every nutrient with its Daily Value. */
 export function MealDetailScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const { mealId, ignored } = useLocalSearchParams<{ mealId: string; ignored?: string }>();
   const { meal, summary, error, loading, refreshing, refresh } = useMeal(mealId);
@@ -85,10 +87,13 @@ export function MealDetailScreen() {
       <Stack.Screen options={{ title: info?.label ?? 'Meal' }} />
 
       {header && (
-        <View style={[styles.hero, { backgroundColor: theme.iron }, clay.iron]}>
-          <Text variant="label" style={{ color: theme.ironTextSecondary }}>
-            {when.format(new Date(header.eatenAt))}
-          </Text>
+        <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
+          <View style={styles.eyebrow}>
+            <IconBadge {...info!.icon} color={theme.accent} background={theme.ironLine} />
+            <Text variant="label" style={[styles.flex, { color: theme.ironTextSecondary }]}>
+              {when.format(new Date(header.eatenAt))}
+            </Text>
+          </View>
           <View style={styles.heroTotal}>
             <Text variant="hero" style={{ color: theme.ironText }}>
               {meal ? (meal.total.energy.calories ?? 0) : summary?.total.calories}
@@ -102,7 +107,7 @@ export function MealDetailScreen() {
       )}
 
       {ignored ? (
-        <View style={[styles.notice, { backgroundColor: theme.surface }, clay.soft]}>
+        <View style={[styles.notice, { backgroundColor: theme.surface }, surface.soft]}>
           <Icon ios="info.circle" material="info" size={18} color={theme.textSecondary} />
           <Text variant="label" color="textSecondary" style={styles.flex}>
             Left out, not food or drink: {ignored}
@@ -113,7 +118,7 @@ export function MealDetailScreen() {
       {loading ? (
         <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
       ) : error || !meal ? (
-        <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
+        <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
           <Text variant="bodyStrong">Couldn’t load this meal</Text>
           <Text variant="label" color="textSecondary">
             {error}
@@ -125,7 +130,7 @@ export function MealDetailScreen() {
       ) : (
         <Animated.View entering={FadeIn.duration(200)} style={styles.sections}>
           <View style={styles.section}>
-            <SectionTitle>{`FOODS · ${meal.items.length}`}</SectionTitle>
+            <SectionLabel icon={SECTION_ICONS.foods}>{`Foods · ${meal.items.length}`}</SectionLabel>
             {meal.items.map((item, index) => (
               <Animated.View
                 key={`${item.food}-${index}`}
@@ -137,12 +142,23 @@ export function MealDetailScreen() {
 
           <NutrientSection
             title="MACROS"
+            icon={SECTION_ICONS.macros}
             values={meal.total.macros}
             keys={['protein', 'carbs', 'fat', 'fiber', 'sugar', 'saturatedFat', 'cholesterol']}
             units={units}
           />
-          <NutrientSection title="VITAMINS" values={meal.total.vitamins} units={units} />
-          <NutrientSection title="MINERALS" values={meal.total.minerals} units={units} />
+          <NutrientSection
+            title="VITAMINS"
+            icon={SECTION_ICONS.vitamins}
+            values={meal.total.vitamins}
+            units={units}
+          />
+          <NutrientSection
+            title="MINERALS"
+            icon={SECTION_ICONS.minerals}
+            values={meal.total.minerals}
+            units={units}
+          />
 
           <Text variant="caption" color="textSecondary" style={styles.disclaimer}>
             {meal.disclaimer} % Daily Value is based on a 2,000 kcal diet.
@@ -160,7 +176,7 @@ export function MealDetailScreen() {
             style={({ pressed }) => [
               styles.delete,
               { backgroundColor: confirmDelete ? theme.danger : theme.surface },
-              pressed ? clay.sunken : clay.soft,
+              pressed ? surface.sunken : surface.soft,
             ]}>
             {deleting ? (
               <ActivityIndicator color={theme.surface} />
@@ -186,18 +202,19 @@ export function MealDetailScreen() {
   );
 }
 
-function SectionTitle({ children }: { children: string }) {
-  return (
-    <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-      {children}
-    </Text>
-  );
-}
+type IconName = Pick<ComponentProps<typeof Icon>, 'ios' | 'material'>;
+
+const SECTION_ICONS = {
+  foods: { ios: 'basket', material: 'shopping_basket' },
+  macros: { ios: 'chart.pie', material: 'pie_chart' },
+  vitamins: { ios: 'pills', material: 'medication' },
+  minerals: { ios: 'atom', material: 'science' },
+} satisfies Record<string, IconName>;
 
 /** One food's estimate; opens to show its own vitamins and minerals. */
 function FoodCard({ item, units }: { item: MealItem; units: Record<string, string> }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const [open, setOpen] = useState(false);
   const unsure = item.confidence < LOW_CONFIDENCE;
   const { macros } = item.nutrition;
@@ -211,7 +228,7 @@ function FoodCard({ item, units }: { item: MealItem; units: Record<string, strin
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: theme.surface },
-        pressed ? clay.sunken : clay.raised,
+        pressed ? surface.sunken : surface.raised,
       ]}>
       <View style={styles.foodHeader}>
         <View style={styles.flex}>
@@ -299,23 +316,25 @@ function FoodCard({ item, units }: { item: MealItem; units: Record<string, strin
 /** A nutrition-facts style list: amount, unit and share of the Daily Value per nutrient. */
 function NutrientSection({
   title,
+  icon,
   values,
   keys,
   units,
 }: {
   title: string;
+  icon: IconName;
   values: Record<string, number>;
   keys?: string[];
   units: Record<string, string>;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const rows = (keys ?? Object.keys(values)).filter((key) => key in values);
 
   return (
     <View style={styles.section}>
-      <SectionTitle>{title}</SectionTitle>
-      <View style={[styles.card, styles.facts, { backgroundColor: theme.surface }, clay.raised]}>
+      <SectionLabel icon={icon}>{title}</SectionLabel>
+      <View style={[styles.card, styles.facts, { backgroundColor: theme.surface }, surface.raised]}>
         {rows.map((key, index) => {
           const value = values[key] ?? 0;
           const percent = dailyPercent(key, value);
@@ -341,7 +360,7 @@ function NutrientSection({
                 </Text>
               </View>
               {percent !== undefined && (
-                <View style={[styles.factTrack, { backgroundColor: theme.background }]}>
+                <View style={[styles.factTrack, { backgroundColor: theme.line }]}>
                   <View
                     style={[
                       styles.factFill,
@@ -381,18 +400,22 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.three,
   },
+  eyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two + Spacing.half,
+  },
   heroTotal: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: Spacing.two,
-    marginTop: -Spacing.two,
   },
   notice: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
     padding: Spacing.three,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
   },
   loading: {
@@ -403,11 +426,6 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.three,
-  },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
   },
   card: {
     borderRadius: Radius.large,
@@ -477,19 +495,18 @@ const styles = StyleSheet.create({
   },
   factTrack: {
     height: 4,
-    borderRadius: Radius.pill,
+    borderRadius: 2,
     overflow: 'hidden',
   },
   factFill: {
     height: '100%',
-    borderRadius: Radius.pill,
   },
   disclaimer: {
     paddingHorizontal: Spacing.one,
   },
   delete: {
     minHeight: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',

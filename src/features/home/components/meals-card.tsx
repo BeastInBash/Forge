@@ -1,11 +1,12 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
-import { Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import type { MealSummary } from '@/features/meals/api';
 import { mealTimeInfo } from '@/features/meals/nutrients';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 const numberFormat = new Intl.NumberFormat();
 const timeFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -29,7 +30,7 @@ type Props = {
  */
 export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const eaten = meals?.reduce((sum, meal) => sum + meal.total.calories, 0) ?? 0;
   // Past the goal the bar fills with what was eaten rather than overflowing.
   const scale = Math.max(goal ?? 0, eaten);
@@ -37,9 +38,18 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
   const barColor = goal && eaten < goal * VERY_LOW_SHARE ? theme.danger : theme.up;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
       <View style={styles.header}>
-        <Text variant="title">Meals today</Text>
+        <IconBadge
+          ios="fork.knife"
+          material="restaurant"
+          color={theme.text}
+          background={theme.background}
+          border={theme.line}
+        />
+        <Text variant="title" style={styles.heading}>
+          Meals today
+        </Text>
         <Pressable
           onPress={onLogMeal}
           accessibilityRole="button"
@@ -47,7 +57,8 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
           style={({ pressed }) => [
             styles.log,
             { backgroundColor: theme.mint },
-            pressed ? clay.sunken : clay.soft,
+            surface.accent,
+            pressed && styles.pressed,
           ]}>
           <Icon ios="plus" material="add" size={16} color={theme.onMint} />
           <Text variant="label" style={{ color: theme.onMint }}>
@@ -62,14 +73,16 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
           {goal ? `of ${numberFormat.format(goal)} kcal` : 'kcal'}
         </Text>
         {goal && eaten <= goal ? (
-          <Text variant="caption" color="textSecondary" style={styles.left}>
-            {numberFormat.format(goal - eaten)} left
-          </Text>
+          <View style={[styles.left, { backgroundColor: theme.up }]}>
+            <Text variant="caption" style={[styles.leftText, { color: theme.surface }]}>
+              {numberFormat.format(goal - eaten)} left
+            </Text>
+          </View>
         ) : null}
       </View>
 
       <View
-        style={[styles.bar, { backgroundColor: theme.background }, clay.sunken]}
+        style={[styles.bar, { backgroundColor: theme.line }]}
         accessible
         accessibilityLabel={
           goal ? `${eaten} of ${goal} calories eaten` : `${eaten} calories eaten`
@@ -102,39 +115,49 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
           Nothing logged yet today. Log a meal to see its calories, macros and nutrients.
         </Text>
       ) : (
-        <View>
-          {meals.map((meal, index) => (
-            <Pressable
-              key={meal.id}
-              onPress={() => onOpenMeal(meal.id)}
-              accessibilityRole="button"
-              accessibilityLabel={`${mealTimeInfo(meal.mealTime).label}, ${meal.total.calories} calories: ${meal.foods.join(', ')}`}
-              style={({ pressed }) => [
-                styles.meal,
-                index > 0 && {
-                  borderTopColor: theme.line,
-                  borderTopWidth: StyleSheet.hairlineWidth,
-                },
-                pressed && styles.pressed,
-              ]}>
-              <Text variant="label" color="textSecondary" numberOfLines={1} style={styles.time}>
-                {timeFormat.format(new Date(meal.eatenAt))}
-              </Text>
-              <View style={styles.mealBody}>
-                <Text variant="bodyStrong">{mealTimeInfo(meal.mealTime).label}</Text>
-                <Text variant="caption" color="textSecondary" numberOfLines={1}>
-                  {meal.foods.join(', ')}
-                </Text>
-              </View>
-              <Text variant="label">{numberFormat.format(meal.total.calories)} kcal</Text>
-              <Icon
-                ios="chevron.right"
-                material="chevron_right"
-                size={16}
-                color={theme.textSecondary}
-              />
-            </Pressable>
-          ))}
+        <View style={styles.meals}>
+          {meals.map((meal) => {
+            const info = mealTimeInfo(meal.mealTime);
+            return (
+              <Pressable
+                key={meal.id}
+                onPress={() => onOpenMeal(meal.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`${info.label}, ${meal.total.calories} calories: ${meal.foods.join(', ')}`}
+                style={({ pressed }) => [
+                  styles.meal,
+                  { borderColor: theme.line },
+                  pressed && { backgroundColor: theme.background },
+                ]}>
+                <IconBadge
+                  {...info.icon}
+                  size={36}
+                  color={theme.up}
+                  background={theme.surface}
+                  border={theme.line}
+                />
+                <View style={styles.mealBody}>
+                  <Text
+                    variant="caption"
+                    color="textSecondary"
+                    numberOfLines={1}
+                    style={styles.caps}>
+                    {timeFormat.format(new Date(meal.eatenAt))} · {info.label}
+                  </Text>
+                  <Text variant="bodyStrong" numberOfLines={1}>
+                    {meal.foods.join(', ')}
+                  </Text>
+                </View>
+                <Text variant="label">{numberFormat.format(meal.total.calories)} kcal</Text>
+                <Icon
+                  ios="chevron.right"
+                  material="chevron_right"
+                  size={16}
+                  color={theme.textSecondary}
+                />
+              </Pressable>
+            );
+          })}
         </View>
       )}
     </View>
@@ -151,15 +174,22 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: Spacing.two + Spacing.half,
+  },
+  heading: {
+    flex: 1,
+  },
+  caps: {
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   log: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.one,
     paddingHorizontal: Spacing.three - Spacing.one,
-    height: 34,
-    borderRadius: Radius.pill,
+    height: 32,
+    borderRadius: Radius.small,
   },
   total: {
     flexDirection: 'row',
@@ -168,33 +198,41 @@ const styles = StyleSheet.create({
   },
   left: {
     marginLeft: 'auto',
+    alignSelf: 'center',
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.half,
+    borderRadius: Radius.small,
+  },
+  leftText: {
+    fontFamily: FontFamily.bodySemiBold,
   },
   bar: {
     flexDirection: 'row',
-    height: 14,
-    padding: 3,
-    borderRadius: Radius.pill,
+    height: 8,
+    borderRadius: 4,
     overflow: 'hidden',
     gap: 2,
   },
   segment: {
     height: '100%',
-    borderRadius: Radius.pill,
   },
   loading: {
     paddingVertical: Spacing.two,
   },
+  meals: {
+    gap: Spacing.two,
+  },
   meal: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingVertical: Spacing.three - Spacing.one,
+    gap: Spacing.three - Spacing.one,
+    padding: Spacing.three - Spacing.one,
+    borderWidth: 1,
+    borderRadius: Radius.small,
+    borderCurve: 'continuous',
   },
   pressed: {
-    opacity: 0.6,
-  },
-  time: {
-    minWidth: 72,
+    opacity: 0.7,
   },
   mealBody: {
     flex: 1,
