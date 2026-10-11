@@ -13,6 +13,7 @@ import { saveOnboarding, type OnboardingAnswers } from '@/features/onboarding/ap
 import { clearBody } from '@/features/body/body-store';
 import { clearPlans } from '@/features/plans/plans-store';
 import { clearMeals } from '@/features/meals/meals-store';
+import { deleteAccount as deleteAccountRequest } from '@/features/profile/api';
 import { clearLifts } from '@/features/progress/lifts-store';
 import { clearSession } from '@/features/session/session-store';
 import { authClient } from '@/lib/auth-client';
@@ -37,6 +38,8 @@ type SessionContextValue = {
   /** Signs in, or creates the account on first use — Google doesn't distinguish the two. */
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  /** Permanently deletes the account on the server, then signs out locally. */
+  deleteAccount: () => Promise<void>;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -126,14 +129,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     async signOut() {
       const { error } = await authClient.signOut();
       if (error) throw toError(error);
-      setOnboardedNow(false);
-      clearPlans();
-      clearLifts();
-      clearMeals();
-      clearBody();
-      clearSession();
+      clearLocalState();
+    },
+    async deleteAccount() {
+      await deleteAccountRequest();
+      // The server already dropped the session; this clears the stored cookie and the session
+      // store. Its error is ignored because the account is gone either way.
+      await authClient.signOut().catch(() => {});
+      authClient.$store.notify('$sessionSignal');
+      clearLocalState();
     },
   };
+
+  function clearLocalState() {
+    setOnboardedNow(false);
+    clearPlans();
+    clearLifts();
+    clearMeals();
+    clearBody();
+    clearSession();
+  }
 
   return <SessionContext value={value}>{children}</SessionContext>;
 }

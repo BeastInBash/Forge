@@ -44,3 +44,6 @@ example
 
 # Local CI/CD setup notes
 CI_CD.md
+
+# Google Play service account key
+google-service-account.json

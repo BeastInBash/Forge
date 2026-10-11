@@ -18,10 +18,19 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://forge-backend-peach.vercel.app"
+      },
+      "android": {
+        "buildType": "app-bundle"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }
