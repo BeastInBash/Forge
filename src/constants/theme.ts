@@ -33,6 +33,8 @@ export const Colors = {
     /** Light green fill for health actions (the body calculator), with its text colour. */
     mint: '#DFF3E6',
     onMint: '#14532D',
+    /** Dims the page behind a centred dialog. */
+    scrim: 'rgba(15, 23, 42, 0.45)',
   },
   dark: {
     background: '#0B0F15',
@@ -50,6 +52,7 @@ export const Colors = {
     up: '#4ADE80',
     mint: '#173A27',
     onMint: '#BBF0CF',
+    scrim: 'rgba(0, 0, 0, 0.6)',
   },
 } as const;
 

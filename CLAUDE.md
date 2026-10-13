@@ -87,6 +87,16 @@ reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
 - Home's "Meals today" card (`features/home/components/meals-card.tsx`) reads the same meals
   store. The calorie goal comes from `features/body` (`summarize(...).goal ?? maintenance`).
 
+## Update prompt
+
+- `features/app-update/` shows an "Update available" dialog (mounted in the root layout) when
+  Google Play has a newer version for this install. It uses Play's In-App Updates API through the
+  local native module `modules/play-updates` (Android only; `PlayUpdates` is null on iOS, web and
+  Expo Go). "Update" runs Play's immediate update flow; "Not now" hides that version for a day.
+- It only answers for installs from Google Play, so it can't be tried in a dev build or with a
+  sideloaded .apk. Test it with Play's internal app sharing or a testing track: install an older
+  build from Play, publish a newer one, then reopen the app.
+
 ## Environment and testing gotchas
 
 - `EXPO_PUBLIC_API_URL` comes from `.env.local` (git-ignored) and points at the deployed Vercel
