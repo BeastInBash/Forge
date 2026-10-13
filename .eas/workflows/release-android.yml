@@ -25,7 +25,7 @@ jobs:
       - uses: eas/checkout
       - uses: eas/install_node_modules
       - name: TypeScript
-        run: bunx tsc --noEmit
+        run: ./node_modules/.bin/tsc --noEmit
 
   build_aab:
     name: Build production .aab
