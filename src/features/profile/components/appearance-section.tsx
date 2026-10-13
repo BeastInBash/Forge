@@ -5,7 +5,7 @@ import { Segmented } from '@/components/ui/segmented';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 import {
   setThemePreference,
   useThemePreference,
@@ -23,7 +23,7 @@ const OPTIONS: { value: ThemePreference; label: string }[] = [
 /** Light, dark, or follow the device. */
 export function AppearanceSection() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const { preference } = useThemePreference();
   const dark = useColorScheme() === 'dark';
 
@@ -31,7 +31,7 @@ export function AppearanceSection() {
     <Section title="Appearance">
       <View style={styles.body}>
         <View style={styles.header}>
-          <View style={[styles.iconTile, { backgroundColor: theme.background }, clay.sunken]}>
+          <View style={[styles.iconTile, { backgroundColor: theme.background }, surface.sunken]}>
             <Icon
               ios={dark ? 'moon.fill' : 'sun.max.fill'}
               material={dark ? 'dark_mode' : 'light_mode'}
@@ -70,9 +70,9 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   iconTile: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.small + 2,
+    width: 36,
+    height: 36,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',

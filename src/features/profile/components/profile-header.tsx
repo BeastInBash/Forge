@@ -6,7 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing, Temper } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { formatMonth, initials } from '../format';
 
@@ -28,14 +28,14 @@ type Props = {
 /** Cast-iron identity card: avatar, name, email, verification and membership, then the bio. */
 export function ProfileHeader({ name, email, image, bio, emailVerified, createdAt }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
+    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
       <LinearGradient colors={TEMPER_BAND} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.band} />
       <View style={styles.body}>
         <View style={styles.identity}>
-          <View style={[styles.avatarRing, { backgroundColor: theme.accent }, clay.accent]}>
+          <View style={[styles.avatarRing, { backgroundColor: theme.accent }, surface.accent]}>
             {image ? (
               <Image
                 source={image}
@@ -109,14 +109,15 @@ function Chip({
   highlight?: boolean;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const color = highlight ? theme.accent : theme.ironTextSecondary;
   return (
     <View
       style={[
         styles.chip,
-        clay.ironSunken,
-        { backgroundColor: theme.iron, borderColor: highlight ? theme.accent : 'transparent' },
+        surface.ironSunken,
+        { backgroundColor: theme.iron },
+        highlight && { borderColor: theme.accent },
       ]}>
       <Icon ios={icon.ios} material={icon.material} size={14} color={color} />
       <Text variant="caption" style={{ color: highlight ? theme.ironText : theme.ironTextSecondary }}>
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   band: {
-    height: 6,
+    height: 4,
   },
   body: {
     padding: Spacing.four,
@@ -145,8 +146,8 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   avatarRing: {
-    padding: 4,
-    borderRadius: Radius.pill,
+    padding: 3,
+    borderRadius: AVATAR_SIZE / 2 + 3,
   },
   avatar: {
     width: AVATAR_SIZE,

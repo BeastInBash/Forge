@@ -5,7 +5,7 @@ import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { CSS_EASE_OUT } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 const FADE = {
   transitionProperty: 'opacity',
@@ -29,7 +29,7 @@ export function SubmitButton({
   onPress: () => void;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
     <PressScale
       onPress={onPress}
@@ -40,10 +40,10 @@ export function SubmitButton({
       style={[
         styles.button,
         { backgroundColor: theme.accent },
-        clay.accent,
+        surface.accent,
         disabled && !loading && styles.disabled,
       ]}
-      pressedStyle={clay.sunken}>
+      pressedStyle={styles.pressed}>
       <Animated.View style={[FADE, { opacity: loading ? 0 : 1 }]}>
         <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
           {label}
@@ -70,6 +70,9 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.85,
   },
   disabled: {
     opacity: 0.5,

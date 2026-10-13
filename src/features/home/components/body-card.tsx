@@ -1,12 +1,14 @@
+import type { ComponentProps } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
-import { Radius, Spacing } from '@/constants/theme';
+import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import { bandColor } from '@/features/body/metrics';
 import type { BodySummary } from '@/features/body/summary';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 const numberFormat = new Intl.NumberFormat();
 
@@ -22,19 +24,24 @@ type Props = {
  */
 export function BodyCard({ summary, loading, onOpen }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const nothingYet = summary.bmi === undefined && summary.maintenance === undefined;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
       <View style={styles.header}>
-        <Text variant="title">Your body</Text>
+        <IconBadge
+          ios="figure.stand"
+          material="accessibility_new"
+          color={theme.text}
+          background={theme.background}
+          border={theme.line}
+        />
+        <Text variant="title" style={styles.heading}>
+          Your body
+        </Text>
         {summary.band && (
-          <View style={[styles.band, { backgroundColor: bandColor(summary.band.band, theme) }]}>
-            <Text variant="caption" style={styles.bandText}>
-              {summary.band.label}
-            </Text>
-          </View>
+          <BandChip color={bandColor(summary.band.band, theme)} label={summary.band.label} />
         )}
       </View>
 
@@ -49,11 +56,13 @@ export function BodyCard({ summary, loading, onOpen }: Props) {
           <View style={styles.tileRow}>
             <Tile
               half
+              icon={{ ios: 'scalemass', material: 'monitor_weight' }}
               label="BMI"
               value={summary.bmi === undefined ? '–' : summary.bmi.toFixed(1)}
             />
             <Tile
               half
+              icon={{ ios: 'flame', material: 'local_fire_department' }}
               label="Maintenance"
               value={
                 summary.maintenance === undefined ? '–' : numberFormat.format(summary.maintenance)
@@ -63,6 +72,7 @@ export function BodyCard({ summary, loading, onOpen }: Props) {
           </View>
           {/* The goal target gets its own full-width row: it's the number to eat to */}
           <Tile
+            icon={{ ios: 'target', material: 'track_changes' }}
             label={summary.goal?.label ?? 'Goal'}
             value={summary.goal ? numberFormat.format(summary.goal.calories) : '–'}
             unit={summary.goal ? 'kcal' : undefined}
@@ -83,28 +93,39 @@ export function BodyCard({ summary, loading, onOpen }: Props) {
         onPress={onOpen}
         accessibilityRole="button"
         accessibilityHint="Opens the BMI and maintenance calorie calculator"
-        style={[styles.button, { backgroundColor: theme.mint }, clay.soft]}
-        pressedStyle={clay.sunken}>
-        <Icon ios="plus.forwardslash.minus" material="calculate" size={26} color={theme.onMint} />
-        <Text
-          variant="bodyStrong"
-          numberOfLines={2}
-          style={[styles.buttonLabel, { color: theme.onMint }]}>
-          Calculate BMI & Maintenance Calories
+        style={[styles.button, { backgroundColor: theme.surface }, surface.soft]}
+        pressedStyle={{ backgroundColor: theme.background }}>
+        <Icon ios="plus.forwardslash.minus" material="calculate" size={20} color={theme.textSecondary} />
+        <Text variant="bodyStrong" numberOfLines={2} style={styles.buttonLabel}>
+          Calculate BMI & maintenance calories
         </Text>
-        <Icon ios="chevron.right" material="chevron_right" size={18} color={theme.onMint} />
+        <Icon ios="chevron.right" material="chevron_right" size={18} color={theme.textSecondary} />
       </PressScale>
     </View>
   );
 }
 
+/** The BMI band as a flat chip: a tint of the band's colour with a dot and label in it. */
+function BandChip({ color, label }: { color: string; label: string }) {
+  return (
+    <View style={[styles.band, { backgroundColor: `${color}1F`, borderColor: `${color}55` }]}>
+      <View style={[styles.bandDot, { backgroundColor: color }]} />
+      <Text variant="caption" style={[styles.bandText, { color }]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
 function Tile({
+  icon,
   label,
   value,
   unit,
   highlight = false,
   half = false,
 }: {
+  icon: Pick<ComponentProps<typeof Icon>, 'ios' | 'material'>;
   label: string;
   value: string;
   unit?: string;
@@ -113,34 +134,34 @@ function Tile({
   half?: boolean;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
+  const fg = highlight ? theme.onMint : theme.text;
+  const muted = highlight ? theme.onMint : theme.textSecondary;
   return (
     <View
       style={[
         styles.tile,
         half && styles.half,
         highlight
-          ? [{ backgroundColor: theme.accent }, clay.accent]
-          : [{ backgroundColor: theme.background }, clay.sunken],
+          ? [{ backgroundColor: theme.mint }, surface.accent]
+          : [{ backgroundColor: theme.surface }, surface.soft],
       ]}>
-      <Text
-        variant="caption"
-        numberOfLines={1}
-        style={{ color: highlight ? theme.onAccent : theme.textSecondary }}>
-        {label}
-      </Text>
-      <Text
-        variant="title"
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        style={{ color: highlight ? theme.onAccent : theme.text }}>
-        {value}
-      </Text>
-      {unit && (
-        <Text variant="caption" style={{ color: highlight ? theme.onAccent : theme.textSecondary }}>
-          {unit}
+      <View style={styles.tileLabel}>
+        <Icon {...icon} size={14} color={muted} />
+        <Text variant="caption" numberOfLines={1} style={[styles.caps, { color: muted }]}>
+          {label}
         </Text>
-      )}
+      </View>
+      <View style={styles.tileValue}>
+        <Text variant="title" numberOfLines={1} adjustsFontSizeToFit style={{ color: fg }}>
+          {value}
+        </Text>
+        {unit && (
+          <Text variant="caption" style={{ color: muted }}>
+            {unit}
+          </Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -155,18 +176,27 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.two,
+    gap: Spacing.two + Spacing.half,
+  },
+  heading: {
+    flex: 1,
   },
   band: {
-    paddingHorizontal: Spacing.two + Spacing.half,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + Spacing.half,
+    paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.half + 1,
-    borderRadius: Radius.pill,
-    boxShadow:
-      'inset 2px 2px 4px rgba(255, 255, 255, 0.4), inset -2px -3px 5px rgba(0, 0, 0, 0.25)',
+    borderWidth: 1,
+    borderRadius: Radius.small,
+  },
+  bandDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   bandText: {
-    color: '#FFFFFF',
+    fontFamily: FontFamily.bodySemiBold,
   },
   loading: {
     paddingVertical: Spacing.three,
@@ -184,11 +214,25 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   tile: {
-    paddingVertical: Spacing.three,
+    paddingVertical: Spacing.three - Spacing.one,
     paddingHorizontal: Spacing.three,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
-    gap: Spacing.half,
+    gap: Spacing.one,
+  },
+  tileLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + Spacing.half,
+  },
+  caps: {
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  tileValue: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.one,
   },
   button: {
     flexDirection: 'row',
@@ -197,7 +241,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
   },
   buttonLabel: {

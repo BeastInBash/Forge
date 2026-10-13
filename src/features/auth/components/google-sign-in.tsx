@@ -5,7 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { useSession } from '../session';
 import { errorMessage } from '../validation';
@@ -19,11 +19,11 @@ type Props = {
 
 /**
  * "or" divider plus the Google button. Google's button guidelines ask for the full-colour G on a
- * neutral button, so this is a plain clay surface instead of the straw accent.
+ * neutral button, so this is a plain bordered surface instead of the straw accent.
  */
 export function GoogleSignIn({ disabled, onBusyChange, onError }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const { signInWithGoogle } = useSession();
   const [loading, setLoading] = useState(false);
 
@@ -61,10 +61,10 @@ export function GoogleSignIn({ disabled, onBusyChange, onError }: Props) {
         style={[
           styles.button,
           { backgroundColor: theme.surface },
-          clay.soft,
+          surface.soft,
           disabled && !loading && styles.disabled,
         ]}
-        pressedStyle={clay.sunken}>
+        pressedStyle={surface.sunken}>
         {loading ? (
           <ActivityIndicator color={theme.text} />
         ) : (

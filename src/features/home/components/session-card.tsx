@@ -1,12 +1,13 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
-import { Radius, Spacing, Temper } from '@/constants/theme';
+import { Radius, Spacing, Temper, type TemperKey } from '@/constants/theme';
 import { isClockRunning, type WorkoutSession } from '@/features/session/session-store';
 import { formatClock, formatSpan, sessionDuration } from '@/features/session/timing';
 import { useNow } from '@/features/session/use-session';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -39,11 +40,11 @@ export function SessionCard({
   onPlan,
 }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
 
   if (loading) {
     return (
-      <View style={[styles.card, styles.loadingCard, { backgroundColor: theme.iron }, clay.iron]}>
+      <View style={[styles.card, styles.loadingCard, { backgroundColor: theme.iron }, surface.iron]}>
         <ActivityIndicator color={theme.ironTextSecondary} />
       </View>
     );
@@ -51,11 +52,9 @@ export function SessionCard({
 
   if (!plan) {
     return (
-      <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
+      <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
         <View style={styles.body}>
-          <Text variant="label" style={{ color: theme.ironTextSecondary }}>
-            {dayLabel}
-          </Text>
+          <CardHeader label={dayLabel} rest />
           <Text variant="hero" style={{ color: theme.ironText }}>
             Rest day
           </Text>
@@ -71,20 +70,21 @@ export function SessionCard({
   const totalSets = plan.exercises.reduce((sum, item) => sum + item.sets, 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
+    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
       <View style={[styles.temper, { backgroundColor: Temper[plan.split] }]} />
       <View style={styles.body}>
-        <Text variant="label" style={{ color: theme.ironTextSecondary }}>
-          {dayLabel} at {timeFormat.format(new Date(plan.time))}
-        </Text>
+        <CardHeader
+          label={`${dayLabel} at ${timeFormat.format(new Date(plan.time))}`}
+          split={plan.split}
+        />
         <Text variant="hero" style={{ color: theme.ironText }}>
           {plan.muscleGroup}
         </Text>
 
         <View style={styles.stats}>
-          <Stat value={plan.exercises.length} unit="exercises" />
-          <Stat value={totalSets} unit="sets" />
-          <Stat value={totalSets * MINUTES_PER_SET} unit="min" />
+          <Stat icon="exercises" value={plan.exercises.length} unit="exercises" />
+          <Stat icon="sets" value={totalSets} unit="sets" />
+          <Stat icon="time" value={totalSets * MINUTES_PER_SET} unit="min" />
         </View>
 
         <View style={[styles.list, { borderTopColor: theme.ironLine }]}>
@@ -120,7 +120,8 @@ export function SessionCard({
             style={({ pressed }) => [
               styles.primary,
               { backgroundColor: theme.accent },
-              pressed ? [styles.pressed, clay.sunken] : clay.accent,
+              surface.accent,
+              pressed && styles.pressed,
             ]}>
             <Icon ios="play.fill" material="play_arrow" size={18} color={theme.onAccent} />
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
@@ -138,7 +139,7 @@ export function SessionCard({
 /** "Resume workout" with the session clock beside it, still counting unless stopped. */
 function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: () => void }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const running = isClockRunning(workout);
   const now = useNow(running);
   return (
@@ -148,7 +149,8 @@ function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: 
       style={({ pressed }) => [
         styles.primary,
         { backgroundColor: theme.accent },
-        pressed ? [styles.pressed, clay.sunken] : clay.accent,
+        surface.accent,
+        pressed && styles.pressed,
       ]}>
       <Icon ios="timer" material="timer" size={18} color={theme.onAccent} />
       <Text variant="bodyStrong" numberOfLines={1} style={{ color: theme.onAccent }}>
@@ -165,10 +167,56 @@ function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: 
   );
 }
 
-function Stat({ value, unit }: { value: number; unit: string }) {
+/** The workout marker, the day's time, and the split as a chip in its tempering colour. */
+function CardHeader({ label, split, rest }: { label: string; split?: TemperKey; rest?: boolean }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.header}>
+      <IconBadge
+        ios={rest ? 'bed.double' : 'dumbbell'}
+        material={rest ? 'bedtime' : 'fitness_center'}
+        color={rest ? theme.ironTextSecondary : theme.accent}
+        background={theme.ironLine}
+      />
+      <Text
+        variant="caption"
+        numberOfLines={1}
+        style={[styles.headerLabel, { color: theme.ironTextSecondary }]}>
+        {label}
+      </Text>
+      {split && (
+        <View style={[styles.split, { borderColor: theme.ironLine }]}>
+          <View style={[styles.splitDot, { backgroundColor: Temper[split] }]} />
+          <Text variant="caption" style={{ color: theme.ironText }}>
+            {split[0].toUpperCase() + split.slice(1)}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const STAT_ICONS = {
+  exercises: { ios: 'list.bullet', material: 'format_list_bulleted' },
+  sets: { ios: 'square.stack.3d.up', material: 'layers' },
+  time: { ios: 'clock', material: 'schedule' },
+} as const;
+
+function Stat({
+  icon,
+  value,
+  unit,
+}: {
+  icon: keyof typeof STAT_ICONS;
+  value: number;
+  unit: string;
+}) {
   const theme = useTheme();
   return (
     <View style={styles.stat}>
+      <View style={styles.statIcon}>
+        <Icon {...STAT_ICONS[icon]} size={15} color={theme.ironTextSecondary} />
+      </View>
       <Text variant="title" style={{ color: theme.ironText }}>
         {value}
       </Text>
@@ -181,7 +229,7 @@ function Stat({ value, unit }: { value: number; unit: string }) {
 
 function SecondaryButton({ label, onPress }: { label: string; onPress: () => void }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
     <Pressable
       onPress={onPress}
@@ -189,7 +237,7 @@ function SecondaryButton({ label, onPress }: { label: string; onPress: () => voi
       style={({ pressed }) => [
         styles.secondary,
         { backgroundColor: theme.ironLine },
-        pressed ? [styles.pressed, clay.ironSunken] : clay.ironSoft,
+        pressed ? [styles.pressed, surface.ironSunken] : surface.ironSoft,
       ]}>
       <Text variant="bodyStrong" style={{ color: theme.ironText }}>
         {label}
@@ -214,11 +262,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   temper: {
-    height: 6,
+    height: 4,
   },
   body: {
     padding: Spacing.four,
     gap: Spacing.two,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two + Spacing.half,
+    marginBottom: Spacing.one,
+  },
+  headerLabel: {
+    flex: 1,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  split: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + Spacing.half,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    borderWidth: 1,
+    borderRadius: Radius.small,
+  },
+  splitDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   restCopy: {
     marginBottom: Spacing.three,
@@ -226,13 +299,18 @@ const styles = StyleSheet.create({
   },
   stats: {
     flexDirection: 'row',
-    gap: Spacing.four,
+    flexWrap: 'wrap',
+    columnGap: Spacing.four,
+    rowGap: Spacing.one,
     marginTop: Spacing.one,
   },
   stat: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: Spacing.one,
+  },
+  statIcon: {
+    alignSelf: 'center',
   },
   list: {
     marginTop: Spacing.three,
@@ -254,7 +332,7 @@ const styles = StyleSheet.create({
   primary: {
     marginTop: Spacing.three,
     height: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',
@@ -264,12 +342,12 @@ const styles = StyleSheet.create({
   secondary: {
     marginTop: Spacing.three,
     height: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: {
-    transform: [{ scale: 0.97 }],
+    opacity: 0.85,
   },
 });

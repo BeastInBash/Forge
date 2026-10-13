@@ -1,0 +1,49 @@
+name: Build Android (testing, manual)
+
+# No GitHub trigger: run it by hand on the testing branch with
+#   eas workflow:run .eas/workflows/build-testing.yml --ref testing
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_play:
+        type: boolean
+        default: true
+        description: Upload the .aab to the Google Play Internal testing track
+
+defaults:
+  tools:
+    bun: '1.3.14'
+
+jobs:
+  checks:
+    name: Type-check
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: TypeScript
+        run: bunx tsc --noEmit
+
+  build_aab:
+    name: Build production .aab
+    needs: [checks]
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  build_apk:
+    name: Build production .apk
+    needs: [checks]
+    type: build
+    params:
+      platform: android
+      profile: production-apk
+
+  submit_internal_testing:
+    name: Upload to Google Play (Internal testing)
+    needs: [build_aab]
+    if: ${{ inputs.upload_to_play }}
+    type: submit
+    params:
+      profile: testing
+      build_id: ${{ needs.build_aab.outputs.build_id }}

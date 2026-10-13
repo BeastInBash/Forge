@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { deleteLift, type Lift } from './api';
 import { AnimatedNumber } from './components/animated-number';
@@ -86,7 +87,7 @@ function signed(value: number, metric: Metric) {
 /** One exercise's progress: a chart over time, headline numbers and every logged session. */
 export function LiftDetailScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
   const { history, summary, error, loading, refreshing, refresh } = useLiftHistory(exerciseId);
@@ -152,7 +153,7 @@ export function LiftDetailScreen() {
       {loading ? (
         <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
       ) : error ? (
-        <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
+        <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
           <Text variant="bodyStrong">Couldn’t load this lift</Text>
           <Text variant="label" color="textSecondary">
             {error}
@@ -162,7 +163,7 @@ export function LiftDetailScreen() {
           </Pressable>
         </View>
       ) : lifts.length === 0 ? (
-        <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
+        <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
           <Text variant="bodyStrong">Nothing logged yet</Text>
           <Text variant="label" color="textSecondary">
             Log your first session of {name} to start the chart.
@@ -170,7 +171,7 @@ export function LiftDetailScreen() {
         </View>
       ) : (
         <>
-          <View style={[styles.card, styles.chartCard, { backgroundColor: theme.surface }, clay.raised]}>
+          <View style={[styles.card, styles.chartCard, { backgroundColor: theme.surface }, surface.raised]}>
             <View style={styles.readout} accessibilityLiveRegion="polite">
               <Text variant="label" color="textSecondary">
                 {active !== null && focus
@@ -245,14 +246,20 @@ export function LiftDetailScreen() {
 
           <View style={styles.tiles}>
             <Tile
+              icon={{ ios: 'trophy', material: 'emoji_events' }}
               label={bodyweight ? 'Most reps' : 'Best est. 1RM'}
               value={formatMetric(allTimeBest, headline)}
             />
             <Tile
+              icon={{ ios: 'scalemass', material: 'fitness_center' }}
               label="Last top set"
               value={formatSet(bestSet(lifts[lifts.length - 1].sets) ?? { weight: null, reps: 0 })}
             />
-            <Tile label="Sessions" value={String(lifts.length)} />
+            <Tile
+              icon={{ ios: 'calendar', material: 'calendar_month' }}
+              label="Sessions"
+              value={String(lifts.length)}
+            />
           </View>
 
           <Pressable
@@ -261,7 +268,8 @@ export function LiftDetailScreen() {
             style={({ pressed }) => [
               styles.primary,
               { backgroundColor: theme.accent },
-              pressed ? [styles.pressed, clay.sunken] : clay.accent,
+              surface.accent,
+              pressed && styles.pressed,
             ]}>
             <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
@@ -270,9 +278,9 @@ export function LiftDetailScreen() {
           </Pressable>
 
           <View style={styles.section}>
-            <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-              HISTORY
-            </Text>
+            <SectionLabel icon={{ ios: 'clock.arrow.circlepath', material: 'history' }}>
+              History
+            </SectionLabel>
             {lifts
               .map((lift, i) => ({ lift, previous: lifts[i - 1] }))
               .reverse()
@@ -308,11 +316,20 @@ export function LiftDetailScreen() {
   );
 }
 
-function Tile({ label, value }: { label: string; value: string }) {
+function Tile({
+  icon,
+  label,
+  value,
+}: {
+  icon: Pick<ComponentProps<typeof Icon>, 'ios' | 'material'>;
+  label: string;
+  value: string;
+}) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
-    <View style={[styles.tile, { backgroundColor: theme.surface }, clay.soft]}>
+    <View style={[styles.tile, { backgroundColor: theme.surface }, surface.soft]}>
+      <Icon {...icon} size={16} color={theme.textSecondary} />
       <Text variant="caption" color="textSecondary" numberOfLines={1}>
         {label}
       </Text>
@@ -394,10 +411,5 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
     marginTop: Spacing.two,
-  },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
   },
 });

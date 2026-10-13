@@ -20,7 +20,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { Text } from '@/components/ui/text';
 import { FontFamily, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useTheme } from '@/hooks/use-theme';
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
@@ -50,7 +50,6 @@ type Props = {
  */
 export function RulerPicker({ min, max, step, majorEvery, value, onChange, label, unit }: Props) {
   const theme = useTheme();
-  const clay = useClay();
   const ref = useAnimatedRef<Animated.ScrollView>();
   const [width, setWidth] = useState(0);
   const count = Math.round((max - min) / step) + 1;
@@ -187,7 +186,7 @@ export function RulerPicker({ min, max, step, majorEvery, value, onChange, label
           end={{ x: 1, y: 0 }}
           style={[styles.edge, styles.right]}
         />
-        <View style={[styles.needle, { backgroundColor: theme.accent }, clay.accent]} />
+        <View style={[styles.needle, { backgroundColor: theme.accent }]} />
       </View>
     </View>
   );

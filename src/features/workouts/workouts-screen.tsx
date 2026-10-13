@@ -9,11 +9,12 @@ import {
   View,
 } from 'react-native';
 
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useExercises } from '@/features/exercises/use-exercises';
 import { usePlans } from '@/features/plans/use-plans';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 import { mondayIndex, startOfWeek, WEEKDAYS } from '@/lib/week';
 import type { Weekday } from '@/types/training';
 
@@ -29,7 +30,7 @@ const dayMonth = new Intl.DateTimeFormat(undefined, {
 /** The user's weekly split from forge-backend, and the exercise library. */
 export function WorkoutsScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const [now] = useState(() => new Date());
   const today = WEEKDAYS[mondayIndex(now)];
   const [expanded, setExpanded] = useState<Weekday | undefined>(today);
@@ -67,13 +68,11 @@ export function WorkoutsScreen() {
       <WeekOverview days={days} today={today} rangeLabel={rangeLabel} />
 
       <View style={styles.section}>
-        <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-          YOUR SPLIT
-        </Text>
+        <SectionLabel icon={{ ios: 'calendar', material: 'calendar_month' }}>Your split</SectionLabel>
         {plansLoading ? (
           <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
         ) : plansError ? (
-          <View style={[styles.error, { backgroundColor: theme.surface }, clay.raised]}>
+          <View style={[styles.error, { backgroundColor: theme.surface }, surface.raised]}>
             <Text variant="bodyStrong">Couldn’t load your plans</Text>
             <Text variant="label" color="textSecondary">
               {plansError}
@@ -84,7 +83,7 @@ export function WorkoutsScreen() {
               style={({ pressed }) => [
                 styles.retry,
                 { backgroundColor: theme.surface },
-                pressed ? clay.sunken : clay.soft,
+                pressed ? surface.sunken : surface.soft,
               ]}>
               <Text variant="label">Try again</Text>
             </Pressable>
@@ -129,11 +128,6 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.two,
-  },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
   },
   days: {
     gap: Spacing.three,

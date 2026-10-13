@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useTheme } from '@/hooks/use-theme';
 
 type IconProps = ComponentProps<typeof Icon>;
 type TabIcon = { ios: IconProps['ios']; iosSelected: IconProps['ios']; material: IconProps['material'] };
@@ -25,18 +25,16 @@ const ICONS = {
 } satisfies Record<string, TabIcon>;
 
 /**
- * A floating clay tab bar on every platform. The system tab bars can't take clay shadows, so
- * this draws its own: a raised bar, inset from the edges and capped to the content width, with
- * the active tab pressed into it.
+ * A flat tab bar on every platform: a full-width surface under a hairline, its tabs capped to the
+ * content width, and the active tab marked with a mint tile.
  */
 export default function TabsLayout() {
   const theme = useTheme();
-  const clay = useClay();
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
-  // `Tabs` finds its TabList among its direct children, so the bar can't sit in a wrapper View;
-  // its width comes from the window instead.
-  const barWidth = Math.min(window.width - Spacing.three * 2, MaxContentWidth);
+  // `Tabs` finds its TabList among its direct children, so the bar can't wrap its tabs in a
+  // centred View; side padding caps them to the content width instead.
+  const gutter = Math.max(Spacing.two, (window.width - MaxContentWidth) / 2);
 
   return (
     <Tabs style={{ flex: 1, backgroundColor: theme.background }}>
@@ -46,11 +44,11 @@ export default function TabsLayout() {
           style={StyleSheet.flatten([
             styles.bar,
             {
-              width: barWidth,
-              marginBottom: Math.max(insets.bottom, Spacing.three),
+              paddingHorizontal: gutter,
+              paddingBottom: Math.max(insets.bottom, Spacing.two),
               backgroundColor: theme.surface,
+              borderTopColor: theme.line,
             },
-            clay.raised,
           ])}>
           <TabTrigger name="(home)" href="/" asChild>
             <TabButton icon={ICONS.today}>Today</TabButton>
@@ -81,7 +79,6 @@ function TabButton({
   ...props
 }: TabTriggerSlotProps & { icon: TabIcon }) {
   const theme = useTheme();
-  const clay = useClay();
   const color = isFocused ? theme.onMint : theme.textSecondary;
 
   return (
@@ -96,7 +93,7 @@ function TabButton({
       style={({ pressed }) =>
         StyleSheet.flatten([
           styles.tab,
-          isFocused && { backgroundColor: theme.mint, ...clay.sunken },
+          isFocused && { backgroundColor: theme.mint },
           pressed && !isFocused && styles.pressed,
         ])
       }>
@@ -119,23 +116,21 @@ function TabButton({
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
-    alignSelf: 'center',
-    marginTop: Spacing.two,
-    padding: Spacing.one + Spacing.half,
-    borderRadius: Radius.large,
-    borderCurve: 'continuous',
+    gap: Spacing.one,
+    paddingTop: Spacing.two,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   tab: {
     flex: 1,
     minWidth: 0,
     alignItems: 'center',
     gap: Spacing.half,
-    paddingVertical: Spacing.two,
-    borderRadius: Radius.medium,
+    paddingVertical: Spacing.one + Spacing.half,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
   },
   pressed: {
-    transform: [{ scale: 0.94 }],
+    opacity: 0.6,
   },
   label: {
     fontSize: 11,

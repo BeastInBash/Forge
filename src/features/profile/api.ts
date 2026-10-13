@@ -48,3 +48,21 @@ export async function fetchProfile(signal?: AbortSignal): Promise<Profile> {
   }
   return body.data;
 }
+
+/** `DELETE /api/v1/profile` — permanently deletes the signed-in user and everything they own. */
+export async function deleteAccount(): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiURL}/api/v1/profile`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+      credentials: 'include',
+    });
+  } catch {
+    throw new Error('Can’t reach Forge right now. Check your connection.');
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || 'Couldn’t delete your account. Try again.');
+  }
+}

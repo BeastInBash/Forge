@@ -4,7 +4,7 @@ import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-rea
 
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 
@@ -23,7 +23,7 @@ export function Segmented<T extends string>({
   accessibilityLabel,
 }: Props<T>) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const [layouts, setLayouts] = useState<Record<string, { x: number; width: number }>>({});
   const selected = layouts[value];
 
@@ -38,8 +38,8 @@ export function Segmented<T extends string>({
     <View
       accessibilityRole="tablist"
       accessibilityLabel={accessibilityLabel}
-      style={[styles.track, { backgroundColor: theme.background }, clay.sunken]}>
-      <Animated.View style={[styles.thumb, { backgroundColor: theme.accent }, clay.accent, thumbStyle]} />
+      style={[styles.track, { backgroundColor: theme.background }, surface.sunken]}>
+      <Animated.View style={[styles.thumb, { backgroundColor: theme.accent }, surface.accent, thumbStyle]} />
       {options.map((option) => {
         const active = option.value === value;
         return (

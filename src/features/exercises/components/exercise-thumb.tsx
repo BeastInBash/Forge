@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
 import { Radius } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { thumbnailUrl } from '../api';
 
@@ -13,12 +13,12 @@ import { thumbnailUrl } from '../api';
  */
 export function ExerciseThumb({ url, size }: { url: string | null; size: number }) {
   const theme = useTheme();
-  const clay = useClay();
-  const frame = { width: size, height: size, borderRadius: size > 80 ? Radius.large : Radius.small + 4 };
+  const surface = useSurface();
+  const frame = { width: size, height: size, borderRadius: size > 80 ? Radius.medium : Radius.small };
 
   if (!url) {
     return (
-      <View style={[styles.tile, frame, { backgroundColor: theme.background }, clay.sunken]}>
+      <View style={[styles.tile, frame, { backgroundColor: theme.background }, surface.sunken]}>
         <Icon ios="dumbbell" material="fitness_center" size={size * 0.4} color={theme.textSecondary} />
       </View>
     );

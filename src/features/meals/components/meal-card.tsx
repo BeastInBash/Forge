@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import type { MealSummary } from '../api';
 import { formatAmount, mealTimeInfo } from '../nutrients';
@@ -14,7 +14,7 @@ const time = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-di
 /** One meal in the history: when, what, and its calories and macros. */
 export function MealCard({ meal, onPress }: { meal: MealSummary; onPress: () => void }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const info = mealTimeInfo(meal.mealTime);
 
   return (
@@ -25,11 +25,10 @@ export function MealCard({ meal, onPress }: { meal: MealSummary; onPress: () => 
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: theme.surface },
-        pressed ? [clay.sunken, styles.pressed] : clay.raised,
+        surface.raised,
+        pressed && { backgroundColor: theme.background },
       ]}>
-      <View style={[styles.badge, { backgroundColor: theme.background }, clay.sunken]}>
-        <Icon ios={info.icon.ios} material={info.icon.material} size={20} color={theme.text} />
-      </View>
+      <IconBadge {...info.icon} size={40} color={theme.up} background={theme.mint} />
       <View style={styles.body}>
         <View style={styles.titleRow}>
           <Text variant="bodyStrong">{info.label}</Text>
@@ -67,18 +66,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
-    borderRadius: Radius.large,
+    borderRadius: Radius.medium,
     borderCurve: 'continuous',
-  },
-  pressed: {
-    transform: [{ scale: 0.98 }],
-  },
-  badge: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   body: {
     flex: 1,
@@ -103,7 +92,7 @@ const styles = StyleSheet.create({
   dot: {
     width: 6,
     height: 6,
-    borderRadius: Radius.pill,
+    borderRadius: 3,
   },
   kcal: {
     alignItems: 'flex-end',

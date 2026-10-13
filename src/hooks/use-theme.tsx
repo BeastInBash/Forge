@@ -6,7 +6,7 @@
 
 import { createContext, use, type ReactNode } from 'react';
 
-import { Clay, Colors } from '@/constants/theme';
+import { Colors, Surfaces } from '@/constants/theme';
 
 type Palette = (typeof Colors)['light'] | (typeof Colors)['dark'];
 
@@ -26,7 +26,7 @@ export function useTheme() {
   return use(ThemeContext);
 }
 
-/** Clay shadow styles for the active scheme. Spread one after a surface's background colour. */
-export function useClay() {
-  return use(ThemeContext) === Colors.dark ? Clay.dark : Clay.light;
+/** Flat surface borders for the active scheme. Spread one after a surface's background colour. */
+export function useSurface() {
+  return use(ThemeContext) === Colors.dark ? Surfaces.dark : Surfaces.light;
 }

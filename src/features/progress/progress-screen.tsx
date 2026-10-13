@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,9 +11,11 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 import { startOfWeek } from '@/lib/week';
 
 import { LiftSummaryCard } from './components/lift-summary-card';
@@ -22,7 +24,7 @@ import { useLiftSummaries } from './use-lifts';
 /** Every exercise the user has logged, most recently trained first, with its trend. */
 export function ProgressScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const { summaries, error, loading, refreshing, refresh } = useLiftSummaries();
   const [weekStart] = useState(() => startOfWeek(new Date()).getTime());
@@ -43,17 +45,37 @@ export function ProgressScreen() {
           tintColor={theme.textSecondary}
         />
       }>
-      <View style={[styles.hero, { backgroundColor: theme.iron }, clay.iron]}>
-        <Text variant="label" style={{ color: theme.ironTextSecondary }}>
-          Track every set
-        </Text>
+      <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
+        <View style={styles.eyebrow}>
+          <IconBadge
+            ios="chart.line.uptrend.xyaxis"
+            material="show_chart"
+            color={theme.accent}
+            background={theme.ironLine}
+          />
+          <Text variant="caption" style={[styles.caps, { color: theme.ironTextSecondary }]}>
+            Track every set
+          </Text>
+        </View>
         <Text variant="hero" style={{ color: theme.ironText }}>
           Your lifts
         </Text>
         <View style={styles.heroStats}>
-          <HeroStat value={summaries?.length ?? 0} unit="exercises" />
-          <HeroStat value={totalSessions} unit="logged" />
-          <HeroStat value={trainedThisWeek} unit="this week" />
+          <HeroStat
+            icon={{ ios: 'dumbbell', material: 'fitness_center' }}
+            value={summaries?.length ?? 0}
+            unit="exercises"
+          />
+          <HeroStat
+            icon={{ ios: 'checkmark.circle', material: 'task_alt' }}
+            value={totalSessions}
+            unit="logged"
+          />
+          <HeroStat
+            icon={{ ios: 'calendar', material: 'calendar_month' }}
+            value={trainedThisWeek}
+            unit="this week"
+          />
         </View>
         <Pressable
           onPress={() => router.push('/log-lift')}
@@ -61,7 +83,8 @@ export function ProgressScreen() {
           style={({ pressed }) => [
             styles.primary,
             { backgroundColor: theme.accent },
-            pressed ? [styles.pressed, clay.sunken] : clay.accent,
+            surface.accent,
+            pressed && styles.pressed,
           ]}>
           <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
           <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
@@ -71,13 +94,13 @@ export function ProgressScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-          TRACKED LIFTS
-        </Text>
+        <SectionLabel icon={{ ios: 'dumbbell', material: 'fitness_center' }}>
+          Tracked lifts
+        </SectionLabel>
         {loading ? (
           <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
         ) : error ? (
-          <View style={[styles.message, { backgroundColor: theme.surface }, clay.raised]}>
+          <View style={[styles.message, { backgroundColor: theme.surface }, surface.raised]}>
             <Text variant="bodyStrong">Couldn’t load your lifts</Text>
             <Text variant="label" color="textSecondary">
               {error}
@@ -88,7 +111,7 @@ export function ProgressScreen() {
               style={({ pressed }) => [
                 styles.retry,
                 { backgroundColor: theme.surface },
-                pressed ? clay.sunken : clay.soft,
+                pressed ? surface.sunken : surface.soft,
               ]}>
               <Text variant="label">Try again</Text>
             </Pressable>
@@ -111,12 +134,13 @@ export function ProgressScreen() {
             </Animated.View>
           ))
         ) : (
-          <View style={[styles.message, { backgroundColor: theme.surface }, clay.raised]}>
-            <Icon
+          <View style={[styles.message, { backgroundColor: theme.surface }, surface.raised]}>
+            <IconBadge
               ios="chart.line.uptrend.xyaxis"
               material="show_chart"
-              size={28}
-              color={theme.textSecondary}
+              size={44}
+              color={theme.up}
+              background={theme.mint}
             />
             <Text variant="bodyStrong">No lifts yet</Text>
             <Text variant="label" color="textSecondary">
@@ -130,10 +154,21 @@ export function ProgressScreen() {
   );
 }
 
-function HeroStat({ value, unit }: { value: number; unit: string }) {
+function HeroStat({
+  icon,
+  value,
+  unit,
+}: {
+  icon: Pick<ComponentProps<typeof Icon>, 'ios' | 'material'>;
+  value: number;
+  unit: string;
+}) {
   const theme = useTheme();
   return (
     <View style={styles.heroStat}>
+      <View style={styles.heroStatIcon}>
+        <Icon {...icon} size={15} color={theme.ironTextSecondary} />
+      </View>
       <Text variant="title" style={{ color: theme.ironText }}>
         {value}
       </Text>
@@ -160,6 +195,17 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
+  eyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two + Spacing.half,
+    marginBottom: Spacing.one,
+  },
+  caps: {
+    flex: 1,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
   heroStats: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -172,10 +218,13 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     gap: Spacing.one,
   },
+  heroStatIcon: {
+    alignSelf: 'center',
+  },
   primary: {
     marginTop: Spacing.three,
     height: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',
@@ -183,15 +232,10 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   pressed: {
-    transform: [{ scale: 0.97 }],
+    opacity: 0.85,
   },
   section: {
     gap: Spacing.three,
-  },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
   },
   loading: {
     paddingVertical: Spacing.five,

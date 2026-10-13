@@ -9,7 +9,7 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { GradientText } from '@/components/ui/gradient-text';
 import { Text } from '@/components/ui/text';
 import { MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { rise, settle } from './motion';
 
@@ -36,7 +36,7 @@ type Props = {
  */
 export function AuthScreen({ eyebrow, heading, children, footer, animateIn = false }: Props) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const insets = useSafeAreaInsets();
   const enter = (index: number) => (animateIn ? rise(index) : undefined);
 
@@ -55,7 +55,7 @@ export function AuthScreen({ eyebrow, heading, children, footer, animateIn = fal
         ]}>
         <Animated.View
           entering={animateIn ? settle : undefined}
-          style={[styles.panel, { backgroundColor: theme.iron }, clay.iron]}>
+          style={[styles.panel, { backgroundColor: theme.iron }, surface.iron]}>
           <LinearGradient
             colors={TEMPER_RUN}
             start={{ x: 0, y: 0 }}

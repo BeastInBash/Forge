@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { useState, type ComponentProps, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -10,11 +10,12 @@ import {
 } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
 import { errorMessage } from '@/features/auth/validation';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 import { WEEKDAYS } from '@/lib/week';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
@@ -99,7 +100,7 @@ function PlanEditor({
   initialDay: Weekday;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const [day, setDay] = useState<Weekday>(initialDay);
   const [muscleGroup, setMuscleGroup] = useState(existing?.muscleGroup ?? '');
@@ -186,7 +187,7 @@ function PlanEditor({
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.content}>
-        <Section title="Day">
+        <Section title="Day" icon={{ ios: 'calendar', material: 'calendar_month' }}>
           <View style={styles.days}>
             {WEEKDAYS.map((weekday) => {
               const selected = weekday === day;
@@ -202,8 +203,8 @@ function PlanEditor({
                   style={[
                     styles.dayChip,
                     selected
-                      ? [{ backgroundColor: theme.accent }, clay.accent]
-                      : [{ backgroundColor: theme.surface }, clay.soft],
+                      ? [{ backgroundColor: theme.accent }, surface.accent]
+                      : [{ backgroundColor: theme.surface }, surface.soft],
                     taken && styles.taken,
                   ]}>
                   <Text variant="label" style={{ color: selected ? theme.onAccent : theme.text }}>
@@ -220,7 +221,7 @@ function PlanEditor({
           )}
         </Section>
 
-        <Section title="Session">
+        <Section title="Session" icon={{ ios: 'dumbbell', material: 'fitness_center' }}>
           <View
             style={[
               styles.nameBox,
@@ -228,7 +229,7 @@ function PlanEditor({
                 backgroundColor: theme.background,
                 borderColor: submitted && errors.muscleGroup ? theme.danger : 'transparent',
               },
-              clay.sunken,
+              surface.sunken,
             ]}>
             {muscleGroup.trim() ? (
               <View style={[styles.splitDot, { backgroundColor: Temper[splitFor(muscleGroup)] }]} />
@@ -259,7 +260,7 @@ function PlanEditor({
                   style={[
                     styles.suggestion,
                     { backgroundColor: active ? theme.accent : theme.surface },
-                    active ? clay.accent : clay.soft,
+                    active ? surface.accent : surface.soft,
                   ]}>
                   <View
                     style={[
@@ -280,7 +281,7 @@ function PlanEditor({
             </Text>
           ) : null}
 
-          <View style={[styles.timeRow, { backgroundColor: theme.surface }, clay.raised]}>
+          <View style={[styles.timeRow, { backgroundColor: theme.surface }, surface.raised]}>
             <Icon ios="clock" material="schedule" size={18} color={theme.textSecondary} />
             <Text variant="bodyStrong" style={styles.timeLabel}>
               Time
@@ -297,7 +298,8 @@ function PlanEditor({
         </Section>
 
         <Section
-          title={items.length ? `Exercises · ${items.length} · ${totalSets} sets` : 'Exercises'}>
+          title={items.length ? `Exercises · ${items.length} · ${totalSets} sets` : 'Exercises'}
+          icon={{ ios: 'list.bullet', material: 'format_list_bulleted' }}>
           {items.map((item, index) => (
             <PlanExerciseCard
               key={item.exerciseId}
@@ -318,7 +320,7 @@ function PlanEditor({
                 backgroundColor: theme.surface,
                 borderColor: submitted && errors.items ? theme.danger : 'transparent',
               },
-              pressed ? clay.sunken : clay.soft,
+              pressed ? surface.sunken : surface.soft,
             ]}>
             <Icon ios="plus" material="add" size={18} color={theme.text} />
             <Text variant="bodyStrong">
@@ -353,7 +355,7 @@ function PlanEditor({
                 backgroundColor: theme.surface,
                 borderColor: confirmDelete ? theme.danger : 'transparent',
               },
-              pressed ? clay.sunken : clay.soft,
+              pressed ? surface.sunken : surface.soft,
             ]}>
             <Icon ios="trash" material="delete" size={18} color={theme.danger} />
             <Text variant="bodyStrong" color="danger">
@@ -389,12 +391,18 @@ function PlanEditor({
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: ComponentProps<typeof SectionLabel>['icon'];
+  children: ReactNode;
+}) {
   return (
     <View style={styles.section}>
-      <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-        {title.toUpperCase()}
-      </Text>
+      <SectionLabel icon={icon}>{title}</SectionLabel>
       {children}
     </View>
   );
@@ -402,7 +410,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 function TimeButton({ icon, onPress }: { icon: 'minus' | 'plus'; onPress: () => void }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
     <Pressable
       onPress={onPress}
@@ -412,7 +420,7 @@ function TimeButton({ icon, onPress }: { icon: 'minus' | 'plus'; onPress: () => 
       style={({ pressed }) => [
         styles.timeButton,
         { backgroundColor: theme.surface },
-        pressed ? clay.sunken : clay.soft,
+        pressed ? surface.sunken : surface.soft,
       ]}>
       <Icon
         ios={icon}
@@ -444,11 +452,6 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
   },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
-  },
   days: {
     flexDirection: 'row',
     gap: Spacing.one,
@@ -456,7 +459,7 @@ const styles = StyleSheet.create({
   dayChip: {
     flex: 1,
     height: 40,
-    borderRadius: Radius.small + 2,
+    borderRadius: Radius.small,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -485,7 +488,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: 17,
   },
-  // Bleeds to the screen edges with matching padding, so the chips' clay shadows aren't clipped.
+  // Bleeds to the screen edges with matching padding, so the chips' borders aren't clipped.
   suggestionsScroll: {
     marginHorizontal: -Spacing.three,
     marginVertical: -Spacing.two,

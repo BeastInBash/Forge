@@ -1,0 +1,52 @@
+name: Release Android (main → Closed testing)
+
+# Runs on every push to main, which includes merging a PR into main.
+on:
+  push:
+    branches: ['main']
+    # Docs-only commits don't need a new app build
+    paths:
+      - '**'
+      - '!**/*.md'
+
+# A newer push to main cancels a release that's still running
+concurrency:
+  cancel_in_progress: true
+  group: ${{ workflow.filename }}-${{ github.ref }}
+
+defaults:
+  tools:
+    bun: '1.3.14'
+
+jobs:
+  checks:
+    name: Type-check
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: TypeScript
+        run: bunx tsc --noEmit
+
+  build_aab:
+    name: Build production .aab
+    needs: [checks]
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  build_apk:
+    name: Build production .apk
+    needs: [checks]
+    type: build
+    params:
+      platform: android
+      profile: production-apk
+
+  submit_closed_testing:
+    name: Upload to Google Play (Closed testing)
+    needs: [build_aab]
+    type: submit
+    params:
+      profile: production
+      build_id: ${{ needs.build_aab.outputs.build_id }}

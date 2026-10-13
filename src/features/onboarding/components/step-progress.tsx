@@ -2,16 +2,15 @@ import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { CSS_EASE_OUT } from '@/constants/motion';
-import { Radius, Spacing } from '@/constants/theme';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 /**
  * One segment per step, filled up to the current one. Each fill is absolutely positioned and
- * childless, so animating its width re-lays-out nothing and keeps the rounded ends crisp.
+ * childless, so animating its width re-lays-out nothing and keeps the ends crisp.
  */
 export function StepProgress({ step, total }: { step: number; total: number }) {
   const theme = useTheme();
-  const clay = useClay();
   return (
     <View
       style={styles.row}
@@ -24,7 +23,7 @@ export function StepProgress({ step, total }: { step: number; total: number }) {
         text: `Step ${step + 1} of ${total}`,
       }}>
       {Array.from({ length: total }, (_, i) => (
-        <View key={i} style={[styles.track, { backgroundColor: theme.background }, clay.sunken]}>
+        <View key={i} style={[styles.track, { backgroundColor: theme.line }]}>
           <Animated.View
             style={[
               styles.fill,
@@ -51,8 +50,8 @@ const styles = StyleSheet.create({
   },
   track: {
     flex: 1,
-    height: 8,
-    borderRadius: Radius.pill,
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   fill: {
@@ -60,6 +59,5 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    borderRadius: Radius.pill,
   },
 });

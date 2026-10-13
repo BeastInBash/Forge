@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type ComponentProps, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -10,6 +10,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { CSS_EASE_OUT } from '@/constants/motion';
 import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
@@ -20,7 +21,7 @@ import { errorMessage } from '@/features/auth/validation';
 import type { FitnessGoal } from '@/features/onboarding/api';
 import { GoalOption } from '@/features/onboarding/components/goal-option';
 import { AnimatedNumber } from '@/features/progress/components/animated-number';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { saveBody } from './body-store';
 import {
@@ -153,7 +154,7 @@ export function CalculatorScreen() {
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.content}>
-        <Section title="About you">
+        <Section title="About you" icon={{ ios: 'person', material: 'person' }}>
           <SexPicker value={sex} onChange={edited(setSex)} />
           <TextField
             label="Age"
@@ -193,7 +194,7 @@ export function CalculatorScreen() {
           </View>
         </Section>
 
-        <Section title="Activity">
+        <Section title="Activity" icon={{ ios: 'figure.run', material: 'directions_run' }}>
           {(Object.keys(ACTIVITY) as ActivityLevel[]).map((level) => (
             <GoalOption
               key={level}
@@ -208,7 +209,7 @@ export function CalculatorScreen() {
           ))}
         </Section>
 
-        <Section title="Your results">
+        <Section title="Your results" icon={{ ios: 'chart.bar', material: 'bar_chart' }}>
           {bodyMass === undefined || height.value === undefined ? (
             <Placeholder text="Enter your height and weight to see your BMI." />
           ) : (
@@ -262,12 +263,18 @@ export function CalculatorScreen() {
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: ComponentProps<typeof SectionLabel>['icon'];
+  children: ReactNode;
+}) {
   return (
     <View style={styles.section}>
-      <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-        {title.toUpperCase()}
-      </Text>
+      <SectionLabel icon={icon}>{title}</SectionLabel>
       {children}
     </View>
   );
@@ -275,7 +282,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 function SexPicker({ value, onChange }: { value?: Sex; onChange: (sex: Sex) => void }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
     <View style={styles.field}>
       <Text variant="label" color="textSecondary">
@@ -293,7 +300,8 @@ function SexPicker({ value, onChange }: { value?: Sex; onChange: (sex: Sex) => v
               style={({ pressed }) => [
                 styles.chip,
                 { backgroundColor: selected ? theme.accent : theme.surface },
-                pressed ? [styles.pressed, clay.sunken] : selected ? clay.accent : clay.soft,
+                selected ? surface.accent : surface.soft,
+                pressed && styles.pressed,
               ]}>
               <Text
                 variant="bodyStrong"
@@ -310,20 +318,22 @@ function SexPicker({ value, onChange }: { value?: Sex; onChange: (sex: Sex) => v
 
 function BmiCard({ value, heightCm }: { value: number; heightCm: number }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const band = bmiBand(value);
   const healthy = healthyWeightRange(heightCm);
   const color = bandColor(band.band, theme);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface }, clay.raised]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
       <Text variant="label" color="textSecondary">
         Body mass index
       </Text>
       <View style={styles.valueRow}>
         <AnimatedNumber value={value} decimals={1} animate style={styles.value} />
-        <View style={[styles.bandPill, { backgroundColor: color }, styles.bead]}>
-          <Text variant="label" style={styles.bandText}>
+        <View
+          style={[styles.bandPill, { backgroundColor: `${color}1F`, borderColor: `${color}55` }]}>
+          <View style={[styles.bandDot, { backgroundColor: color }]} />
+          <Text variant="label" style={[styles.bandText, { color }]}>
             {band.label}
           </Text>
         </View>
@@ -340,10 +350,10 @@ function BmiCard({ value, heightCm }: { value: number; heightCm: number }) {
   );
 }
 
-/** The four BMI bands as a clay track, with a bead at this BMI. */
+/** The four BMI bands as a flat track, with a marker at this BMI. */
 function Gauge({ value }: { value: number }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const [width, setWidth] = useState(0);
   const span = GAUGE_MAX - GAUGE_MIN;
   const position = Math.min(Math.max((value - GAUGE_MIN) / span, 0), 1);
@@ -353,7 +363,7 @@ function Gauge({ value }: { value: number }) {
       accessible
       accessibilityLabel={`BMI ${value.toFixed(1)}, ${bmiBand(value).label.toLowerCase()}`}>
       <View
-        style={[styles.track, { backgroundColor: theme.background }, clay.sunken]}
+        style={[styles.track, { backgroundColor: theme.background }, surface.sunken]}
         onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}>
         {ZONES.map(({ band, flex }) => (
           <View
@@ -366,7 +376,6 @@ function Gauge({ value }: { value: number }) {
             style={[
               styles.marker,
               { backgroundColor: theme.surface, borderColor: theme.text },
-              clay.soft,
               {
                 transform: [{ translateX: position * (width - MARKER) }],
                 transitionProperty: 'transform',
@@ -404,11 +413,11 @@ function CaloriesCard({
   onSelectGoal: (goal: FitnessGoal) => void;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const daily = roundCalories(maintenance(basal, activity));
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, clay.iron]}>
+    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
       <Text variant="label" style={{ color: theme.ironTextSecondary }}>
         Maintenance calories
       </Text>
@@ -437,7 +446,7 @@ function CaloriesCard({
               accessibilityState={{ checked: yours }}
               style={({ pressed }) => [
                 styles.target,
-                (yours || pressed) && [{ backgroundColor: theme.iron }, clay.ironSunken],
+                (yours || pressed) && [{ backgroundColor: theme.iron }, surface.ironSunken],
               ]}>
               <View style={styles.flex}>
                 <View style={styles.targetTitle}>
@@ -445,7 +454,7 @@ function CaloriesCard({
                     {target.label}
                   </Text>
                   {yours && (
-                    <View style={[styles.yours, { backgroundColor: theme.accent }, clay.accent]}>
+                    <View style={[styles.yours, { backgroundColor: theme.accent }, surface.accent]}>
                       <Text variant="caption" style={{ color: theme.onAccent }}>
                         Your goal
                       </Text>
@@ -469,9 +478,9 @@ function CaloriesCard({
 
 function Placeholder({ text }: { text: string }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
-    <View style={[styles.placeholder, { backgroundColor: theme.background }, clay.sunken]}>
+    <View style={[styles.placeholder, { backgroundColor: theme.background }, surface.sunken]}>
       <Text variant="label" color="textSecondary">
         {text}
       </Text>
@@ -497,11 +506,6 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.three,
-  },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
   },
   field: {
     gap: Spacing.one + Spacing.half,
@@ -541,17 +545,21 @@ const styles = StyleSheet.create({
     minWidth: 48,
   },
   bandPill: {
-    paddingHorizontal: Spacing.three,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + Spacing.half,
+    paddingHorizontal: Spacing.two + Spacing.half,
     paddingVertical: Spacing.one,
-    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderRadius: Radius.small,
+  },
+  bandDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   bandText: {
-    color: '#FFFFFF',
-  },
-  /** Moulds a coloured fill like a small clay bead. */
-  bead: {
-    boxShadow:
-      'inset 2px 2px 4px rgba(255, 255, 255, 0.4), inset -2px -3px 5px rgba(0, 0, 0, 0.25)',
+    fontFamily: FontFamily.bodySemiBold,
   },
   track: {
     flexDirection: 'row',

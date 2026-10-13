@@ -13,12 +13,13 @@ import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-re
 
 import { Icon } from '@/components/ui/icon';
 import { Segmented } from '@/components/ui/segmented';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
 import { errorMessage } from '@/features/auth/validation';
 import { relativeDay } from '@/features/progress/format';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { logMeal, type MealTime } from './api';
 import { addMealLocally } from './meals-store';
@@ -45,7 +46,7 @@ function eatenAt(daysBack: number) {
  */
 export function LogMealScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const [mealTime, setMealTime] = useState<MealTime>(() => mealTimeFor(new Date()));
   const [foods, setFoods] = useState<DraftFood[]>(() => [draftFood(), draftFood()]);
@@ -117,7 +118,7 @@ export function LogMealScreen() {
           accessibilityLabel="Meal"
         />
 
-        <View style={[styles.dateRow, { backgroundColor: theme.surface }, clay.raised]}>
+        <View style={[styles.dateRow, { backgroundColor: theme.surface }, surface.raised]}>
           <Icon ios="calendar" material="calendar_today" size={18} color={theme.textSecondary} />
           <Text variant="bodyStrong" style={styles.flex}>
             Date
@@ -142,16 +143,19 @@ export function LogMealScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-            WHAT YOU ATE
-          </Text>
+          <SectionLabel icon={{ ios: 'fork.knife', material: 'restaurant' }}>What you ate</SectionLabel>
           {foods.map((food, index) => (
             <Animated.View
               key={food.key}
               entering={FadeInDown.duration(220)}
               exiting={FadeOut.duration(150)}
               layout={LinearTransition.duration(200)}
-              style={[styles.food, { backgroundColor: theme.surface }, clay.raised]}>
+              style={[styles.food, { backgroundColor: theme.surface }, surface.raised]}>
+              <View style={[styles.foodNumber, { backgroundColor: theme.mint }]}>
+                <Text variant="caption" style={[styles.foodNumberText, { color: theme.onMint }]}>
+                  {index + 1}
+                </Text>
+              </View>
               <View style={styles.fields}>
                 <TextInput
                   value={food.name}
@@ -168,7 +172,7 @@ export function LogMealScreen() {
                     styles.input,
                     styles.nameInput,
                     { backgroundColor: theme.background, color: theme.text },
-                    clay.sunken,
+                    surface.sunken,
                   ]}
                 />
                 <TextInput
@@ -187,7 +191,7 @@ export function LogMealScreen() {
                   style={[
                     styles.input,
                     { backgroundColor: theme.background, color: theme.text },
-                    clay.sunken,
+                    surface.sunken,
                   ]}
                 />
               </View>
@@ -199,7 +203,7 @@ export function LogMealScreen() {
                 accessibilityLabel={`Remove food ${index + 1}`}
                 style={({ pressed }) => [
                   styles.remove,
-                  pressed && [{ backgroundColor: theme.background }, clay.sunken],
+                  pressed && [{ backgroundColor: theme.background }, surface.sunken],
                   foods.length === 1 && styles.disabled,
                 ]}>
                 <Icon ios="xmark" material="close" size={16} color={theme.textSecondary} />
@@ -214,7 +218,7 @@ export function LogMealScreen() {
               style={({ pressed }) => [
                 styles.addFood,
                 { backgroundColor: theme.surface },
-                pressed ? clay.sunken : clay.soft,
+                pressed ? surface.sunken : surface.soft,
                 foods.length >= MAX_FOODS && styles.disabled,
               ]}>
               <Icon ios="plus" material="add" size={18} color={theme.text} />
@@ -261,7 +265,7 @@ function RoundButton({
   onPress: () => void;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
     <Pressable
       onPress={onPress}
@@ -272,7 +276,7 @@ function RoundButton({
       style={({ pressed }) => [
         styles.round,
         { backgroundColor: theme.surface },
-        pressed ? clay.sunken : clay.soft,
+        pressed ? surface.sunken : surface.soft,
         disabled && styles.disabled,
       ]}>
       <Icon ios={icon} material={material} size={16} color={theme.text} />
@@ -318,17 +322,24 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
   },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
+  foodNumber: {
+    alignSelf: 'flex-start',
+    width: 24,
+    height: 24,
+    marginTop: Spacing.two + Spacing.half,
+    borderRadius: Radius.small,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  foodNumberText: {
+    fontFamily: FontFamily.bodySemiBold,
   },
   food: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
     padding: Spacing.three,
-    borderRadius: Radius.large,
+    borderRadius: Radius.medium,
     borderCurve: 'continuous',
   },
   fields: {
@@ -359,7 +370,7 @@ const styles = StyleSheet.create({
   },
   addFood: {
     minHeight: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',

@@ -15,7 +15,7 @@ import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constant
 import { errorMessage } from '@/features/auth/validation';
 import { logLift } from '@/features/progress/api';
 import { addLiftLocally } from '@/features/progress/lifts-store';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { ExerciseCard } from './components/exercise-card';
 import {
@@ -64,7 +64,7 @@ export function WorkoutScreen() {
 
 function Session({ session }: { session: WorkoutSession }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const finished = session.finishedAt !== undefined;
   const clockRunning = isClockRunning(session);
@@ -102,18 +102,26 @@ function Session({ session }: { session: WorkoutSession }) {
       contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: session.muscleGroup }} />
 
-      <View style={[styles.hero, { backgroundColor: theme.iron }, clay.iron]}>
+      <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
         <View style={[styles.temper, { backgroundColor: Temper[session.split] }]} />
         <View style={styles.heroBody}>
-          <Text variant="label" style={{ color: theme.ironTextSecondary }}>
-            {finished
-              ? 'Session time'
-              : confirmReset
-                ? 'Reset the session clock to 0:00?'
-                : clockRunning
-                  ? 'Session running'
-                  : 'Session clock stopped'}
-          </Text>
+          <View style={styles.eyebrow}>
+            <Icon
+              ios={finished ? 'flag.checkered' : 'timer'}
+              material={finished ? 'sports_score' : 'timer'}
+              size={16}
+              color={clockRunning ? theme.accent : theme.ironTextSecondary}
+            />
+            <Text variant="label" style={{ color: theme.ironTextSecondary }}>
+              {finished
+                ? 'Session time'
+                : confirmReset
+                  ? 'Reset the session clock to 0:00?'
+                  : clockRunning
+                    ? 'Session running'
+                    : 'Session clock stopped'}
+            </Text>
+          </View>
           <View style={styles.clockRow}>
             <Text
               style={[
@@ -147,7 +155,7 @@ function Session({ session }: { session: WorkoutSession }) {
                       transitionProperty: 'backgroundColor',
                       transitionDuration: 150,
                     },
-                    pressed ? [styles.pressed, clay.ironSunken] : clay.ironSoft,
+                    pressed ? [styles.pressed, surface.ironSunken] : surface.ironSoft,
                   ]}>
                   <Icon
                     ios="arrow.counterclockwise"
@@ -173,10 +181,10 @@ function Session({ session }: { session: WorkoutSession }) {
                       transitionDuration: 150,
                     },
                     pressed
-                      ? [styles.pressed, clay.ironSunken]
+                      ? [styles.pressed, surface.ironSunken]
                       : clockRunning
-                        ? clay.ironSoft
-                        : clay.accent,
+                        ? surface.ironSoft
+                        : surface.accent,
                   ]}>
                   <Icon
                     ios={clockRunning ? 'stop.fill' : 'play.fill'}
@@ -193,7 +201,7 @@ function Session({ session }: { session: WorkoutSession }) {
               </View>
             )}
           </View>
-          <View style={[styles.track, { backgroundColor: theme.iron }, clay.ironSunken]}>
+          <View style={[styles.track, { backgroundColor: theme.ironLine }]}>
             <Animated.View style={[styles.fill, { backgroundColor: theme.accent }, barStyle]} />
           </View>
           <Text variant="label" style={{ color: theme.ironTextSecondary }}>
@@ -223,7 +231,7 @@ function Session({ session }: { session: WorkoutSession }) {
           style={({ pressed }) => [
             styles.button,
             { backgroundColor: theme.surface },
-            pressed ? clay.sunken : clay.soft,
+            pressed ? surface.sunken : surface.soft,
           ]}>
           <Text variant="bodyStrong">Close workout</Text>
         </Pressable>
@@ -239,11 +247,9 @@ function Session({ session }: { session: WorkoutSession }) {
           accessibilityRole="button"
           style={({ pressed }) => [
             styles.button,
-            {
-              borderColor: confirmFinish ? theme.danger : 'transparent',
-              backgroundColor: theme.surface,
-            },
-            pressed ? clay.sunken : clay.soft,
+            { backgroundColor: theme.surface },
+            pressed ? surface.sunken : surface.soft,
+            confirmFinish && { borderColor: theme.danger },
           ]}>
           <Icon ios="flag.checkered" material="sports_score" size={18} color={theme.text} />
           <Text variant="bodyStrong">
@@ -258,7 +264,7 @@ function Session({ session }: { session: WorkoutSession }) {
 /** How long the session and each exercise took, and a way to log the sets to Progress. */
 function Summary({ session }: { session: WorkoutSession }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const { done, total } = setCounts(session);
@@ -292,7 +298,7 @@ function Summary({ session }: { session: WorkoutSession }) {
   return (
     <Animated.View
       entering={FadeInDown.duration(300)}
-      style={[styles.summary, { backgroundColor: theme.surface }, clay.raised]}>
+      style={[styles.summary, { backgroundColor: theme.surface }, surface.raised]}>
       <View style={styles.summaryHead}>
         <Icon ios="trophy.fill" material="emoji_events" size={22} color={theme.accent} />
         <Text variant="title">{session.endedEarly ? 'Session ended' : 'Session complete'}</Text>
@@ -342,7 +348,8 @@ function Summary({ session }: { session: WorkoutSession }) {
             style={({ pressed }) => [
               styles.save,
               { backgroundColor: theme.accent },
-              pressed ? [styles.pressed, clay.sunken] : clay.accent,
+              surface.accent,
+              pressed && styles.pressed,
             ]}>
             {saving ? (
               <ActivityIndicator color={theme.onAccent} />
@@ -391,11 +398,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   temper: {
-    height: 6,
+    height: 4,
   },
   heroBody: {
     padding: Spacing.four,
     gap: Spacing.two,
+  },
+  eyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + Spacing.half,
   },
   clockRow: {
     flexDirection: 'row',
@@ -431,8 +443,8 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   track: {
-    height: 12,
-    borderRadius: 6,
+    height: 8,
+    borderRadius: 4,
     overflow: 'hidden',
     marginTop: Spacing.one,
   },
@@ -441,8 +453,6 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    borderRadius: 6,
-    boxShadow: 'inset 1px 2px 2px rgba(255, 255, 255, 0.5), inset -1px -2px 3px rgba(0, 0, 0, 0.25)',
   },
   summary: {
     borderRadius: Radius.large,
@@ -483,7 +493,7 @@ const styles = StyleSheet.create({
   save: {
     marginTop: Spacing.two,
     height: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,9 +505,8 @@ const styles = StyleSheet.create({
   },
   button: {
     minHeight: 52,
-    borderRadius: Radius.medium,
+    borderRadius: Radius.small,
     borderCurve: 'continuous',
-    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

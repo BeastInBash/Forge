@@ -12,6 +12,7 @@ import {
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
@@ -22,7 +23,7 @@ import { ExercisePicker } from '@/features/plans/components/exercise-picker';
 import { formatWeight, parseWeight } from '@/features/plans/components/plan-exercise-card';
 import { Stepper } from '@/features/plans/components/stepper';
 import { usePlans } from '@/features/plans/use-plans';
-import { useClay, useTheme } from '@/hooks/use-theme';
+import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { logLift, type LiftExercise } from './api';
 import { relativeDay } from './format';
@@ -52,7 +53,7 @@ function performedAt(daysBack: number) {
  */
 export function LogLiftScreen() {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   const router = useRouter();
   const params = useLocalSearchParams<{ exerciseId?: string }>();
   const { exercises } = useExercises();
@@ -146,7 +147,7 @@ export function LogLiftScreen() {
           style={({ pressed }) => [
             styles.exercise,
             { backgroundColor: theme.surface },
-            pressed ? clay.sunken : clay.raised,
+            pressed ? surface.sunken : surface.raised,
           ]}>
           <ExerciseThumb url={chosen?.iconUrl ?? null} size={52} />
           <View style={styles.exerciseText}>
@@ -169,7 +170,7 @@ export function LogLiftScreen() {
           />
         </Pressable>
 
-        <View style={[styles.dateRow, { backgroundColor: theme.surface }, clay.raised]}>
+        <View style={[styles.dateRow, { backgroundColor: theme.surface }, surface.raised]}>
           <Icon ios="calendar" material="calendar_today" size={18} color={theme.textSecondary} />
           <Text variant="bodyStrong" style={styles.flex}>
             Date
@@ -194,24 +195,24 @@ export function LogLiftScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-            {`SETS · ${sets.length}${volume ? ` · ${Math.round(volume).toLocaleString()} KG VOLUME` : ''}`}
-          </Text>
+          <SectionLabel icon={{ ios: 'square.stack.3d.up', material: 'layers' }}>
+            {`Sets · ${sets.length}${volume ? ` · ${Math.round(volume).toLocaleString()} kg volume` : ''}`}
+          </SectionLabel>
           {sets.map((set, index) => (
             <Animated.View
               key={set.key}
               entering={FadeInDown.duration(220)}
               exiting={FadeOut.duration(150)}
               layout={LinearTransition.duration(200)}
-              style={[styles.set, { backgroundColor: theme.surface }, clay.raised]}>
-              <View style={[styles.setNumber, { backgroundColor: theme.background }, clay.sunken]}>
+              style={[styles.set, { backgroundColor: theme.surface }, surface.raised]}>
+              <View style={[styles.setNumber, { backgroundColor: theme.background }, surface.sunken]}>
                 <Text variant="label">{index + 1}</Text>
               </View>
               <View style={styles.weight}>
                 <Text variant="caption" color="textSecondary">
                   Weight
                 </Text>
-                <View style={[styles.weightBox, { backgroundColor: theme.background }, clay.sunken]}>
+                <View style={[styles.weightBox, { backgroundColor: theme.background }, surface.sunken]}>
                   <TextInput
                     value={set.weightText}
                     onChangeText={(text) => {
@@ -251,7 +252,7 @@ export function LogLiftScreen() {
                 accessibilityLabel={`Remove set ${index + 1}`}
                 style={({ pressed }) => [
                   styles.remove,
-                  pressed && [{ backgroundColor: theme.background }, clay.sunken],
+                  pressed && [{ backgroundColor: theme.background }, surface.sunken],
                   sets.length === 1 && styles.disabled,
                 ]}>
                 <Icon ios="xmark" material="close" size={16} color={theme.textSecondary} />
@@ -269,7 +270,7 @@ export function LogLiftScreen() {
               style={({ pressed }) => [
                 styles.addSet,
                 { backgroundColor: theme.surface },
-                pressed ? clay.sunken : clay.soft,
+                pressed ? surface.sunken : surface.soft,
               ]}>
               <Icon ios="plus" material="add" size={18} color={theme.text} />
               <Text variant="bodyStrong">Add set</Text>
@@ -278,9 +279,7 @@ export function LogLiftScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
-            NOTE
-          </Text>
+          <SectionLabel icon={{ ios: 'note.text', material: 'notes' }}>Note</SectionLabel>
           <TextInput
             value={note}
             onChangeText={setNote}
@@ -289,7 +288,7 @@ export function LogLiftScreen() {
             maxLength={200}
             multiline
             accessibilityLabel="Note"
-            style={[styles.note, { backgroundColor: theme.background, color: theme.text }, clay.sunken]}
+            style={[styles.note, { backgroundColor: theme.background, color: theme.text }, surface.sunken]}
           />
         </View>
 
@@ -338,7 +337,7 @@ function RoundButton({
   onPress: () => void;
 }) {
   const theme = useTheme();
-  const clay = useClay();
+  const surface = useSurface();
   return (
     <Pressable
       onPress={onPress}
@@ -349,7 +348,7 @@ function RoundButton({
       style={({ pressed }) => [
         styles.round,
         { backgroundColor: theme.surface },
-        pressed ? clay.sunken : clay.soft,
+        pressed ? surface.sunken : surface.soft,
         disabled && styles.disabled,
       ]}>
       <Icon ios={icon} material={material} size={16} color={theme.text} />
@@ -408,11 +407,6 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.three,
-  },
-  sectionTitle: {
-    paddingHorizontal: Spacing.one,
-    letterSpacing: 1.2,
-    fontSize: 12,
   },
   set: {
     flexDirection: 'row',
