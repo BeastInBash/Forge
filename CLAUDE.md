@@ -76,6 +76,12 @@ reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
 - The Home header shows the app icon (`assets/images/icon.png`) in a 32px circle before the
   "Forge" wordmark (`BrandTitle` in `src/app/(tabs)/(home)/_layout.tsx`).
 
+## Auth
+
+- `(auth)` holds `login`, `signup`, `forgot-password` (sends a code) and `reset-password` (code +
+  new password, then signs in). The reset calls go through `useSession()`
+  (`requestPasswordReset`, `resetPassword`), which map Better Auth error codes to messages.
+
 ## Nutrition (meals)
 
 - `features/meals/`: Nutrition tab history (`nutrition-screen`), `/log-meal` modal, and

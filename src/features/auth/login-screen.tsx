@@ -99,6 +99,14 @@ export function LoginScreen() {
           returnKeyType="go"
           onSubmitEditing={submit}
         />
+        <Link
+          href={{ pathname: '/forgot-password', params: email.trim() ? { email: email.trim() } : {} }}
+          push
+          style={styles.forgot}>
+          <Text variant="label" style={styles.link}>
+            Forgot password?
+          </Text>
+        </Link>
       </Animated.View>
       {formError && <FormError message={formError} />}
       <SubmitButton label="Sign in" loading={loading} disabled={googleBusy} onPress={submit} />
@@ -120,5 +128,10 @@ const styles = StyleSheet.create({
   },
   link: {
     fontFamily: FontFamily.bodySemiBold,
+  },
+  forgot: {
+    alignSelf: 'flex-end',
+    // Pulls the link up toward the password field it belongs to.
+    marginTop: -Spacing.one,
   },
 });
