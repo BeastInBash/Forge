@@ -7,7 +7,7 @@
  */
 
 import { expoClient } from '@better-auth/expo/client';
-import { inferAdditionalFields } from 'better-auth/client/plugins';
+import { emailOTPClient, inferAdditionalFields } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
@@ -45,6 +45,8 @@ export const authClient = createAuthClient({
   baseURL,
   plugins: [
     expo as ExpoPlugin,
+    // Forgot password: `emailOtp.requestPasswordReset` and `emailOtp.resetPassword`.
+    emailOTPClient(),
     // Mirrors forge-backend's `user.additionalFields`, so `onboardedAt` is typed on the session.
     inferAdditionalFields({
       user: { onboardedAt: { type: 'date', required: false, input: false } },

@@ -9,6 +9,7 @@
 import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
+import { forgetPushToken, unregisterPush } from '@/features/notifications/push';
 import { saveOnboarding, type OnboardingAnswers } from '@/features/onboarding/api';
 import { clearBody } from '@/features/body/body-store';
 import { clearPlans } from '@/features/plans/plans-store';
@@ -16,6 +17,7 @@ import { clearMeals } from '@/features/meals/meals-store';
 import { deleteAccount as deleteAccountRequest } from '@/features/profile/api';
 import { clearLifts } from '@/features/progress/lifts-store';
 import { clearSession } from '@/features/session/session-store';
+import { clearWater } from '@/features/water/water-store';
 import { authClient } from '@/lib/auth-client';
 
 export type Session = {
@@ -24,6 +26,7 @@ export type Session = {
 
 type SignInInput = { email: string; password: string };
 type SignUpInput = SignInInput & { name: string };
+type ResetPasswordInput = SignInInput & { otp: string };
 
 type SessionContextValue = {
   session: Session | null;
@@ -35,6 +38,13 @@ type SessionContextValue = {
   completeOnboarding: (answers: OnboardingAnswers) => Promise<void>;
   signIn: (input: SignInInput) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
+  /**
+   * Emails a password-reset code. Succeeds for any address, registered or not, so it can't be
+   * used to find out who has an account.
+   */
+  requestPasswordReset: (email: string) => Promise<void>;
+  /** Sets a new password with the emailed code, then signs in with it. */
+  resetPassword: (input: ResetPasswordInput) => Promise<void>;
   /** Signs in, or creates the account on first use — Google doesn't distinguish the two. */
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -54,6 +64,11 @@ const MESSAGES: Record<string, string> = {
   PASSWORD_TOO_LONG: 'That password is too long.',
   INVALID_EMAIL: 'That email doesn’t look right.',
   PROVIDER_NOT_FOUND: 'Google sign-in isn’t set up on the server yet.',
+  INVALID_OTP: 'That code isn’t right. Check the email and try again.',
+  OTP_EXPIRED: 'That code has expired. Send a new one.',
+  TOO_MANY_ATTEMPTS: 'Too many wrong codes. Send a new one.',
+  // Only reachable with a valid code for an address whose account was deleted since.
+  USER_NOT_FOUND: 'There’s no account with this email.',
 };
 
 type AuthError = { code?: string; message?: string; status: number; statusText: string };
@@ -62,6 +77,7 @@ function toError(error: AuthError) {
   if (error.code && MESSAGES[error.code]) return new Error(MESSAGES[error.code]);
   // Status 0 means the request never reached the server.
   if (!error.status) return new Error('Can’t reach Forge right now. Check your connection.');
+  if (error.status === 429) return new Error('Too many tries. Wait a minute and try again.');
   return new Error(error.message || error.statusText || 'Something went wrong. Try again.');
 }
 
@@ -118,6 +134,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const { error } = await authClient.signUp.email({ name, email, password });
       if (error) throw toError(error);
     },
+    async requestPasswordReset(email) {
+      const { error } = await authClient.emailOtp.requestPasswordReset({ email });
+      if (error) throw toError(error);
+    },
+    async resetPassword({ email, otp, password }) {
+      const { error } = await authClient.emailOtp.resetPassword({ email, otp, password });
+      if (error) throw toError(error);
+      // The reset signed out every device, so sign this one back in with the new password.
+      const signIn = await authClient.signIn.email({ email, password });
+      if (signIn.error) throw toError(signIn.error);
+    },
     async signInWithGoogle() {
       // Native opens an auth session and returns through forge:// (the Expo plugin turns '/' into
       // a deep link). Web redirects the page, and a relative URL would resolve against the
@@ -127,12 +154,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (error) throw toError(error);
     },
     async signOut() {
+      // Before signing out, while the session can still authorise removing this device
+      await unregisterPush();
       const { error } = await authClient.signOut();
       if (error) throw toError(error);
       clearLocalState();
     },
     async deleteAccount() {
       await deleteAccountRequest();
+      // The server deleted the device's token along with the account
+      forgetPushToken();
       // The server already dropped the session; this clears the stored cookie and the session
       // store. Its error is ignored because the account is gone either way.
       await authClient.signOut().catch(() => {});
@@ -148,6 +179,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     clearMeals();
     clearBody();
     clearSession();
+    clearWater();
   }
 
   return <SessionContext value={value}>{children}</SessionContext>;

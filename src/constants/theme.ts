@@ -33,6 +33,11 @@ export const Colors = {
     /** Light green fill for health actions (the body calculator), with its text colour. */
     mint: '#DFF3E6',
     onMint: '#14532D',
+    /** Water intake: the goal ruler, droplet and hydration progress, with its tile tint. */
+    water: '#2563EB',
+    waterSoft: '#DBEAFE',
+    /** Dims the page behind a centred dialog. */
+    scrim: 'rgba(15, 23, 42, 0.45)',
   },
   dark: {
     background: '#0B0F15',
@@ -50,6 +55,9 @@ export const Colors = {
     up: '#4ADE80',
     mint: '#173A27',
     onMint: '#BBF0CF',
+    water: '#60A5FA',
+    waterSoft: '#172554',
+    scrim: 'rgba(0, 0, 0, 0.6)',
   },
 } as const;
 

@@ -29,8 +29,9 @@ is [forge-backend](../forge-backend); see README.md for setup and running on dev
   - `use-*.ts`: hooks using `useSyncExternalStore`, refetching in `useFocusEffect`.
   - Every store's `clear*` is called on sign-out in `src/features/auth/session.tsx`; add new
     stores there.
-- `src/components/ui/`: `Text` (variants `hero`, `display`, `title`, `body`, `bodyStrong`,
-  `label`, `caption`), `Icon` (pass both `ios` SF Symbol and `material` names; both are typed),
+- `src/components/ui/`: `RulerPicker` (scrolling ruler for numbers: onboarding's age/height/
+  weight, the water goal; `color` and `pointer="droplet"` restyle the needle), `Text`
+  (variants `hero`, `display`, `title`, `body`, `bodyStrong`, `label`, `caption`), `Icon` (pass both `ios` SF Symbol and `material` names; both are typed),
   `IconBadge` (icon on a small tile, for card headers and list rows), `SectionLabel` (uppercase
   heading over a group, with optional icon), `Segmented`, `PressScale`.
 - `src/constants/theme.ts`: all colours (`useTheme()`), `Spacing`, `Radius`, `FontFamily`,
@@ -76,6 +77,12 @@ reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
 - The Home header shows the app icon (`assets/images/icon.png`) in a 32px circle before the
   "Forge" wordmark (`BrandTitle` in `src/app/(tabs)/(home)/_layout.tsx`).
 
+## Auth
+
+- `(auth)` holds `login`, `signup`, `forgot-password` (sends a code) and `reset-password` (code +
+  new password, then signs in). The reset calls go through `useSession()`
+  (`requestPasswordReset`, `resetPassword`), which map Better Auth error codes to messages.
+
 ## Nutrition (meals)
 
 - `features/meals/`: Nutrition tab history (`nutrition-screen`), `/log-meal` modal, and
@@ -86,6 +93,37 @@ reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
   colours in `components/macro-bar.tsx`.
 - Home's "Meals today" card (`features/home/components/meals-card.tsx`) reads the same meals
   store. The calorie goal comes from `features/body` (`summarize(...).goal ?? maintenance`).
+
+## Water
+
+- `features/water/`: the goal store (`useWaterGoal`, null until set), the "Daily water" card on
+  the Nutrition tab, and the `/water-goal` modal: a `water`-blue `RulerPicker` in litres with a
+  droplet pointer, starting at the saved goal or ~35 ml/kg of body weight.
+- `PUT /api/v1/water/goal` replaces every setting, so saving sends the current reminder window
+  back with the new amount, plus the device time zone. Reminders are pushed by the backend.
+
+## Push notifications
+
+- `features/notifications/push.ts` (`expo-notifications`; plugin in app.json with the white
+  96px `notification-icon.png` and the `default` channel). `registerForPush({ prompt })` creates
+  the Android channel, checks permission (asks only with `prompt`), gets the Expo push token and
+  POSTs it to `/api/v1/notifications/push-token`. Never throws; returns `unavailable` on web,
+  simulators, Expo Go on Android, or without FCM credentials.
+- Permission is asked when a water goal is saved, never on launch. `usePushNotifications` in the
+  root navigator re-registers silently while signed in, on token rotation, and routes taps
+  (`data.type === 'water-reminder'` → `/nutrition`). `signOut` calls `unregisterPush()` first.
+- Remote push needs a development or store build, and on Android `google-services.json`
+  (`android.googleServicesFile`) plus the FCM V1 service account key uploaded to EAS.
+
+## Update prompt
+
+- `features/app-update/` shows an "Update available" dialog (mounted in the root layout) when
+  Google Play has a newer version for this install. It uses Play's In-App Updates API through the
+  local native module `modules/play-updates` (Android only; `PlayUpdates` is null on iOS, web and
+  Expo Go). "Update" runs Play's immediate update flow; "Not now" hides that version for a day.
+- It only answers for installs from Google Play, so it can't be tried in a dev build or with a
+  sideloaded .apk. Test it with Play's internal app sharing or a testing track: install an older
+  build from Play, publish a newer one, then reopen the app.
 
 ## Environment and testing gotchas
 

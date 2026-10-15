@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
 import { IconBadge } from '@/components/ui/icon-badge';
+import { RulerPicker } from '@/components/ui/ruler-picker';
 import { Text } from '@/components/ui/text';
 import { EASE_OUT } from '@/constants/motion';
 import { MaxContentWidth, Spacing, Temper } from '@/constants/theme';
@@ -26,7 +27,6 @@ import { useTheme } from '@/hooks/use-theme';
 
 import type { FitnessGoal, OnboardingAnswers } from './api';
 import { GoalOption } from './components/goal-option';
-import { RulerPicker } from './components/ruler-picker';
 import { StepProgress } from './components/step-progress';
 
 type MeasureKey = 'age' | 'heightCm' | 'weightKg';

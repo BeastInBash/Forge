@@ -50,3 +50,22 @@ jobs:
     params:
       profile: production
       build_id: ${{ needs.build_aab.outputs.build_id }}
+
+  github_release:
+    name: Publish .apk to GitHub Releases
+    needs: [build_aab, build_apk]
+    steps:
+      - uses: eas/checkout
+      - uses: eas/download_build
+        id: apk
+        with:
+          build_id: ${{ needs.build_apk.outputs.build_id }}
+          extensions: [apk]
+      - name: Create GitHub release
+        run: node scripts/github-release.mjs
+        env:
+          APK_PATH: ${{ steps.apk.outputs.artifact_path }}
+          APP_VERSION: ${{ needs.build_aab.outputs.app_version }}
+          # The .aab's versionCode, matching the release on Google Play
+          BUILD_NUMBER: ${{ needs.build_aab.outputs.app_build_version }}
+          COMMIT_SHA: ${{ needs.build_apk.outputs.git_commit_hash }}
