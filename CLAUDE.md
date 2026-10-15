@@ -102,6 +102,19 @@ reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
 - `PUT /api/v1/water/goal` replaces every setting, so saving sends the current reminder window
   back with the new amount, plus the device time zone. Reminders are pushed by the backend.
 
+## Push notifications
+
+- `features/notifications/push.ts` (`expo-notifications`; plugin in app.json with the white
+  96px `notification-icon.png` and the `default` channel). `registerForPush({ prompt })` creates
+  the Android channel, checks permission (asks only with `prompt`), gets the Expo push token and
+  POSTs it to `/api/v1/notifications/push-token`. Never throws; returns `unavailable` on web,
+  simulators, Expo Go on Android, or without FCM credentials.
+- Permission is asked when a water goal is saved, never on launch. `usePushNotifications` in the
+  root navigator re-registers silently while signed in, on token rotation, and routes taps
+  (`data.type === 'water-reminder'` → `/nutrition`). `signOut` calls `unregisterPush()` first.
+- Remote push needs a development or store build, and on Android `google-services.json`
+  (`android.googleServicesFile`) plus the FCM V1 service account key uploaded to EAS.
+
 ## Update prompt
 
 - `features/app-update/` shows an "Update available" dialog (mounted in the root layout) when

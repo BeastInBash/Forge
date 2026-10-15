@@ -9,6 +9,7 @@
 import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
+import { forgetPushToken, unregisterPush } from '@/features/notifications/push';
 import { saveOnboarding, type OnboardingAnswers } from '@/features/onboarding/api';
 import { clearBody } from '@/features/body/body-store';
 import { clearPlans } from '@/features/plans/plans-store';
@@ -153,12 +154,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (error) throw toError(error);
     },
     async signOut() {
+      // Before signing out, while the session can still authorise removing this device
+      await unregisterPush();
       const { error } = await authClient.signOut();
       if (error) throw toError(error);
       clearLocalState();
     },
     async deleteAccount() {
       await deleteAccountRequest();
+      // The server deleted the device's token along with the account
+      forgetPushToken();
       // The server already dropped the session; this clears the stored cookie and the session
       // store. Its error is ignored because the account is gone either way.
       await authClient.signOut().catch(() => {});

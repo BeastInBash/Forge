@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconBadge } from '@/components/ui/icon-badge';
@@ -12,6 +12,7 @@ import { FormError } from '@/features/auth/components/form-error';
 import { SubmitButton } from '@/features/auth/components/submit-button';
 import { errorMessage } from '@/features/auth/validation';
 import { useBody } from '@/features/body/use-body';
+import { registerForPush, useNotificationsBlocked } from '@/features/notifications/push';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { deviceTimezone, saveWaterGoal, type WaterGoal, type WaterGoalInput } from './api';
@@ -86,6 +87,8 @@ function GoalForm({
   const [litres, setLitres] = useState(start);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string>();
+  // Once refused, only system settings can turn notifications back on
+  const blocked = useNotificationsBlocked();
 
   const reminders = goal ?? DEFAULT_REMINDERS;
   const glasses = Math.round((litres * 1000) / GLASS_ML);
@@ -105,6 +108,8 @@ function GoalForm({
     try {
       setWaterGoalLocally(await saveWaterGoal(input));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Reminders are pushes, so this is the moment to ask; saving doesn't depend on the answer
+      if (input.remindersEnabled) await registerForPush({ prompt: true });
       router.back();
     } catch (e) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -165,6 +170,13 @@ function GoalForm({
             <Text variant="caption" color="textSecondary" style={styles.center}>
               {reminderSummary(reminders)}
             </Text>
+          )}
+          {reminders.remindersEnabled && blocked && (
+            <Pressable onPress={() => Linking.openSettings()} accessibilityRole="link" hitSlop={8}>
+              <Text variant="caption" style={[styles.center, { color: theme.danger }]}>
+                Notifications are off for Forge, so reminders can’t reach you. Open settings
+              </Text>
+            </Pressable>
           )}
           {formError && <FormError message={formError} />}
           <SubmitButton label={goal ? 'Save goal' : 'Set goal'} loading={saving} onPress={save} />

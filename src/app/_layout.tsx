@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '@/constants/theme';
 import { UpdatePrompt } from '@/features/app-update/update-prompt';
 import { SessionProvider, useSession } from '@/features/auth/session';
+import { usePushNotifications } from '@/features/notifications/use-push-notifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemePreference } from '@/lib/theme-preference';
 import { ThemeColorsProvider } from '@/hooks/use-theme';
@@ -80,6 +81,7 @@ export default function RootLayout() {
  */
 function RootNavigator() {
   const { session, isLoading, onboarded } = useSession();
+  usePushNotifications(session !== null && onboarded);
 
   useEffect(() => {
     if (!isLoading) SplashScreen.hideAsync();
