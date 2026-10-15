@@ -13,6 +13,10 @@ export default function NutritionLayout() {
         name="log-meal"
         options={{ title: 'Log a meal', presentation: 'modal', headerLargeTitle: false }}
       />
+      <Stack.Screen
+        name="water-goal"
+        options={{ title: 'Water goal', presentation: 'modal', headerLargeTitle: false }}
+      />
     </Stack>
   );
 }

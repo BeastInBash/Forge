@@ -29,8 +29,9 @@ is [forge-backend](../forge-backend); see README.md for setup and running on dev
   - `use-*.ts`: hooks using `useSyncExternalStore`, refetching in `useFocusEffect`.
   - Every store's `clear*` is called on sign-out in `src/features/auth/session.tsx`; add new
     stores there.
-- `src/components/ui/`: `Text` (variants `hero`, `display`, `title`, `body`, `bodyStrong`,
-  `label`, `caption`), `Icon` (pass both `ios` SF Symbol and `material` names; both are typed),
+- `src/components/ui/`: `RulerPicker` (scrolling ruler for numbers: onboarding's age/height/
+  weight, the water goal; `color` and `pointer="droplet"` restyle the needle), `Text`
+  (variants `hero`, `display`, `title`, `body`, `bodyStrong`, `label`, `caption`), `Icon` (pass both `ios` SF Symbol and `material` names; both are typed),
   `IconBadge` (icon on a small tile, for card headers and list rows), `SectionLabel` (uppercase
   heading over a group, with optional icon), `Segmented`, `PressScale`.
 - `src/constants/theme.ts`: all colours (`useTheme()`), `Spacing`, `Radius`, `FontFamily`,
@@ -92,6 +93,14 @@ reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
   colours in `components/macro-bar.tsx`.
 - Home's "Meals today" card (`features/home/components/meals-card.tsx`) reads the same meals
   store. The calorie goal comes from `features/body` (`summarize(...).goal ?? maintenance`).
+
+## Water
+
+- `features/water/`: the goal store (`useWaterGoal`, null until set), the "Daily water" card on
+  the Nutrition tab, and the `/water-goal` modal: a `water`-blue `RulerPicker` in litres with a
+  droplet pointer, starting at the saved goal or ~35 ml/kg of body weight.
+- `PUT /api/v1/water/goal` replaces every setting, so saving sends the current reminder window
+  back with the new amount, plus the device time zone. Reminders are pushed by the backend.
 
 ## Update prompt
 

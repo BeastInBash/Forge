@@ -17,6 +17,8 @@ import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { summarize } from '@/features/body/summary';
 import { useBody } from '@/features/body/use-body';
 import { relativeDay } from '@/features/progress/format';
+import { WaterGoalCard } from '@/features/water/components/water-goal-card';
+import { useWaterGoal } from '@/features/water/use-water-goal';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import type { MealSummary } from './api';
@@ -47,6 +49,7 @@ export function NutritionScreen() {
   const { meals, error, loading, refreshing, refresh, hasMore, loadingMore, loadMore } =
     useMeals();
   const body = useBody();
+  const water = useWaterGoal();
   const bodySummary = summarize(body.measurements ?? {}, body.prefs);
   const goal = bodySummary.goal?.calories ?? bodySummary.maintenance;
 
@@ -113,6 +116,8 @@ export function NutritionScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <WaterGoalCard goal={water.goal} onPress={() => router.push('/water-goal')} />
 
       {loading ? (
         <ActivityIndicator color={theme.textSecondary} style={styles.loading} />

@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,6 +27,8 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 /** Distance between ticks. Wide enough to land on a value with a thumb. */
 const TICK = 12;
+/** Size of the water drop that caps the needle in `droplet` mode. */
+const DROPLET = 28;
 
 type Props = {
   min: number;
@@ -39,6 +42,10 @@ type Props = {
   /** Read by screen readers along with the value, e.g. "Height". */
   label: string;
   unit: string;
+  /** The needle's colour; defaults to the straw accent. */
+  color?: string;
+  /** `droplet` caps a thinner needle with a water drop pointing down at the value. */
+  pointer?: 'needle' | 'droplet';
 };
 
 /**
@@ -48,8 +55,20 @@ type Props = {
  * fast it moves; each new value is also reported to `onChange` with a selection haptic — the
  * detent you feel on a native picker.
  */
-export function RulerPicker({ min, max, step, majorEvery, value, onChange, label, unit }: Props) {
+export function RulerPicker({
+  min,
+  max,
+  step,
+  majorEvery,
+  value,
+  onChange,
+  label,
+  unit,
+  color,
+  pointer = 'needle',
+}: Props) {
   const theme = useTheme();
+  const needleColor = color ?? theme.accent;
   const ref = useAnimatedRef<Animated.ScrollView>();
   const [width, setWidth] = useState(0);
   const count = Math.round((max - min) / step) + 1;
@@ -144,6 +163,13 @@ export function RulerPicker({ min, max, step, majorEvery, value, onChange, label
         </Text>
       </View>
 
+      {pointer === 'droplet' && (
+        // Upside down, so the drop's tip lands on the top of the needle below it.
+        <View style={styles.droplet} importantForAccessibility="no-hide-descendants">
+          <Icon ios="drop.fill" material="water_drop" size={DROPLET} color={needleColor} />
+        </View>
+      )}
+
       <View
         style={styles.frame}
         onLayout={(event) => {
@@ -186,7 +212,13 @@ export function RulerPicker({ min, max, step, majorEvery, value, onChange, label
           end={{ x: 1, y: 0 }}
           style={[styles.edge, styles.right]}
         />
-        <View style={[styles.needle, { backgroundColor: theme.accent }]} />
+        <View
+          style={[
+            styles.needle,
+            pointer === 'droplet' && styles.dropletNeedle,
+            { backgroundColor: needleColor },
+          ]}
+        />
       </View>
     </View>
   );
@@ -328,5 +360,19 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 3,
     pointerEvents: 'none',
+  },
+  droplet: {
+    alignSelf: 'center',
+    transform: [{ rotate: '180deg' }],
+    // Pulls the frame up so the drop's tip meets the needle, which starts 8 below its top.
+    marginBottom: -(Spacing.four + Spacing.two),
+    pointerEvents: 'none',
+    zIndex: 1,
+  },
+  dropletNeedle: {
+    top: 0,
+    width: 3,
+    height: 60,
+    borderRadius: 1.5,
   },
 });

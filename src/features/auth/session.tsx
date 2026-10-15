@@ -16,6 +16,7 @@ import { clearMeals } from '@/features/meals/meals-store';
 import { deleteAccount as deleteAccountRequest } from '@/features/profile/api';
 import { clearLifts } from '@/features/progress/lifts-store';
 import { clearSession } from '@/features/session/session-store';
+import { clearWater } from '@/features/water/water-store';
 import { authClient } from '@/lib/auth-client';
 
 export type Session = {
@@ -173,6 +174,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     clearMeals();
     clearBody();
     clearSession();
+    clearWater();
   }
 
   return <SessionContext value={value}>{children}</SessionContext>;
