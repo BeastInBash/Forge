@@ -29,6 +29,12 @@ for (const [name, value] of Object.entries({
   }
 }
 
+// GitHub needs a full SHA (or a branch name) as the release's target commit
+if (!/^[0-9a-f]{40}$/.test(COMMIT_SHA)) {
+  console.error(`COMMIT_SHA is not a full commit SHA: ${COMMIT_SHA}`);
+  process.exit(1);
+}
+
 const headers = {
   Accept: 'application/vnd.github+json',
   Authorization: `Bearer ${GH_RELEASE_TOKEN}`,
