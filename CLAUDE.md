@@ -99,6 +99,15 @@ follow it; don't reintroduce Claymorphism, neumorphism, glassmorphism or other s
   new password, then signs in). The reset calls go through `useSession()`
   (`requestPasswordReset`, `resetPassword`), which map Better Auth error codes to messages.
 
+## Exercise muscles
+
+- Catalog exercises carry `primary_muscles` / `secondary_muscles` (labels from
+  `features/exercises/muscles.ts`, mirroring the backend's list). `MuscleTags` shows them
+  (library, exercise picker); `MusclePicker` edits them (tap cycles main → assists → off) on
+  the add screen and the admin-only `/edit-exercise?id=` screen (tap a library row).
+- `searchExercises` (library, picker) also matches muscles and their body region ("legs");
+  `findMatches` stays name-only for the duplicate check.
+
 ## Nutrition (meals)
 
 - `features/meals/`: Nutrition tab history (`nutrition-screen`), `/log-meal` modal, and

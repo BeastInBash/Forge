@@ -87,8 +87,8 @@ export function revalidate({ force = false } = {}): Promise<void> {
 }
 
 /**
- * Adds a just-created exercise so it shows up without waiting for the network, and marks the
- * cache stale: the old ETag no longer matches, so the next check fetches the real list.
+ * Adds a just-created or edited exercise (replacing it by id) so it shows up without waiting for
+ * the network, and marks the cache stale: the old ETag no longer matches, so the next check fetches the real list.
  */
 export function addToCache(exercise: Exercise) {
   const exercises = [...(state.exercises ?? []).filter((e) => e.id !== exercise.id), exercise].sort(

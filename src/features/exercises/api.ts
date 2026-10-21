@@ -4,6 +4,7 @@ import { PixelRatio } from 'react-native';
 import { apiURL, authHeaders } from '@/lib/auth-client';
 
 import { appendImage } from './image-part';
+import type { MuscleTargets } from './muscles';
 
 /** One catalog entry from `GET /api/v1/exercise`. */
 export type Exercise = {
@@ -12,6 +13,10 @@ export type Exercise = {
   /** Cloudinary URL of the original image; see `thumbnailUrl`. */
   exercise_icon: string | null;
   exercise_video: string | null;
+  /** Main muscles worked. Absent in a catalog cached before muscles existed. */
+  primary_muscles?: string[];
+  /** Muscles that assist. */
+  secondary_muscles?: string[];
 };
 
 /** forge-backend's upload limit (Vercel caps request bodies at 4.5 MB). */
@@ -70,11 +75,29 @@ export async function fetchExercises(etag?: string, signal?: AbortSignal): Promi
   return { notModified: false, data: body.data, etag: response.headers.get('etag') ?? undefined };
 }
 
-/** Sends the name and picked image as one multipart request; the backend uploads to Cloudinary. */
-export async function createExercise(name: string, image: ImagePickerAsset) {
+/**
+ * Sends the name, muscles and picked image as one multipart request; the backend uploads to
+ * Cloudinary. Multipart fields are text, so the muscle lists go as JSON.
+ */
+export async function createExercise(name: string, image: ImagePickerAsset, muscles: MuscleTargets) {
   const form = new FormData();
   form.append('exercise_name', name);
+  form.append('primary_muscles', JSON.stringify(muscles.primary));
+  form.append('secondary_muscles', JSON.stringify(muscles.secondary));
   await appendImage(form, 'image', image);
   // No Content-Type header: fetch sets the multipart boundary.
   return request<Exercise>('/api/v1/exercise', { method: 'POST', body: form });
+}
+
+/** Renames an exercise and sets its muscles. Admins only. */
+export function updateExercise(id: string, name: string, muscles: MuscleTargets) {
+  return request<Exercise>(`/api/v1/exercise/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      exercise_name: name,
+      primary_muscles: muscles.primary,
+      secondary_muscles: muscles.secondary,
+    }),
+  });
 }

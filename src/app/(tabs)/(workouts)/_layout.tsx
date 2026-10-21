@@ -22,6 +22,10 @@ export default function WorkoutsLayout() {
           name="add-exercise"
           options={{ title: 'Add exercise', presentation: 'modal', headerLargeTitle: false }}
         />
+        <Stack.Screen
+          name="edit-exercise"
+          options={{ title: 'Edit exercise', presentation: 'modal', headerLargeTitle: false }}
+        />
       </Stack.Protected>
     </Stack>
   );
