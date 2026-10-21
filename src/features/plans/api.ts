@@ -20,13 +20,23 @@ type ApiPlan = {
   }[];
 };
 
-/** What the editor sends; exercises are catalog picks, in order. */
+/**
+ * One exercise of a plan, in order: a catalog pick by id, or (from a split template) a name the
+ * backend finds in the catalog, or adds to it, by its case-insensitive name.
+ */
+export type PlanExerciseInput = ({ exerciseId: string } | { exerciseName: string }) & {
+  sets: number;
+  repetition: number;
+  weight: number | null;
+};
+
+/** What the editor sends. */
 export type PlanInput = {
   day: Weekday;
   /** ISO 8601 date-time; only the time of day is shown. */
   time: string;
   muscleGroup: string;
-  exercises: { exerciseId: string; sets: number; repetition: number; weight: number | null }[];
+  exercises: PlanExerciseInput[];
 };
 
 function toPlan(plan: ApiPlan): WorkoutPlan {
@@ -72,7 +82,11 @@ function toBody(input: PlanInput) {
     day: input.day,
     time: input.time,
     muscle_group: input.muscleGroup,
-    exercises: input.exercises,
+    exercises: input.exercises.map(({ sets, repetition, weight, ...exercise }) =>
+      'exerciseId' in exercise
+        ? { exerciseId: exercise.exerciseId, sets, repetition, weight }
+        : { exercise_name: exercise.exerciseName, sets, repetition, weight }
+    ),
   });
 }
 

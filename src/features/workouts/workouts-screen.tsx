@@ -22,6 +22,7 @@ import type { Weekday } from '@/types/training';
 
 import { LibraryCard } from './components/library-card';
 import { SplitDay } from './components/split-day';
+import { TemplatesEntry } from './components/templates-entry';
 import { WeekOverview } from './components/week-overview';
 
 const dayMonth = new Intl.DateTimeFormat(undefined, {
@@ -73,6 +74,7 @@ export function WorkoutsScreen() {
 
       <Animated.View entering={enter(1)} style={styles.section}>
         <SectionLabel icon={{ ios: 'calendar', material: 'calendar_month' }}>Your split</SectionLabel>
+        <TemplatesEntry onPress={() => router.push('/templates')} />
         {plansLoading ? (
           <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
         ) : plansError ? (

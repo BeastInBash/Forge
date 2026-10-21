@@ -108,6 +108,17 @@ follow it; don't reintroduce Claymorphism, neumorphism, glassmorphism or other s
 - `searchExercises` (library, picker) also matches muscles and their body region ("legs");
   `findMatches` stays name-only for the duplicate check.
 
+## Split templates
+
+- `features/plans/templates.ts` holds the ready-made splits (Push/Pull/Legs 6 days, Upper/Lower
+  4 days) as data. Each exercise lists the names it goes by; `resolveExercise` sends the catalog
+  id when the catalog has one of them, else the first name, which the backend adds to the catalog.
+- `/templates` (Workouts tab → "Start from a ready-made split") previews them; `applyTemplate`
+  replaces the whole week: creates or updates each training day (keeping an existing plan's
+  time, else 6:00 PM) and deletes plans on the template's rest days, after a confirm.
+- A day's `muscleGroup` picks its colour through `splitFor`, so name days "Push A", "Upper body
+  B" and so on.
+
 ## Nutrition (meals)
 
 - `features/meals/`: Nutrition tab history (`nutrition-screen`), `/log-meal` modal, and
