@@ -4,9 +4,12 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
+import { MuscleTags } from '@/features/exercises/components/muscle-tags';
+import { targetsOf } from '@/features/exercises/muscles';
+import { useCatalogExercise } from '@/features/exercises/use-exercises';
 import { plural } from '@/lib/plural';
 import { useSurface, useTheme } from '@/hooks/use-theme';
-import type { Weekday, WorkoutPlan } from '@/types/training';
+import type { Weekday, WorkoutExercise, WorkoutPlan } from '@/types/training';
 
 const timeFormat = new Intl.DateTimeFormat(undefined, {
   hour: 'numeric',
@@ -136,15 +139,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         {expanded && (
           <View style={[styles.list, { borderTopColor: theme.line }]}>
             {plan.exercises.map((item) => (
-              <View key={item.id} style={styles.exercise}>
-                <ExerciseThumb url={item.exercise.iconUrl ?? null} size={36} />
-                <Text variant="body" numberOfLines={1} style={styles.exerciseName}>
-                  {item.exercise.name}
-                </Text>
-                <Text variant="label" color="textSecondary">
-                  {prescription(item.sets, item.repetition, item.weight)}
-                </Text>
-              </View>
+              <ExerciseRow key={item.id} item={item} />
             ))}
             <Pressable
               onPress={onEdit}
@@ -162,6 +157,25 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         )}
       </View>
     </Pressable>
+  );
+}
+
+/** One exercise of the expanded day: image, name with its target muscles, and sets × reps. */
+function ExerciseRow({ item }: { item: WorkoutExercise }) {
+  const catalogEntry = useCatalogExercise(item.exercise.id);
+  return (
+    <View style={styles.exercise}>
+      <ExerciseThumb url={item.exercise.iconUrl ?? null} size={36} />
+      <View style={styles.exerciseInfo}>
+        <Text variant="body" numberOfLines={1}>
+          {item.exercise.name}
+        </Text>
+        {catalogEntry && <MuscleTags targets={targetsOf(catalogEntry)} max={4} />}
+      </View>
+      <Text variant="label" color="textSecondary">
+        {prescription(item.sets, item.repetition, item.weight)}
+      </Text>
+    </View>
   );
 }
 
@@ -256,8 +270,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.two,
   },
-  exerciseName: {
+  exerciseInfo: {
     flex: 1,
     minWidth: 0,
+    gap: Spacing.one,
   },
 });

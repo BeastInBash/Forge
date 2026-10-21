@@ -33,3 +33,13 @@ export function useExercises() {
     loading: !exercises && !error,
   };
 }
+
+/**
+ * One catalog exercise from the cache, without asking the server; for screens that only decorate
+ * an exercise they already know (its muscles on the workout screen). Undefined until the catalog
+ * has loaded, or if the exercise was removed.
+ */
+export function useCatalogExercise(id: string) {
+  const { exercises } = useSyncExternalStore(subscribe, getSnapshot);
+  return exercises?.find((exercise) => exercise.id === id);
+}

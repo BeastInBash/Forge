@@ -7,6 +7,9 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
+import { MuscleTags } from '@/features/exercises/components/muscle-tags';
+import { targetsOf } from '@/features/exercises/muscles';
+import { useCatalogExercise } from '@/features/exercises/use-exercises';
 import { describeSets, formatSet } from '@/features/progress/metrics';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
@@ -44,6 +47,7 @@ export function ExerciseCard({ exercise, index, locked }: Props) {
   const durations = setDurations(exercise);
   const elapsed = exerciseDuration(exercise, now);
   const [confirmReset, setConfirmReset] = useState(false);
+  const catalogEntry = useCatalogExercise(exercise.exerciseId);
 
   // A reset needs a second tap within a few seconds.
   useEffect(() => {
@@ -106,6 +110,7 @@ export function ExerciseCard({ exercise, index, locked }: Props) {
           label={done ? `Mark ${exercise.name} not done` : `Mark all of ${exercise.name} done`}
         />
       </View>
+      {catalogEntry && <MuscleTags targets={targetsOf(catalogEntry)} />}
 
       {done ? (
         <View style={[styles.timer, { backgroundColor: theme.background }, surface.sunken]}>
