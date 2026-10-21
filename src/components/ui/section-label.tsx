@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     letterSpacing: 0.8,
   },
 });

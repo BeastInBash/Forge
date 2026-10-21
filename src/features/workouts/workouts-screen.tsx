@@ -8,9 +8,11 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
+import { enter } from '@/constants/motion';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useExercises } from '@/features/exercises/use-exercises';
 import { usePlans } from '@/features/plans/use-plans';
@@ -65,9 +67,11 @@ export function WorkoutsScreen() {
           tintColor={theme.textSecondary}
         />
       }>
-      <WeekOverview days={days} today={today} rangeLabel={rangeLabel} />
+      <Animated.View entering={enter(0)}>
+        <WeekOverview days={days} today={today} rangeLabel={rangeLabel} />
+      </Animated.View>
 
-      <View style={styles.section}>
+      <Animated.View entering={enter(1)} style={styles.section}>
         <SectionLabel icon={{ ios: 'calendar', material: 'calendar_month' }}>Your split</SectionLabel>
         {plansLoading ? (
           <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
@@ -109,9 +113,11 @@ export function WorkoutsScreen() {
             ))}
           </View>
         )}
-      </View>
+      </Animated.View>
 
-      <LibraryCard exercises={exercises} error={error} />
+      <Animated.View entering={enter(2)}>
+        <LibraryCard exercises={exercises} error={error} />
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -121,10 +127,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.five,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   section: {
     gap: Spacing.two,

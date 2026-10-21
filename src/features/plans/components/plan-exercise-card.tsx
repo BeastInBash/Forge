@@ -181,7 +181,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     rowGap: Spacing.three,
     columnGap: Spacing.two,
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.three,
   },
   weight: {
@@ -206,7 +205,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: 'center',
     fontFamily: FontFamily.displayBold,
-    fontSize: 18,
+    fontSize: 16,
     textAlign: 'right',
   },
 });

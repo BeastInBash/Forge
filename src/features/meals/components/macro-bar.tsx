@@ -29,10 +29,9 @@ const MACROS = [
 type Macros = { protein: number; carbs: number; fat: number };
 
 /**
- * The share of calories from protein, carbs and fat as one split bar, with grams below. `onIron`
- * switches the text and track to sit on the iron panel.
+ * The share of calories from protein, carbs and fat as one split bar, with grams below.
  */
-export function MacroBar({ macros, onIron = false }: { macros: Macros; onIron?: boolean }) {
+export function MacroBar({ macros }: { macros: Macros }) {
   const theme = useTheme();
   const split = macroSplit(macros);
   const empty = !macros.protein && !macros.carbs && !macros.fat;
@@ -40,7 +39,7 @@ export function MacroBar({ macros, onIron = false }: { macros: Macros; onIron?: 
   return (
     <View style={styles.wrap}>
       <View
-        style={[styles.track, { backgroundColor: onIron ? theme.ironLine : theme.line }]}
+        style={[styles.track, { backgroundColor: theme.line }]}
         accessible
         accessibilityLabel={MACROS.map(
           ({ key, label }) => `${label} ${formatAmount(macros[key])} grams`
@@ -61,10 +60,10 @@ export function MacroBar({ macros, onIron = false }: { macros: Macros; onIron?: 
             <View style={[styles.dot, { backgroundColor: MACRO_COLORS[key] }]} />
             <Text
               variant="caption"
-              style={{ color: onIron ? theme.ironTextSecondary : theme.textSecondary }}>
+              style={{ color: theme.textSecondary }}>
               {label}
             </Text>
-            <Text variant="label" style={{ color: onIron ? theme.ironText : theme.text }}>
+            <Text variant="label" style={{ color: theme.text }}>
               {formatAmount(macros[key])} g
             </Text>
           </View>

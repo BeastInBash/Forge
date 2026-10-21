@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import type { Exercise } from '@/features/exercises/api';
@@ -52,20 +53,16 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
           <Text variant="title" style={styles.title}>
             Add exercises
           </Text>
-          <Pressable
+          <PressScale
             onPress={onClose}
             accessibilityRole="button"
             hitSlop={8}
-            style={({ pressed }) => [
-              styles.done,
-              { backgroundColor: theme.accent },
-              surface.accent,
-              pressed && { opacity: 0.85 },
-            ]}>
+            style={[styles.done, { backgroundColor: theme.accent }, surface.accent]}
+            pressedStyle={{ opacity: 0.85 }}>
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
               Done{selectedIds.size ? ` · ${selectedIds.size}` : ''}
             </Text>
-          </Pressable>
+          </PressScale>
         </View>
 
         <View style={[styles.search, { backgroundColor: theme.background }, surface.sunken]}>

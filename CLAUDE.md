@@ -39,26 +39,30 @@ is [forge-backend](../forge-backend); see README.md for setup and running on dev
 
 ## Design system (required for all UI work)
 
-Forge uses **Minimalism / Flat Design 2.0**. Every new or changed screen must follow it; don't
-reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
+Forge uses a **soft & airy minimal** style: borderless white cards on a soft grey page, rounded
+corners, generous space, and colour only for small accents. Every new or changed screen must
+follow it; don't reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
 
 - **No shadows or depth effects.** No `boxShadow`, `elevation`, inset highlights, or gradients
-  for depth. Surfaces are solid fills separated by 1px borders. The only gradients allowed are
-  the existing decorative temper bands and the auth ember glow.
-- **Small corners only.** Use `Radius.small` (6) for buttons, chips, inputs, checkboxes, icon
-  tiles and wells, and `Radius.medium` / `Radius.large` (both 8) for cards and panels. No
-  capsules or big radii; `Radius.pill` is also 6. Only avatars, dots and radio indicators are
-  circles, given explicit `size / 2` radii.
+  for depth. Cards separate from the page by fill alone. No coloured strips or bands on card
+  edges (split colour is shown as a small dot). The only gradient left is the auth ember glow.
+- **Few lines.** Inside a card, separate groups with space, not hairline dividers. Hairlines
+  stay only between rows of a settings-style list (`profile/components/section.tsx`).
+- **Rounded corners.** `Radius.small` (10) for buttons, inputs, checkboxes, icon tiles and
+  wells, `Radius.medium` (14) for cards and `Radius.large` (18) for cards and hero panels.
+  `Radius.pill` (999) makes capsules for chips, segmented controls and small round buttons.
 - **Surfaces** come from `useSurface()`, spread after the background colour: `raised` for
   cards, `soft` for chips and secondary buttons, `sunken` for inputs and wells, and as the
   pressed state of white/secondary buttons (it sets the page fill). `accent` / `iron` sit on
-  straw and iron fills, `ironSoft` / `ironSunken` for controls on the iron panel. Every variant
-  has a 1px border so swapping them never shifts layout. Put style overrides such as
+  straw and iron fills, `ironSoft` / `ironSunken` for controls on the iron panel. `raised` has a
+  transparent border (cards are borderless); `soft` / `sunken` keep a faint `line` border so
+  controls still read on the page. Every variant has a 1px border so swapping never shifts layout. Put style overrides such as
   `borderColor` *after* the surface spread.
 - **Press feedback.** Pressing straw (accent) or mint buttons uses `opacity: 0.85`. Don't swap
   those to `sunken`, because it would turn them grey. Secondary buttons swap `soft` → `sunken`.
-- **Colour.** Page `background` is near-white, cards are `surface` (white) with a `line`
-  border, and the hero panel (today's session, nutrition, progress, workout clock) is `iron`.
+- **Colour.** Page `background` is soft grey, cards are borderless `surface` (white), and the hero panels (today's session, nutrition, progress, workout clock, profile) are white
+  cards too. `iron` is only for the auth brand panel and overlays on photos; don't add new iron
+  panels. Straw `accent` is a fill colour only; on white use `text` or `up` for glyphs and text.
   `accent` (straw) is the primary action, `mint` / `onMint` highlights and the selected tab,
   `up` is positive/green and `danger` is red. Status chips are a tint of their colour (e.g.
   `${color}1F` fill, `${color}55` border) with coloured text, never white text on a solid
@@ -67,13 +71,25 @@ reintroduce Claymorphism, neumorphism, glassmorphism or other styles.
   card headers get an `IconBadge` (workout → dumbbell, meals → fork.knife, body → figure,
   goal → target, calendar/week → calendar…), list rows get a leading `IconBadge` (meal rows use
   `mealTimeInfo(...).icon`), stats and tiles get a small leading icon, and section headings use
-  `SectionLabel` with an `icon`. On iron panels, use an `IconBadge` with `ironLine` background
-  and an `accent` glyph.
-- **Typography.** Small labels and eyebrows are uppercase `caption`/`label` with letterSpacing
-  0.6–0.8 in `textSecondary`. Numbers use `title`/`display`/`hero` with a small unit beside them.
+  `SectionLabel` with an `icon`. Card headers use an `IconBadge` with `text` glyph, `background` fill
+  and `line` border.
+- **Typography.** The scale is compact (`hero` 32, `display` 26, `title` 17, `body` 15, `label`
+  13, `caption` 11); build hierarchy with weight, colour and space rather than bigger sizes, and
+  don't hardcode `fontSize` outside `Text` unless it's a big number readout or a `TextInput`
+  (inputs stay at 16 so iOS Safari doesn't zoom on focus). Small labels and eyebrows are
+  uppercase `caption`/`label` with letterSpacing 0.6–0.8 in `textSecondary`. Numbers use
+  `title`/`display`/`hero` with a small unit beside them.
+- **Spacing.** Screen content uses `paddingHorizontal: Spacing.screen` (20), `paddingTop:
+  Spacing.three` and `gap: Spacing.five` between top-level sections.
+- **Motion** (`src/constants/motion.ts`). Wrap a screen's top-level blocks in
+  `<Animated.View entering={enter(i)}>` for a short staggered rise; rows of a list inside a card can
+  use `slideIn(i, after)` (staggered slide from the left, as in Home's session card); use `layout={reflow}` on
+  blocks that get pushed around when content above loads. Solid action buttons use `PressScale`
+  (with `pressedStyle`); full-width cards and list rows keep a background highlight instead.
+  No animation on tab switches. Use `EASE_OUT` / `CSS_EASE_OUT`, never the built-in easings.
 - **Progress bars** are flat: a `line` (or `ironLine`) track, height 4–8, radius half the
   height, no padding or border, with square-ended fills clipped by `overflow: 'hidden'`.
-- **Tab bar** is a full-width flat bar with a hairline top border; the active tab is a mint tile.
+- **Tab bar** is a full-width borderless `surface` bar; the active tab is a mint tile.
 - The Home header shows the app icon (`assets/images/icon.png`) in a 32px circle before the
   "Forge" wordmark (`BrandTitle` in `src/app/(tabs)/(home)/_layout.tsx`).
 

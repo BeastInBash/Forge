@@ -66,7 +66,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         style={({ pressed }) => [
           styles.card,
           styles.restCard,
-          { backgroundColor: theme.background, borderColor: theme.line },
+          { backgroundColor: theme.surface },
           pressed && styles.pressed,
         ]}>
         {dateBadge}
@@ -100,12 +100,12 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         { backgroundColor: theme.surface },
         pressed ? [styles.pressed, surface.sunken] : surface.raised,
       ]}>
-      <View style={[styles.temper, { backgroundColor: Temper[plan.split] }]} />
       <View style={styles.main}>
         <View style={styles.header}>
           {dateBadge}
           <View style={styles.body}>
             <View style={styles.titleRow}>
+              <View style={[styles.splitDot, { backgroundColor: Temper[plan.split] }]} />
               <Text variant="bodyStrong" numberOfLines={1} style={styles.title}>
                 {plan.muscleGroup}
               </Text>
@@ -173,18 +173,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   restCard: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
-    paddingLeft: Spacing.three + 5,
   },
   pressed: {
     transform: [{ scale: 0.98 }],
   },
-  temper: {
-    width: 4,
+  splitDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   main: {
     flex: 1,
@@ -204,8 +203,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateNumber: {
-    fontSize: 20,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 20,
   },
   body: {
     flex: 1,
@@ -231,7 +230,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   list: {
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.two,
   },
   exercise: {

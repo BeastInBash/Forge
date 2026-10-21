@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { Text } from '@/components/ui/text';
+import { enter } from '@/constants/motion';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/session';
 import { summarize } from '@/features/body/summary';
@@ -73,46 +75,54 @@ export function HomeScreen() {
       contentInsetAdjustmentBehavior="automatic"
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={styles.content}>
-      <View style={styles.intro}>
+      <Animated.View entering={enter(0)} style={styles.intro}>
         <Text variant="label" color="textSecondary">
           {dateFormat.format(now)}
         </Text>
         <Text variant="title">
           {greeting(now.getHours())}, {firstName(session?.user.name)}
         </Text>
-      </View>
+      </Animated.View>
 
-      <WeekStrip days={week} today={today} selected={selected} onSelect={setSelected} />
+      <Animated.View entering={enter(1)}>
+        <WeekStrip days={week} today={today} selected={selected} onSelect={setSelected} />
+      </Animated.View>
 
-      <SessionCard
-        day={selected}
-        dayLabel={dayLabel}
-        isToday={offset === 0}
-        plan={selectedPlan}
-        loading={loading}
-        workout={workout && workout.planId === selectedPlan?.id ? workout : undefined}
-        onStart={() => {
-          if (selectedPlan) startSession(selectedPlan);
-          // A session whose clock was reset shows "Start workout", so starting restarts the clock.
-          if (workout && workout.clock.length === 0) startSessionClock();
-          router.push('/workout');
-        }}
-        onPlan={() => router.navigate('/workouts')}
-      />
+      <Animated.View entering={enter(2)}>
+        <SessionCard
+          day={selected}
+          dayLabel={dayLabel}
+          isToday={offset === 0}
+          plan={selectedPlan}
+          loading={loading}
+          workout={workout && workout.planId === selectedPlan?.id ? workout : undefined}
+          onStart={() => {
+            if (selectedPlan) startSession(selectedPlan);
+            // A session whose clock was reset shows "Start workout", so starting restarts the clock.
+            if (workout && workout.clock.length === 0) startSessionClock();
+            router.push('/workout');
+          }}
+          onPlan={() => router.navigate('/workouts')}
+        />
+      </Animated.View>
 
-      <BodyCard
-        summary={bodySummary}
-        loading={body.loading}
-        onOpen={() => router.push('/calculator')}
-      />
+      <Animated.View entering={enter(3)}>
+        <BodyCard
+          summary={bodySummary}
+          loading={body.loading}
+          onOpen={() => router.push('/calculator')}
+        />
+      </Animated.View>
 
-      <MealsCard
-        meals={mealsToday}
-        goal={bodySummary.goal?.calories ?? bodySummary.maintenance}
-        error={meals.error}
-        onLogMeal={() => router.push('/log-meal')}
-        onOpenMeal={(mealId) => router.push({ pathname: '/meal/[mealId]', params: { mealId } })}
-      />
+      <Animated.View entering={enter(4)}>
+        <MealsCard
+          meals={mealsToday}
+          goal={bodySummary.goal?.calories ?? bodySummary.maintenance}
+          error={meals.error}
+          onLogMeal={() => router.push('/log-meal')}
+          onOpenMeal={(mealId) => router.push({ pathname: '/meal/[mealId]', params: { mealId } })}
+        />
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -122,10 +132,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.five,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   intro: {
     gap: Spacing.half,

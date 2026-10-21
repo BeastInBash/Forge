@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   buttonLabel: {
     flex: 1,
     minWidth: 0,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
   },
 });

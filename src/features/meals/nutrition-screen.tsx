@@ -7,12 +7,14 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
+import { CSS_EASE_OUT, enter } from '@/constants/motion';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { summarize } from '@/features/body/summary';
 import { useBody } from '@/features/body/use-body';
@@ -64,60 +66,65 @@ export function NutritionScreen() {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.textSecondary} />
       }>
-      <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
+      <Animated.View
+        entering={enter(0)}
+        style={[styles.hero, { backgroundColor: theme.surface }, surface.raised]}>
         <View style={styles.eyebrow}>
           <IconBadge
             ios="flame"
             material="local_fire_department"
-            color={theme.accent}
-            background={theme.ironLine}
+            color={theme.text}
+            background={theme.background}
+            border={theme.line}
           />
-          <Text variant="caption" style={[styles.caps, { color: theme.ironTextSecondary }]}>
+          <Text variant="caption" style={[styles.caps, { color: theme.textSecondary }]}>
             Eaten today
           </Text>
         </View>
         <View style={styles.heroTotal}>
-          <Text variant="hero" style={{ color: theme.ironText }}>
+          <Text variant="hero" style={{ color: theme.text }}>
             {numberFormat.format(eaten.calories)}
           </Text>
-          <Text variant="label" style={{ color: theme.ironTextSecondary }}>
+          <Text variant="label" style={{ color: theme.textSecondary }}>
             {goal ? `of ${numberFormat.format(goal)} kcal` : 'kcal'}
           </Text>
         </View>
         {goal ? (
           <View
-            style={[styles.goalTrack, { backgroundColor: theme.ironLine }]}
+            style={[styles.goalTrack, { backgroundColor: theme.line }]}
             accessible
             accessibilityLabel={`${eaten.calories} of ${goal} calories eaten`}>
-            <View
+            {/* A childless fill in a clipped track, so easing its width re-lays out nothing else. */}
+            <Animated.View
               style={[
                 styles.goalFill,
                 {
                   width: `${Math.min(100, (eaten.calories / goal) * 100)}%`,
                   backgroundColor: theme.accent,
+                  transitionProperty: 'width',
+                  transitionDuration: 400,
+                  transitionTimingFunction: CSS_EASE_OUT,
                 },
               ]}
             />
           </View>
         ) : null}
-        <MacroBar macros={eaten} onIron />
-        <Pressable
+        <MacroBar macros={eaten} />
+        <PressScale
           onPress={() => router.push('/log-meal')}
           accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.primary,
-            { backgroundColor: theme.accent },
-            surface.accent,
-            pressed && styles.pressed,
-          ]}>
+          style={[styles.primary, { backgroundColor: theme.accent }, surface.accent]}
+          pressedStyle={styles.pressed}>
           <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
           <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
             Log a meal
           </Text>
-        </Pressable>
-      </View>
+        </PressScale>
+      </Animated.View>
 
-      <WaterGoalCard goal={water.goal} onPress={() => router.push('/water-goal')} />
+      <Animated.View entering={enter(1)}>
+        <WaterGoalCard goal={water.goal} onPress={() => router.push('/water-goal')} />
+      </Animated.View>
 
       {loading ? (
         <ActivityIndicator color={theme.textSecondary} style={styles.loading} />
@@ -156,9 +163,7 @@ export function NutritionScreen() {
                 <Animated.View
                   key={meal.id}
                   entering={
-                    dayIndex === 0 && index < 6
-                      ? FadeInDown.delay(index * 50).duration(300)
-                      : undefined
+                    dayIndex === 0 && index < 6 ? enter(index + 2) : undefined
                   }>
                   <MealCard
                     meal={meal}
@@ -213,10 +218,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.five,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   hero: {
     borderRadius: Radius.large,

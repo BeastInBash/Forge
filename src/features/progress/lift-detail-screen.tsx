@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -262,20 +263,16 @@ export function LiftDetailScreen() {
             />
           </View>
 
-          <Pressable
+          <PressScale
             onPress={logLift}
             accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.primary,
-              { backgroundColor: theme.accent },
-              surface.accent,
-              pressed && styles.pressed,
-            ]}>
+            style={[styles.primary, { backgroundColor: theme.accent }, surface.accent]}
+            pressedStyle={styles.pressed}>
             <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
               Log {name}
             </Text>
-          </Pressable>
+          </PressScale>
 
           <View style={styles.section}>
             <SectionLabel icon={{ ios: 'clock.arrow.circlepath', material: 'history' }}>
@@ -345,10 +342,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.five,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   loading: {
     paddingVertical: Spacing.six,
@@ -374,9 +371,9 @@ const styles = StyleSheet.create({
   },
   value: {
     fontFamily: FontFamily.display,
-    fontSize: 40,
-    lineHeight: 46,
-    letterSpacing: -1,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -0.8,
     minWidth: 40,
   },
   noData: {

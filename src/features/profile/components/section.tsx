@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   title: {
     paddingHorizontal: Spacing.one,
     letterSpacing: 0.8,
-    fontSize: 12,
+    fontSize: 11,
   },
   card: {
     borderRadius: Radius.large,
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   mono: {
     fontFamily: Fonts.mono,
-    fontSize: 13,
+    fontSize: 12,
   },
   badge: {
     paddingHorizontal: Spacing.two,

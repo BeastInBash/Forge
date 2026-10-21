@@ -445,9 +445,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    padding: Spacing.three,
+    paddingHorizontal: Spacing.screen,
+    paddingVertical: Spacing.three,
     paddingBottom: Spacing.six,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   section: {
     gap: Spacing.three,
@@ -486,7 +487,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
     height: '100%',
     fontFamily: FontFamily.bodySemiBold,
-    fontSize: 17,
+    fontSize: 16,
   },
   // Bleeds to the screen edges with matching padding, so the chips' borders aren't clipped.
   suggestionsScroll: {
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
   timeValue: {
     minWidth: 92,
     textAlign: 'center',
-    fontSize: 22,
+    fontSize: 19,
   },
   addExercise: {
     minHeight: 52,

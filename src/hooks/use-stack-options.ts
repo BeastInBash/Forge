@@ -16,8 +16,8 @@ export function useStackOptions(): Exclude<StackScreenOptions, (...args: never[]
     headerStyle: { backgroundColor: theme.background },
     headerLargeStyle: { backgroundColor: theme.background },
     headerTintColor: theme.text,
-    headerTitleStyle: { fontFamily: FontFamily.displayBold, fontSize: 18 },
-    headerLargeTitleStyle: { fontFamily: FontFamily.display, fontSize: 34 },
+    headerTitleStyle: { fontFamily: FontFamily.displayBold, fontSize: 16 },
+    headerLargeTitleStyle: { fontFamily: FontFamily.display, fontSize: 28 },
     contentStyle: { backgroundColor: theme.background },
   };
 }

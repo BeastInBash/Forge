@@ -295,9 +295,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    padding: Spacing.three,
+    paddingHorizontal: Spacing.screen,
+    paddingVertical: Spacing.three,
     paddingBottom: Spacing.six,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   dateRow: {
     flexDirection: 'row',

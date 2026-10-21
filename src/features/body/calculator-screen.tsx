@@ -417,23 +417,23 @@ function CaloriesCard({
   const daily = roundCalories(maintenance(basal, activity));
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
-      <Text variant="label" style={{ color: theme.ironTextSecondary }}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
+      <Text variant="label" style={{ color: theme.textSecondary }}>
         Maintenance calories
       </Text>
       <View style={styles.valueRow}>
-        <Text style={[styles.value, { color: theme.ironText }]}>{numberFormat.format(daily)}</Text>
-        <Text variant="title" style={{ color: theme.ironTextSecondary }}>
+        <Text style={[styles.value, { color: theme.text }]}>{numberFormat.format(daily)}</Text>
+        <Text variant="title" style={{ color: theme.textSecondary }}>
           kcal / day
         </Text>
       </View>
-      <Text variant="caption" style={{ color: theme.ironTextSecondary }}>
+      <Text variant="caption" style={{ color: theme.textSecondary }}>
         {numberFormat.format(roundCalories(basal))} kcal at rest × {ACTIVITY[activity].factor} for{' '}
         {ACTIVITY[activity].label.toLowerCase()}. Tap a goal to make it yours.
       </Text>
 
       <View
-        style={[styles.targets, { borderTopColor: theme.ironLine }]}
+        style={[styles.targets, { borderTopColor: theme.line }]}
         accessibilityRole="radiogroup"
         accessibilityLabel="Your goal">
         {GOAL_TARGETS.map((target) => {
@@ -446,11 +446,11 @@ function CaloriesCard({
               accessibilityState={{ checked: yours }}
               style={({ pressed }) => [
                 styles.target,
-                (yours || pressed) && [{ backgroundColor: theme.iron }, surface.ironSunken],
+                (yours || pressed) && surface.sunken,
               ]}>
               <View style={styles.flex}>
                 <View style={styles.targetTitle}>
-                  <Text variant="bodyStrong" style={{ color: theme.ironText }}>
+                  <Text variant="bodyStrong" style={{ color: theme.text }}>
                     {target.label}
                   </Text>
                   {yours && (
@@ -461,11 +461,11 @@ function CaloriesCard({
                     </View>
                   )}
                 </View>
-                <Text variant="caption" style={{ color: theme.ironTextSecondary }}>
+                <Text variant="caption" style={{ color: theme.textSecondary }}>
                   {target.detail}
                 </Text>
               </View>
-              <Text variant="bodyStrong" style={{ color: yours ? theme.accent : theme.ironText }}>
+              <Text variant="bodyStrong" style={{ color: yours ? theme.up : theme.text }}>
                 {numberFormat.format(daily + target.offset)} kcal
               </Text>
             </Pressable>
@@ -500,7 +500,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    padding: Spacing.three,
+    paddingHorizontal: Spacing.screen,
+    paddingVertical: Spacing.three,
     paddingBottom: Spacing.six,
     gap: Spacing.five,
   },
@@ -539,9 +540,9 @@ const styles = StyleSheet.create({
   },
   value: {
     fontFamily: FontFamily.display,
-    fontSize: 44,
-    lineHeight: 50,
-    letterSpacing: -1,
+    fontSize: 36,
+    lineHeight: 42,
+    letterSpacing: -0.8,
     minWidth: 48,
   },
   bandPill: {
@@ -598,7 +599,6 @@ const styles = StyleSheet.create({
   targets: {
     marginTop: Spacing.two,
     paddingTop: Spacing.two,
-    borderTopWidth: StyleSheet.hairlineWidth,
     gap: Spacing.one,
   },
   target: {

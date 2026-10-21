@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
   bottom: {
     flexDirection: 'row',
     gap: Spacing.three,
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.three,
   },
   stat: {

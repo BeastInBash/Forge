@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useId, type ReactNode } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -8,13 +7,10 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { GradientText } from '@/components/ui/gradient-text';
 import { Text } from '@/components/ui/text';
-import { MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { rise, settle } from './motion';
-
-/** The tempering colours in the order steel passes through them, for the panel's top edge. */
-const TEMPER_RUN = [Temper.push, Temper.pull, Temper.legs, Temper.upper, Temper.lower] as const;
 
 type Props = {
   /** Small line above the heading, like the date on the home screen. */
@@ -56,12 +52,6 @@ export function AuthScreen({ eyebrow, heading, children, footer, animateIn = fal
         <Animated.View
           entering={animateIn ? settle : undefined}
           style={[styles.panel, { backgroundColor: theme.iron }, surface.iron]}>
-          <LinearGradient
-            colors={TEMPER_RUN}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.temper}
-          />
           <Ember color={theme.accent} />
           {/* The dark-background logo: the panel is iron in both themes. */}
           <Image
@@ -139,13 +129,6 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     overflow: 'hidden',
   },
-  temper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-  },
   ember: {
     pointerEvents: 'none',
   },
@@ -164,8 +147,8 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   heading: {
-    fontSize: 26,
-    lineHeight: 32,
+    fontSize: 22,
+    lineHeight: 28,
     letterSpacing: -0.5,
   },
   form: {

@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   clock: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 20,
+    fontSize: 18,
     fontVariant: ['tabular-nums'],
   },
   startTimer: {
@@ -337,7 +337,6 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   sets: {
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.one,
   },
   set: {

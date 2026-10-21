@@ -10,8 +10,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
-import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
+import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { errorMessage } from '@/features/auth/validation';
 import { logLift } from '@/features/progress/api';
 import { addLiftLocally } from '@/features/progress/lifts-store';
@@ -102,17 +103,16 @@ function Session({ session }: { session: WorkoutSession }) {
       contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: session.muscleGroup }} />
 
-      <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
-        <View style={[styles.temper, { backgroundColor: Temper[session.split] }]} />
+      <View style={[styles.hero, { backgroundColor: theme.surface }, surface.raised]}>
         <View style={styles.heroBody}>
           <View style={styles.eyebrow}>
             <Icon
               ios={finished ? 'flag.checkered' : 'timer'}
               material={finished ? 'sports_score' : 'timer'}
               size={16}
-              color={clockRunning ? theme.accent : theme.ironTextSecondary}
+              color={clockRunning ? theme.up : theme.textSecondary}
             />
-            <Text variant="label" style={{ color: theme.ironTextSecondary }}>
+            <Text variant="label" style={{ color: theme.textSecondary }}>
               {finished
                 ? 'Session time'
                 : confirmReset
@@ -126,7 +126,7 @@ function Session({ session }: { session: WorkoutSession }) {
             <Text
               style={[
                 styles.sessionClock,
-                { color: clockRunning || finished ? theme.ironText : theme.ironTextSecondary },
+                { color: clockRunning || finished ? theme.text : theme.textSecondary },
               ]}
               accessibilityRole="timer">
               {formatClock(sessionDuration(session, now))}
@@ -151,17 +151,17 @@ function Session({ session }: { session: WorkoutSession }) {
                   style={({ pressed }) => [
                     styles.resetButton,
                     {
-                      backgroundColor: confirmReset ? theme.danger : theme.ironLine,
+                      backgroundColor: confirmReset ? theme.danger : theme.surface,
                       transitionProperty: 'backgroundColor',
                       transitionDuration: 150,
                     },
-                    pressed ? [styles.pressed, surface.ironSunken] : surface.ironSoft,
+                    pressed ? [styles.pressed, surface.sunken] : surface.soft,
                   ]}>
                   <Icon
                     ios="arrow.counterclockwise"
                     material="restart_alt"
                     size={20}
-                    color={theme.ironText}
+                    color={theme.text}
                   />
                 </Pressable>
                 <Pressable
@@ -176,35 +176,35 @@ function Session({ session }: { session: WorkoutSession }) {
                   style={({ pressed }) => [
                     styles.clockButton,
                     {
-                      backgroundColor: clockRunning ? theme.ironLine : theme.accent,
+                      backgroundColor: clockRunning ? theme.surface : theme.accent,
                       transitionProperty: 'backgroundColor',
                       transitionDuration: 150,
                     },
                     pressed
-                      ? [styles.pressed, surface.ironSunken]
+                      ? [styles.pressed, surface.sunken]
                       : clockRunning
-                        ? surface.ironSoft
+                        ? surface.soft
                         : surface.accent,
                   ]}>
                   <Icon
                     ios={clockRunning ? 'stop.fill' : 'play.fill'}
                     material={clockRunning ? 'stop' : 'play_arrow'}
                     size={20}
-                    color={clockRunning ? theme.ironText : theme.onAccent}
+                    color={clockRunning ? theme.text : theme.onAccent}
                   />
                   <Text
                     variant="bodyStrong"
-                    style={{ color: clockRunning ? theme.ironText : theme.onAccent }}>
+                    style={{ color: clockRunning ? theme.text : theme.onAccent }}>
                     {clockRunning ? 'Stop' : 'Start'}
                   </Text>
                 </Pressable>
               </View>
             )}
           </View>
-          <View style={[styles.track, { backgroundColor: theme.ironLine }]}>
+          <View style={[styles.track, { backgroundColor: theme.line }]}>
             <Animated.View style={[styles.fill, { backgroundColor: theme.accent }, barStyle]} />
           </View>
-          <Text variant="label" style={{ color: theme.ironTextSecondary }}>
+          <Text variant="label" style={{ color: theme.textSecondary }}>
             {done} of {total} sets · {exercisesDone} of {session.exercises.length} exercises
           </Text>
         </View>
@@ -341,16 +341,12 @@ function Summary({ session }: { session: WorkoutSession }) {
             </Text>
           </View>
         ) : (
-          <Pressable
+          <PressScale
             onPress={save}
             disabled={saving}
             accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.save,
-              { backgroundColor: theme.accent },
-              surface.accent,
-              pressed && styles.pressed,
-            ]}>
+            style={[styles.save, { backgroundColor: theme.accent }, surface.accent]}
+            pressedStyle={styles.pressed}>
             {saving ? (
               <ActivityIndicator color={theme.onAccent} />
             ) : (
@@ -366,7 +362,7 @@ function Summary({ session }: { session: WorkoutSession }) {
                 </Text>
               </>
             )}
-          </Pressable>
+          </PressScale>
         ))}
     </Animated.View>
   );
@@ -387,8 +383,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.six,
     gap: Spacing.three,
   },
@@ -396,9 +392,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.large,
     borderCurve: 'continuous',
     overflow: 'hidden',
-  },
-  temper: {
-    height: 4,
   },
   heroBody: {
     padding: Spacing.four,
@@ -437,8 +430,8 @@ const styles = StyleSheet.create({
   },
   sessionClock: {
     fontFamily: FontFamily.display,
-    fontSize: 52,
-    lineHeight: 60,
+    fontSize: 44,
+    lineHeight: 52,
     letterSpacing: -1,
     fontVariant: ['tabular-nums'],
   },
@@ -466,7 +459,6 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   summaryList: {
-    borderTopWidth: StyleSheet.hairlineWidth,
     marginTop: Spacing.two,
     paddingTop: Spacing.two,
   },

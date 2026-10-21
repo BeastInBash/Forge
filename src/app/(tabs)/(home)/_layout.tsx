@@ -97,8 +97,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   brandName: {
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 19,
+    lineHeight: 24,
   },
   avatar: {
     width: 34,
