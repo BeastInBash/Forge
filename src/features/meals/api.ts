@@ -1,4 +1,4 @@
-import { apiURL, authHeaders } from '@/lib/auth-client';
+import { apiRequest } from '@/lib/api';
 
 export type MealTime = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -55,32 +55,23 @@ export type MealInput = {
 /** A just-logged meal, plus the entries that weren't recognised as food (and weren't saved). */
 export type LoggedMeal = Meal & { unrecognized: { food: string; amount: string }[] };
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(`${apiURL}${path}`, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...init?.headers },
-      credentials: 'include',
-    });
-  } catch {
-    throw new Error('Can’t reach Forge right now. Check your connection.');
-  }
-  const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.message || 'Something went wrong. Try again.');
-  return body.data;
-}
+/** The AI analysis can take a while; allow it well past the default limit. */
+const LOG_MEAL_TIMEOUT_MS = 60_000;
 
 export function fetchMeals(before?: string): Promise<MealPage> {
   const query = before ? `?before=${encodeURIComponent(before)}` : '';
-  return request<MealPage>(`/api/v1/meals${query}`);
+  return apiRequest<MealPage>(`/api/v1/meals${query}`);
 }
 
-export const fetchMeal = (id: string) => request<Meal>(`/api/v1/meals/${id}`);
+export const fetchMeal = (id: string) => apiRequest<Meal>(`/api/v1/meals/${id}`);
 
 /** Analyses the meal with AI and saves it; takes a few seconds. */
 export const logMeal = (input: MealInput) =>
-  request<LoggedMeal>('/api/v1/meals', { method: 'POST', body: JSON.stringify(input) });
+  apiRequest<LoggedMeal>('/api/v1/meals', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    timeoutMs: LOG_MEAL_TIMEOUT_MS,
+  });
 
 export const deleteMeal = (id: string) =>
-  request<null>(`/api/v1/meals/${id}`, { method: 'DELETE' });
+  apiRequest<null>(`/api/v1/meals/${id}`, { method: 'DELETE' });

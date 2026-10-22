@@ -1,5 +1,5 @@
 import type { FitnessGoal } from '@/features/onboarding/api';
-import { apiURL, authHeaders } from '@/lib/auth-client';
+import { apiRequest, apiSend } from '@/lib/api';
 
 /** `GET /api/v1/profile` — everything forge-backend stores about the signed-in user. */
 export type Profile = {
@@ -30,39 +30,16 @@ export type Profile = {
   stats: { workoutPlans: number; exercisesCreated: number };
 };
 
-export async function fetchProfile(signal?: AbortSignal): Promise<Profile> {
-  let response: Response;
-  try {
-    response = await fetch(`${apiURL}/api/v1/profile`, {
-      headers: authHeaders(),
-      credentials: 'include',
-      signal,
-    });
-  } catch (error) {
-    if (signal?.aborted) throw error;
-    throw new Error('Can’t reach Forge right now. Check your connection.');
-  }
-  const body = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(body?.message || 'Couldn’t load your profile. Try again.');
-  }
-  return body.data;
-}
+export const fetchProfile = (signal?: AbortSignal) =>
+  apiRequest<Profile>('/api/v1/profile', {
+    signal,
+    fallbackMessage: 'Couldn’t load your profile. Try again.',
+  });
 
 /** `DELETE /api/v1/profile` — permanently deletes the signed-in user and everything they own. */
 export async function deleteAccount(): Promise<void> {
-  let response: Response;
-  try {
-    response = await fetch(`${apiURL}/api/v1/profile`, {
-      method: 'DELETE',
-      headers: authHeaders(),
-      credentials: 'include',
-    });
-  } catch {
-    throw new Error('Can’t reach Forge right now. Check your connection.');
-  }
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(body?.message || 'Couldn’t delete your account. Try again.');
-  }
+  await apiSend('/api/v1/profile', {
+    method: 'DELETE',
+    fallbackMessage: 'Couldn’t delete your account. Try again.',
+  });
 }

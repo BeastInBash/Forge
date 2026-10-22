@@ -1,4 +1,4 @@
-import { apiURL, authHeaders } from '@/lib/auth-client';
+import { apiRequest } from '@/lib/api';
 
 export type LiftSet = {
   id: string;
@@ -56,25 +56,9 @@ const toLift = (lift: ApiLift): Lift => ({
   sets: lift.sets.map(({ id, weight, reps }) => ({ id, weight, reps })),
 });
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(`${apiURL}${path}`, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...init?.headers },
-      credentials: 'include',
-    });
-  } catch {
-    throw new Error('Can’t reach Forge right now. Check your connection.');
-  }
-  const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.message || 'Something went wrong. Try again.');
-  return body.data;
-}
-
 export async function fetchLiftSummaries(): Promise<LiftSummary[]> {
   const rows =
-    await request<
+    await apiRequest<
       (Omit<LiftSummary, 'exercise' | 'last'> & { exercise: ApiExercise; last: ApiLift })[]
     >('/api/v1/lifts');
   return rows.map((row) => ({
@@ -85,14 +69,16 @@ export async function fetchLiftSummaries(): Promise<LiftSummary[]> {
 }
 
 export async function fetchLiftHistory(exerciseId: string): Promise<LiftHistory> {
-  const data = await request<{ exercise: ApiExercise; lifts: ApiLift[] }>(
+  const data = await apiRequest<{ exercise: ApiExercise; lifts: ApiLift[] }>(
     `/api/v1/lifts/exercise/${exerciseId}`
   );
   return { exercise: toExercise(data.exercise), lifts: data.lifts.map(toLift) };
 }
 
 export const logLift = async (input: LiftInput) =>
-  toLift(await request<ApiLift>('/api/v1/lifts', { method: 'POST', body: JSON.stringify(input) }));
+  toLift(
+    await apiRequest<ApiLift>('/api/v1/lifts', { method: 'POST', body: JSON.stringify(input) })
+  );
 
 export const deleteLift = (id: string) =>
-  request<null>(`/api/v1/lifts/${id}`, { method: 'DELETE' });
+  apiRequest<null>(`/api/v1/lifts/${id}`, { method: 'DELETE' });

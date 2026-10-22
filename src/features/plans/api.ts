@@ -1,4 +1,4 @@
-import { apiURL, authHeaders } from '@/lib/auth-client';
+import { apiRequest } from '@/lib/api';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 import { splitFor } from './split';
@@ -61,22 +61,6 @@ function toPlan(plan: ApiPlan): WorkoutPlan {
   };
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(`${apiURL}${path}`, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...init?.headers },
-      credentials: 'include',
-    });
-  } catch {
-    throw new Error('Can’t reach Forge right now. Check your connection.');
-  }
-  const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.message || 'Something went wrong. Try again.');
-  return body.data;
-}
-
 function toBody(input: PlanInput) {
   return JSON.stringify({
     day: input.day,
@@ -90,18 +74,21 @@ function toBody(input: PlanInput) {
   });
 }
 
-export const fetchPlans = async () => (await request<ApiPlan[]>('/api/v1/workout')).map(toPlan);
+export const fetchPlans = async () =>
+  (await apiRequest<ApiPlan[]>('/api/v1/workout')).map(toPlan);
 
 export const createPlan = async (input: PlanInput) =>
   toPlan(
-    await request<ApiPlan>('/api/v1/workout/create-workout', {
+    await apiRequest<ApiPlan>('/api/v1/workout/create-workout', {
       method: 'POST',
       body: toBody(input),
     })
   );
 
 export const updatePlan = async (id: string, input: PlanInput) =>
-  toPlan(await request<ApiPlan>(`/api/v1/workout/${id}`, { method: 'PUT', body: toBody(input) }));
+  toPlan(
+    await apiRequest<ApiPlan>(`/api/v1/workout/${id}`, { method: 'PUT', body: toBody(input) })
+  );
 
 export const deletePlan = (id: string) =>
-  request<null>(`/api/v1/workout/${id}`, { method: 'DELETE' });
+  apiRequest<null>(`/api/v1/workout/${id}`, { method: 'DELETE' });
