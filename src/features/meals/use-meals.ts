@@ -5,9 +5,11 @@ import {
   getSnapshot,
   loadMoreMeals,
   revalidateMeal,
+  revalidateMealDay,
   revalidateMeals,
   subscribe,
 } from './meals-store';
+import { isoDay } from './today';
 
 /** The meal history, newest first, refreshed whenever the screen gains focus. */
 export function useMeals() {
@@ -36,6 +38,20 @@ export function useMeals() {
     loadingMore,
     loadMore: loadMoreMeals,
   };
+}
+
+/** Today's full nutrient totals, refreshed on focus; undefined until loaded for today. */
+export function useMealDay() {
+  const { day } = useSyncExternalStore(subscribe, getSnapshot);
+
+  useFocusEffect(
+    useCallback(() => {
+      revalidateMealDay();
+    }, [])
+  );
+
+  // Yesterday's totals don't count once the day has turned over
+  return { day: day?.date === isoDay(new Date()) ? day : undefined, refresh: revalidateMealDay };
 }
 
 /** One meal's full analysis, refreshed on focus. */

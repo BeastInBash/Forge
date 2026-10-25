@@ -6,6 +6,12 @@ export function localDay(iso: string) {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
 
+/** `date`'s local calendar day as "YYYY-MM-DD", the format the API takes. */
+export function isoDay(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 /** The meals eaten on `now`'s local day, in the order given. */
 export function mealsOn(meals: MealSummary[], now: Date) {
   const day = localDay(now.toISOString());

@@ -14,7 +14,7 @@ import { PressScale } from '@/components/ui/press-scale';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
-import { CSS_EASE_OUT, enter } from '@/constants/motion';
+import { CSS_EASE_OUT, enter, reflow } from '@/constants/motion';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { summarize } from '@/features/body/summary';
 import { useBody } from '@/features/body/use-body';
@@ -25,9 +25,12 @@ import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import type { MealSummary } from './api';
 import { MacroBar } from './components/macro-bar';
+import { MacroTargets } from './components/macro-targets';
 import { MealCard } from './components/meal-card';
+import { NutrientTargetsCard } from './components/nutrient-targets-card';
+import { dailyTargets } from './targets';
 import { localDay, mealsOn, sumMeals } from './today';
-import { useMeals } from './use-meals';
+import { useMealDay, useMeals } from './use-meals';
 
 const numberFormat = new Intl.NumberFormat();
 
@@ -52,11 +55,31 @@ export function NutritionScreen() {
     useMeals();
   const body = useBody();
   const water = useWaterGoal();
+  const { day, refresh: refreshDay } = useMealDay();
   const bodySummary = summarize(body.measurements ?? {}, body.prefs);
   const goal = bodySummary.goal?.calories ?? bodySummary.maintenance;
+  const targets = dailyTargets({
+    calories: goal,
+    measurements: body.measurements,
+    sex: body.prefs.sex,
+  });
+  const { protein, carbs, fat } = targets;
 
-  const eaten = sumMeals(mealsOn(meals ?? [], new Date()));
+  // The backend's day totals; until they load, the history's meals from today add up the same
+  const eaten = day
+    ? {
+        calories: day.total.energy.calories ?? 0,
+        protein: day.total.macros.protein ?? 0,
+        carbs: day.total.macros.carbs ?? 0,
+        fat: day.total.macros.fat ?? 0,
+      }
+    : sumMeals(mealsOn(meals ?? [], new Date()));
   const days = meals ? byDay(meals) : [];
+
+  function refreshAll() {
+    refreshDay();
+    return refresh();
+  }
 
   return (
     <ScrollView
@@ -64,7 +87,11 @@ export function NutritionScreen() {
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={styles.content}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.textSecondary} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={refreshAll}
+          tintColor={theme.textSecondary}
+        />
       }>
       <Animated.View
         entering={enter(0)}
@@ -109,7 +136,31 @@ export function NutritionScreen() {
             />
           </View>
         ) : null}
-        <MacroBar macros={eaten} />
+        {protein && carbs && fat ? (
+          <MacroTargets macros={eaten} targets={{ protein, carbs, fat }} />
+        ) : (
+          <>
+            <MacroBar macros={eaten} />
+            {!body.loading && bodySummary.missing.length ? (
+              <Pressable
+                onPress={() => router.push('/calculator')}
+                accessibilityRole="button"
+                style={styles.setup}>
+                <Icon ios="target" material="track_changes" size={14} color={theme.textSecondary} />
+                <Text variant="caption" color="textSecondary" style={styles.setupText}>
+                  Add your {bodySummary.missing.join(', ')} to see daily protein, carb and fat
+                  targets
+                </Text>
+                <Icon
+                  ios="chevron.right"
+                  material="chevron_right"
+                  size={14}
+                  color={theme.textSecondary}
+                />
+              </Pressable>
+            ) : null}
+          </>
+        )}
         <PressScale
           onPress={() => router.push('/log-meal')}
           accessibilityRole="button"
@@ -122,7 +173,13 @@ export function NutritionScreen() {
         </PressScale>
       </Animated.View>
 
-      <Animated.View entering={enter(1)}>
+      {day ? (
+        <Animated.View entering={enter(1)}>
+          <NutrientTargetsCard day={day} targets={targets} />
+        </Animated.View>
+      ) : null}
+
+      <Animated.View entering={enter(1)} layout={reflow}>
         <WaterGoalCard goal={water.goal} onPress={() => router.push('/water-goal')} />
       </Animated.View>
 
@@ -250,6 +307,14 @@ const styles = StyleSheet.create({
   },
   goalFill: {
     height: '100%',
+  },
+  setup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one + Spacing.half,
+  },
+  setupText: {
+    flex: 1,
   },
   primary: {
     marginTop: Spacing.one,

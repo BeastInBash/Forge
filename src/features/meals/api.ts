@@ -45,6 +45,16 @@ export type MealSummary = {
 
 export type MealPage = { meals: MealSummary[]; nextBefore: string | null };
 
+/** Everything eaten on one local day, summed by the backend (`GET /api/v1/meals/day`). */
+export type MealDay = {
+  /** Local "YYYY-MM-DD". */
+  date: string;
+  timezone: string;
+  mealCount: number;
+  total: NutritionReport;
+  units: Record<string, string>;
+};
+
 export type MealInput = {
   mealTime: MealTime;
   /** Food name → amount, e.g. `{ Chicken: '250g cooked' }`. */
@@ -62,6 +72,11 @@ export function fetchMeals(before?: string): Promise<MealPage> {
   const query = before ? `?before=${encodeURIComponent(before)}` : '';
   return apiRequest<MealPage>(`/api/v1/meals${query}`);
 }
+
+export const fetchMealDay = (date: string, timezone: string) =>
+  apiRequest<MealDay>(
+    `/api/v1/meals/day?date=${date}&timezone=${encodeURIComponent(timezone)}`
+  );
 
 export const fetchMeal = (id: string) => apiRequest<Meal>(`/api/v1/meals/${id}`);
 
