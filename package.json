@@ -8,6 +8,7 @@
     "@expo-google-fonts/roboto": "^0.4.3",
     "@expo/ui": "~57.0.22",
     "@react-native-masked-view/masked-view": "0.3.2",
+    "@sentry/react-native": "~7.11.0",
     "better-auth": "1.6.27",
     "expo": "~57.0.27",
     "expo-constants": "~57.0.21",
