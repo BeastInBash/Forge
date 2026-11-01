@@ -12,12 +12,12 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    /** Near-white page; cards sit on it as white panels with a hairline border, no shadows. */
-    background: '#F7F8FA',
+    /** Soft grey page; cards sit on it as borderless white panels, no shadows. */
+    background: '#F2F4F7',
     surface: '#FFFFFF',
     text: '#0F172A',
     textSecondary: '#64748B',
-    line: '#E2E8F0',
+    line: '#E4E8EE',
     /** Cast-iron panel used for the hero session card. */
     iron: '#111827',
     ironText: '#F8FAFC',
@@ -40,8 +40,8 @@ export const Colors = {
     scrim: 'rgba(15, 23, 42, 0.45)',
   },
   dark: {
-    background: '#0B0F15',
-    surface: '#141A23',
+    background: '#0A0D12',
+    surface: '#151B24',
     text: '#F1F5F9',
     textSecondary: '#94A3B8',
     line: '#263040',
@@ -116,23 +116,26 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+  /** Side padding of every screen's content; a touch wider than `three` so cards can breathe. */
+  screen: 20,
 } as const;
 
 /**
- * Corners stay tight everywhere: 6 for controls, chips and wells, 8 for cards and panels. `pill`
- * is the chip/track radius — Forge has no capsules. Only avatars and dots are drawn round.
+ * Soft, rounded corners: 10 for controls, inputs and icon tiles, 14 for cards, 18 for the hero
+ * panels. `pill` makes capsules for chips and small round buttons.
  */
 export const Radius = {
-  small: 6,
-  medium: 8,
-  large: 8,
-  pill: 6,
+  small: 10,
+  medium: 14,
+  large: 18,
+  pill: 999,
 } as const;
 
 /**
- * Flat Design 2.0. Surfaces are solid fills separated by a 1px border instead of shadows. Every
- * variant sets the same border width, so swapping one for another (a button's pressed state)
- * never shifts layout.
+ * Soft & airy. Cards are borderless white panels on the grey page; controls keep a faint 1px
+ * border so they still read when they sit straight on the page. Every variant sets the same
+ * border width (transparent where invisible), so swapping one for another (a card's pressed
+ * state) never shifts layout.
  *
  * `raised` is for cards, `soft` for chips and secondary buttons, `sunken` for wells that take
  * input (fields, tracks, pressed buttons), `accent` for straw fills, and the iron variants for
@@ -141,7 +144,7 @@ export const Radius = {
 function surfaces(palette: (typeof Colors)['light'] | (typeof Colors)['dark']) {
   const border = (color: string) => ({ borderWidth: 1, borderColor: color });
   return {
-    raised: border(palette.line),
+    raised: border('transparent'),
     soft: border(palette.line),
     // Wells sit on the page colour; a button swapping to it on press reads as pressed in.
     sunken: { ...border(palette.line), backgroundColor: palette.background },

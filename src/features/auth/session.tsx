@@ -18,6 +18,7 @@ import { deleteAccount as deleteAccountRequest } from '@/features/profile/api';
 import { clearLifts } from '@/features/progress/lifts-store';
 import { clearSession } from '@/features/session/session-store';
 import { clearWater } from '@/features/water/water-store';
+import { setUnauthorizedHandler } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 
 export type Session = {
@@ -115,6 +116,35 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const checked = useSessionChecked();
   // Set the moment the save succeeds, so the guard flips without waiting on a session refetch.
   const [onboardedNow, setOnboardedNow] = useState(false);
+  const signedIn = Boolean(data);
+
+  function clearLocalState() {
+    setOnboardedNow(false);
+    clearPlans();
+    clearLifts();
+    clearMeals();
+    clearBody();
+    clearSession();
+    clearWater();
+  }
+
+  // The server no longer accepts this session (expired, or revoked on another device): drop it
+  // here too, once, instead of every screen showing errors.
+  useEffect(() => {
+    if (!signedIn) return;
+    let handled = false;
+    setUnauthorizedHandler(() => {
+      if (handled) return;
+      handled = true;
+      forgetPushToken();
+      clearLocalState();
+      authClient
+        .signOut()
+        .catch(() => {})
+        .finally(() => authClient.$store.notify('$sessionSignal'));
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [signedIn]);
 
   const value: SessionContextValue = {
     session: data ? { user: data.user } : null,
@@ -171,16 +201,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       clearLocalState();
     },
   };
-
-  function clearLocalState() {
-    setOnboardedNow(false);
-    clearPlans();
-    clearLifts();
-    clearMeals();
-    clearBody();
-    clearSession();
-    clearWater();
-  }
 
   return <SessionContext value={value}>{children}</SessionContext>;
 }

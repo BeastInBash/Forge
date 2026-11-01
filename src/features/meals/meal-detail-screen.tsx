@@ -87,22 +87,22 @@ export function MealDetailScreen() {
       <Stack.Screen options={{ title: info?.label ?? 'Meal' }} />
 
       {header && (
-        <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
+        <View style={[styles.hero, { backgroundColor: theme.surface }, surface.raised]}>
           <View style={styles.eyebrow}>
-            <IconBadge {...info!.icon} color={theme.accent} background={theme.ironLine} />
-            <Text variant="label" style={[styles.flex, { color: theme.ironTextSecondary }]}>
+            <IconBadge {...info!.icon} color={theme.text} background={theme.background} border={theme.line} />
+            <Text variant="label" style={[styles.flex, { color: theme.textSecondary }]}>
               {when.format(new Date(header.eatenAt))}
             </Text>
           </View>
           <View style={styles.heroTotal}>
-            <Text variant="hero" style={{ color: theme.ironText }}>
+            <Text variant="hero" style={{ color: theme.text }}>
               {meal ? (meal.total.energy.calories ?? 0) : summary?.total.calories}
             </Text>
-            <Text variant="label" style={{ color: theme.ironTextSecondary }}>
+            <Text variant="label" style={{ color: theme.textSecondary }}>
               kcal
             </Text>
           </View>
-          <MacroBar macros={meal ? macrosOf(meal.total) : summary!.total} onIron />
+          <MacroBar macros={meal ? macrosOf(meal.total) : summary!.total} />
         </View>
       )}
 
@@ -386,10 +386,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.six,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   flex: {
     flex: 1,

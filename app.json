@@ -60,6 +60,14 @@
           "color": "#2563EB",
           "defaultChannel": "default"
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://de.sentry.io/",
+          "organization": "forge-6z",
+          "project": "forge"
+        }
       ]
     ],
     "experiments": {

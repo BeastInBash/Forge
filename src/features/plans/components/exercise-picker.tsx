@@ -11,10 +11,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import type { Exercise } from '@/features/exercises/api';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
+import { MuscleTags } from '@/features/exercises/components/muscle-tags';
+import { targetsOf } from '@/features/exercises/muscles';
+import { searchExercises } from '@/features/exercises/search';
 import { useExercises } from '@/features/exercises/use-exercises';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
@@ -38,7 +42,7 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
   const [query, setQuery] = useState('');
 
   const needle = query.trim().toLowerCase();
-  const filtered = (exercises ?? []).filter((e) => e.exercise_name.toLowerCase().includes(needle));
+  const filtered = searchExercises(exercises ?? [], needle);
 
   return (
     <Modal
@@ -52,20 +56,16 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
           <Text variant="title" style={styles.title}>
             Add exercises
           </Text>
-          <Pressable
+          <PressScale
             onPress={onClose}
             accessibilityRole="button"
             hitSlop={8}
-            style={({ pressed }) => [
-              styles.done,
-              { backgroundColor: theme.accent },
-              surface.accent,
-              pressed && { opacity: 0.85 },
-            ]}>
+            style={[styles.done, { backgroundColor: theme.accent }, surface.accent]}
+            pressedStyle={{ opacity: 0.85 }}>
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
               Done{selectedIds.size ? ` · ${selectedIds.size}` : ''}
             </Text>
-          </Pressable>
+          </PressScale>
         </View>
 
         <View style={[styles.search, { backgroundColor: theme.background }, surface.sunken]}>
@@ -73,7 +73,7 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Search exercises"
+            placeholder="Search by name or muscle"
             placeholderTextColor={theme.textSecondary}
             autoCorrect={false}
             clearButtonMode="while-editing"
@@ -120,9 +120,12 @@ export function ExercisePicker({ visible, selectedIds, onToggle, onClose }: Prop
                   pressed ? surface.sunken : surface.raised,
                 ]}>
                 <ExerciseThumb url={item.exercise_icon} size={52} />
-                <Text variant="bodyStrong" numberOfLines={2} style={styles.name}>
-                  {item.exercise_name}
-                </Text>
+                <View style={styles.name}>
+                  <Text variant="bodyStrong" numberOfLines={2}>
+                    {item.exercise_name}
+                  </Text>
+                  <MuscleTags targets={targetsOf(item)} max={3} />
+                </View>
                 <View
                   style={[
                     styles.check,
@@ -198,6 +201,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     minWidth: 0,
+    gap: Spacing.one + Spacing.half,
   },
   check: {
     width: 26,

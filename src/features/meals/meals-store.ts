@@ -5,8 +5,17 @@
  */
 
 import { errorMessage } from '@/features/auth/validation';
+import { deviceTimezone } from '@/features/water/api';
 
-import { fetchMeal, fetchMeals, type Meal, type MealSummary } from './api';
+import {
+  fetchMeal,
+  fetchMealDay,
+  fetchMeals,
+  type Meal,
+  type MealDay,
+  type MealSummary,
+} from './api';
+import { isoDay } from './today';
 
 type DetailState = { meal?: Meal; error?: string };
 
@@ -17,10 +26,13 @@ export type MealsState = {
   error?: string;
   loadingMore: boolean;
   details: Record<string, DetailState>;
+  /** Today's full nutrient totals, summed by the backend. */
+  day?: MealDay;
 };
 
 let state: MealsState = { loadingMore: false, details: {} };
 let listInFlight: Promise<void> | undefined;
+let dayInFlight: Promise<void> | undefined;
 const detailsInFlight = new Map<string, Promise<void>>();
 const listeners = new Set<() => void>();
 
@@ -56,6 +68,23 @@ export function revalidateMeals(): Promise<void> {
     listInFlight = undefined;
   });
   return listInFlight;
+}
+
+/**
+ * Refetches today's nutrient totals; overlapping calls share one request. Never throws: on
+ * failure the last totals stay, and screens fall back to summing the history.
+ */
+export function revalidateMealDay(): Promise<void> {
+  dayInFlight ??= (async () => {
+    try {
+      setState({ ...state, day: await fetchMealDay(isoDay(new Date()), deviceTimezone()) });
+    } catch {
+      // Keep the last totals
+    }
+  })().finally(() => {
+    dayInFlight = undefined;
+  });
+  return dayInFlight;
 }
 
 /** Appends the next, older page of meals. Never throws. */
@@ -117,11 +146,13 @@ export function addMealLocally(meal: Meal) {
     meals: state.meals && [toSummary(meal), ...state.meals].sort(newestFirst),
     details: { ...state.details, [meal.id]: { meal } },
   });
+  revalidateMealDay();
 }
 
 export function removeMealLocally(id: string) {
   const { [id]: _removed, ...details } = state.details;
   setState({ ...state, meals: state.meals?.filter((m) => m.id !== id), details });
+  revalidateMealDay();
 }
 
 /** Cached meals are per user; drop them on sign-out. */

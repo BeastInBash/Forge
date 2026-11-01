@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
@@ -50,21 +51,17 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
         <Text variant="title" style={styles.heading}>
           Meals today
         </Text>
-        <Pressable
+        <PressScale
           onPress={onLogMeal}
           accessibilityRole="button"
           hitSlop={8}
-          style={({ pressed }) => [
-            styles.log,
-            { backgroundColor: theme.mint },
-            surface.accent,
-            pressed && styles.pressed,
-          ]}>
+          style={[styles.log, { backgroundColor: theme.mint }, surface.accent]}
+          pressedStyle={styles.pressed}>
           <Icon ios="plus" material="add" size={16} color={theme.onMint} />
           <Text variant="label" style={{ color: theme.onMint }}>
             Log meal
           </Text>
-        </Pressable>
+        </PressScale>
       </View>
 
       <View style={styles.total}>
@@ -126,8 +123,7 @@ export function MealsCard({ meals, goal, error, onLogMeal, onOpenMeal }: Props) 
                 accessibilityLabel={`${info.label}, ${meal.total.calories} calories: ${meal.foods.join(', ')}`}
                 style={({ pressed }) => [
                   styles.meal,
-                  { borderColor: theme.line },
-                  pressed && { backgroundColor: theme.background },
+                  { backgroundColor: pressed ? theme.line : theme.background },
                 ]}>
                 <IconBadge
                   {...info.icon}
@@ -227,7 +223,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.three - Spacing.one,
     padding: Spacing.three - Spacing.one,
-    borderWidth: 1,
     borderRadius: Radius.small,
     borderCurve: 'continuous',
   },

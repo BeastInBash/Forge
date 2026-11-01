@@ -8,12 +8,14 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
+import { enter } from '@/constants/motion';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 import { startOfWeek } from '@/lib/week';
@@ -45,19 +47,22 @@ export function ProgressScreen() {
           tintColor={theme.textSecondary}
         />
       }>
-      <View style={[styles.hero, { backgroundColor: theme.iron }, surface.iron]}>
+      <Animated.View
+        entering={enter(0)}
+        style={[styles.hero, { backgroundColor: theme.surface }, surface.raised]}>
         <View style={styles.eyebrow}>
           <IconBadge
             ios="chart.line.uptrend.xyaxis"
             material="show_chart"
-            color={theme.accent}
-            background={theme.ironLine}
+            color={theme.text}
+            background={theme.background}
+            border={theme.line}
           />
-          <Text variant="caption" style={[styles.caps, { color: theme.ironTextSecondary }]}>
+          <Text variant="caption" style={[styles.caps, { color: theme.textSecondary }]}>
             Track every set
           </Text>
         </View>
-        <Text variant="hero" style={{ color: theme.ironText }}>
+        <Text variant="hero" style={{ color: theme.text }}>
           Your lifts
         </Text>
         <View style={styles.heroStats}>
@@ -77,23 +82,19 @@ export function ProgressScreen() {
             unit="this week"
           />
         </View>
-        <Pressable
+        <PressScale
           onPress={() => router.push('/log-lift')}
           accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.primary,
-            { backgroundColor: theme.accent },
-            surface.accent,
-            pressed && styles.pressed,
-          ]}>
+          style={[styles.primary, { backgroundColor: theme.accent }, surface.accent]}
+          pressedStyle={styles.pressed}>
           <Icon ios="plus" material="add" size={18} color={theme.onAccent} />
           <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
             Log a lift
           </Text>
-        </Pressable>
-      </View>
+        </PressScale>
+      </Animated.View>
 
-      <View style={styles.section}>
+      <Animated.View entering={enter(1)} style={styles.section}>
         <SectionLabel icon={{ ios: 'dumbbell', material: 'fitness_center' }}>
           Tracked lifts
         </SectionLabel>
@@ -120,7 +121,7 @@ export function ProgressScreen() {
           summaries.map((summary, index) => (
             <Animated.View
               key={summary.exercise.id}
-              entering={index < 8 ? FadeInDown.delay(index * 50).duration(300) : undefined}>
+              entering={index < 8 ? enter(index + 2) : undefined}>
               <LiftSummaryCard
                 summary={summary}
                 index={index}
@@ -149,7 +150,7 @@ export function ProgressScreen() {
             </Text>
           </View>
         )}
-      </View>
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -167,12 +168,12 @@ function HeroStat({
   return (
     <View style={styles.heroStat}>
       <View style={styles.heroStatIcon}>
-        <Icon {...icon} size={15} color={theme.ironTextSecondary} />
+        <Icon {...icon} size={15} color={theme.textSecondary} />
       </View>
-      <Text variant="title" style={{ color: theme.ironText }}>
+      <Text variant="title" style={{ color: theme.text }}>
         {value}
       </Text>
-      <Text variant="caption" style={{ color: theme.ironTextSecondary }}>
+      <Text variant="caption" style={{ color: theme.textSecondary }}>
         {unit}
       </Text>
     </View>
@@ -184,10 +185,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.five,
-    gap: Spacing.four,
+    gap: Spacing.five,
   },
   hero: {
     borderRadius: Radius.large,

@@ -10,7 +10,10 @@ export type TextProps = RNTextProps & {
   color?: ThemeColor;
 };
 
-/** App text. Display variants use Roboto; everything else is Inter. */
+/**
+ * App text. Display variants use Roboto; everything else is Inter. The scale is deliberately
+ * compact — hierarchy comes from weight, colour and space more than from size.
+ */
 export function Text({ variant = 'body', color = 'text', style, ...rest }: TextProps) {
   const theme = useTheme();
   return <RNText style={[styles[variant], { color: theme[color] }, style]} {...rest} />;
@@ -19,43 +22,43 @@ export function Text({ variant = 'body', color = 'text', style, ...rest }: TextP
 const styles = StyleSheet.create({
   hero: {
     fontFamily: FontFamily.display,
-    fontSize: 40,
-    lineHeight: 46,
-    letterSpacing: -1,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -0.8,
   },
   display: {
     fontFamily: FontFamily.display,
-    fontSize: 34,
-    lineHeight: 40,
-    letterSpacing: -0.5,
+    fontSize: 26,
+    lineHeight: 32,
+    letterSpacing: -0.4,
     fontVariant: ['tabular-nums'],
   },
   title: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 20,
-    lineHeight: 26,
-    letterSpacing: -0.2,
+    fontSize: 17,
+    lineHeight: 23,
+    letterSpacing: -0.1,
   },
   body: {
     fontFamily: FontFamily.body,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 21,
   },
   bodyStrong: {
     fontFamily: FontFamily.bodySemiBold,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 21,
   },
   label: {
     fontFamily: FontFamily.bodyMedium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     fontVariant: ['tabular-nums'],
   },
   caption: {
     fontFamily: FontFamily.body,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11,
+    lineHeight: 15,
     fontVariant: ['tabular-nums'],
   },
 });

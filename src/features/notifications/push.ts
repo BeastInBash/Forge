@@ -6,7 +6,7 @@
  * simulators have no push token. Those cases, and web, report `unavailable` instead of throwing.
  */
 
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
 import type * as NotificationsModule from 'expo-notifications';
 import { useEffect, useState } from 'react';
@@ -20,14 +20,17 @@ const CHANNEL_ID = 'default';
 export type PushStatus = 'registered' | 'denied' | 'unavailable';
 
 /**
- * expo-notifications, or null where its native side is missing (a build made before it was
- * added, or Expo Go without some of its modules). Importing it there throws "Cannot find native
- * module …", so it is required lazily and the app runs on without push.
+ * expo-notifications, or null where push can't work: web, Expo Go on Android (remote push was
+ * removed from it in SDK 53, and touching the module there logs an error on every launch), and
+ * builds missing its native side, where importing it throws "Cannot find native module …". It is
+ * required lazily so the app runs on without push.
  */
 export const Notifications = loadNotifications();
 
 function loadNotifications(): typeof NotificationsModule | null {
   if (Platform.OS === 'web') return null;
+  const expoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+  if (expoGo && Platform.OS === 'android') return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- may be missing natively
     return require('expo-notifications');

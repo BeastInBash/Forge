@@ -1,8 +1,11 @@
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { PressScale } from '@/components/ui/press-scale';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
+import { slideIn } from '@/constants/motion';
 import { Radius, Spacing, Temper, type TemperKey } from '@/constants/theme';
 import { isClockRunning, type WorkoutSession } from '@/features/session/session-store';
 import { formatClock, formatSpan, sessionDuration } from '@/features/session/timing';
@@ -44,21 +47,21 @@ export function SessionCard({
 
   if (loading) {
     return (
-      <View style={[styles.card, styles.loadingCard, { backgroundColor: theme.iron }, surface.iron]}>
-        <ActivityIndicator color={theme.ironTextSecondary} />
+      <View style={[styles.card, styles.loadingCard, { backgroundColor: theme.surface }, surface.raised]}>
+        <ActivityIndicator color={theme.textSecondary} />
       </View>
     );
   }
 
   if (!plan) {
     return (
-      <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
+      <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
         <View style={styles.body}>
           <CardHeader label={dayLabel} rest />
-          <Text variant="hero" style={{ color: theme.ironText }}>
+          <Text variant="hero" style={{ color: theme.text }}>
             Rest day
           </Text>
-          <Text variant="body" style={[styles.restCopy, { color: theme.ironTextSecondary }]}>
+          <Text variant="body" style={[styles.restCopy, { color: theme.textSecondary }]}>
             Nothing is planned for {day}. Recovery is where the strength gets built.
           </Text>
           <SecondaryButton label="Plan a workout" onPress={onPlan} />
@@ -70,14 +73,13 @@ export function SessionCard({
   const totalSets = plan.exercises.reduce((sum, item) => sum + item.sets, 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
-      <View style={[styles.temper, { backgroundColor: Temper[plan.split] }]} />
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
       <View style={styles.body}>
         <CardHeader
           label={`${dayLabel} at ${timeFormat.format(new Date(plan.time))}`}
           split={plan.split}
         />
-        <Text variant="hero" style={{ color: theme.ironText }}>
+        <Text variant="hero" style={{ color: theme.text }}>
           {plan.muscleGroup}
         </Text>
 
@@ -87,22 +89,23 @@ export function SessionCard({
           <Stat icon="time" value={totalSets * MINUTES_PER_SET} unit="min" />
         </View>
 
-        <View style={[styles.list, { borderTopColor: theme.ironLine }]}>
-          {plan.exercises.map((item) => (
-            <View key={item.id} style={styles.exercise}>
-              <Text variant="title" style={[styles.order, { color: theme.ironTextSecondary }]}>
+        <View style={styles.list}>
+          {plan.exercises.map((item, index) => (
+            // Rows follow the card's own rise in; picking another day replays them for its plan.
+            <Animated.View key={item.id} entering={slideIn(index, 200)} style={styles.exercise}>
+              <Text variant="title" style={[styles.order, { color: theme.textSecondary }]}>
                 {item.order + 1}
               </Text>
               <Text
                 variant="body"
                 numberOfLines={1}
-                style={[styles.name, { color: theme.ironText }]}>
+                style={[styles.name, { color: theme.text }]}>
                 {item.exercise.name}
               </Text>
-              <Text variant="label" style={{ color: theme.ironTextSecondary }}>
+              <Text variant="label" style={{ color: theme.textSecondary }}>
                 {item.sets} × {item.repetition}
               </Text>
-            </View>
+            </Animated.View>
           ))}
         </View>
 
@@ -114,20 +117,16 @@ export function SessionCard({
         ) : workout && workout.clock.length > 0 ? (
           <ResumeButton workout={workout} onPress={onStart} />
         ) : isToday || workout ? (
-          <Pressable
+          <PressScale
             onPress={onStart}
             accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.primary,
-              { backgroundColor: theme.accent },
-              surface.accent,
-              pressed && styles.pressed,
-            ]}>
+            style={[styles.primary, { backgroundColor: theme.accent }, surface.accent]}
+            pressedStyle={styles.pressed}>
             <Icon ios="play.fill" material="play_arrow" size={18} color={theme.onAccent} />
             <Text variant="bodyStrong" style={{ color: theme.onAccent }}>
               Start workout
             </Text>
-          </Pressable>
+          </PressScale>
         ) : (
           <SecondaryButton label="Edit plan" onPress={onPlan} />
         )}
@@ -143,15 +142,11 @@ function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: 
   const running = isClockRunning(workout);
   const now = useNow(running);
   return (
-    <Pressable
+    <PressScale
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.primary,
-        { backgroundColor: theme.accent },
-        surface.accent,
-        pressed && styles.pressed,
-      ]}>
+      style={[styles.primary, { backgroundColor: theme.accent }, surface.accent]}
+      pressedStyle={styles.pressed}>
       <Icon ios="timer" material="timer" size={18} color={theme.onAccent} />
       <Text variant="bodyStrong" numberOfLines={1} style={{ color: theme.onAccent }}>
         Resume workout
@@ -163,7 +158,7 @@ function ResumeButton({ workout, onPress }: { workout: WorkoutSession; onPress: 
         {formatClock(sessionDuration(workout, now))}
         {running ? '' : ' · stopped'}
       </Text>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -175,19 +170,20 @@ function CardHeader({ label, split, rest }: { label: string; split?: TemperKey; 
       <IconBadge
         ios={rest ? 'bed.double' : 'dumbbell'}
         material={rest ? 'bedtime' : 'fitness_center'}
-        color={rest ? theme.ironTextSecondary : theme.accent}
-        background={theme.ironLine}
+        color={rest ? theme.textSecondary : theme.text}
+        background={theme.background}
+        border={theme.line}
       />
       <Text
         variant="caption"
         numberOfLines={1}
-        style={[styles.headerLabel, { color: theme.ironTextSecondary }]}>
+        style={[styles.headerLabel, { color: theme.textSecondary }]}>
         {label}
       </Text>
       {split && (
-        <View style={[styles.split, { borderColor: theme.ironLine }]}>
+        <View style={[styles.split, { backgroundColor: theme.background }]}>
           <View style={[styles.splitDot, { backgroundColor: Temper[split] }]} />
-          <Text variant="caption" style={{ color: theme.ironText }}>
+          <Text variant="caption" style={{ color: theme.text }}>
             {split[0].toUpperCase() + split.slice(1)}
           </Text>
         </View>
@@ -215,12 +211,12 @@ function Stat({
   return (
     <View style={styles.stat}>
       <View style={styles.statIcon}>
-        <Icon {...STAT_ICONS[icon]} size={15} color={theme.ironTextSecondary} />
+        <Icon {...STAT_ICONS[icon]} size={15} color={theme.textSecondary} />
       </View>
-      <Text variant="title" style={{ color: theme.ironText }}>
+      <Text variant="title" style={{ color: theme.text }}>
         {value}
       </Text>
-      <Text variant="caption" style={{ color: theme.ironTextSecondary }}>
+      <Text variant="caption" style={{ color: theme.textSecondary }}>
         {unit}
       </Text>
     </View>
@@ -231,18 +227,15 @@ function SecondaryButton({ label, onPress }: { label: string; onPress: () => voi
   const theme = useTheme();
   const surface = useSurface();
   return (
-    <Pressable
+    <PressScale
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.secondary,
-        { backgroundColor: theme.ironLine },
-        pressed ? [styles.pressed, surface.ironSunken] : surface.ironSoft,
-      ]}>
-      <Text variant="bodyStrong" style={{ color: theme.ironText }}>
+      style={[styles.secondary, { backgroundColor: theme.surface }, surface.soft]}
+      pressedStyle={surface.sunken}>
+      <Text variant="bodyStrong" style={{ color: theme.text }}>
         {label}
       </Text>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -260,9 +253,6 @@ const styles = StyleSheet.create({
     height: 240,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  temper: {
-    height: 4,
   },
   body: {
     padding: Spacing.four,
@@ -285,8 +275,7 @@ const styles = StyleSheet.create({
     gap: Spacing.one + Spacing.half,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.one,
-    borderWidth: 1,
-    borderRadius: Radius.small,
+    borderRadius: Radius.pill,
   },
   splitDot: {
     width: 6,
@@ -315,7 +304,6 @@ const styles = StyleSheet.create({
   list: {
     marginTop: Spacing.three,
     paddingTop: Spacing.two,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   exercise: {
     flexDirection: 'row',

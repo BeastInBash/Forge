@@ -68,4 +68,5 @@ jobs:
           APP_VERSION: ${{ needs.build_aab.outputs.app_version }}
           # The .aab's versionCode, matching the release on Google Play
           BUILD_NUMBER: ${{ needs.build_aab.outputs.app_build_version }}
-          COMMIT_SHA: ${{ needs.build_apk.outputs.git_commit_hash }}
+          # The commit that triggered this run; a build's git_commit_hash can be null
+          COMMIT_SHA: ${{ github.sha }}

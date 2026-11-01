@@ -4,9 +4,12 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing, Temper } from '@/constants/theme';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
+import { MuscleTags } from '@/features/exercises/components/muscle-tags';
+import { targetsOf } from '@/features/exercises/muscles';
+import { useCatalogExercise } from '@/features/exercises/use-exercises';
 import { plural } from '@/lib/plural';
 import { useSurface, useTheme } from '@/hooks/use-theme';
-import type { Weekday, WorkoutPlan } from '@/types/training';
+import type { Weekday, WorkoutExercise, WorkoutPlan } from '@/types/training';
 
 const timeFormat = new Intl.DateTimeFormat(undefined, {
   hour: 'numeric',
@@ -66,7 +69,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         style={({ pressed }) => [
           styles.card,
           styles.restCard,
-          { backgroundColor: theme.background, borderColor: theme.line },
+          { backgroundColor: theme.surface },
           pressed && styles.pressed,
         ]}>
         {dateBadge}
@@ -100,12 +103,12 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         { backgroundColor: theme.surface },
         pressed ? [styles.pressed, surface.sunken] : surface.raised,
       ]}>
-      <View style={[styles.temper, { backgroundColor: Temper[plan.split] }]} />
       <View style={styles.main}>
         <View style={styles.header}>
           {dateBadge}
           <View style={styles.body}>
             <View style={styles.titleRow}>
+              <View style={[styles.splitDot, { backgroundColor: Temper[plan.split] }]} />
               <Text variant="bodyStrong" numberOfLines={1} style={styles.title}>
                 {plan.muscleGroup}
               </Text>
@@ -136,15 +139,7 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
         {expanded && (
           <View style={[styles.list, { borderTopColor: theme.line }]}>
             {plan.exercises.map((item) => (
-              <View key={item.id} style={styles.exercise}>
-                <ExerciseThumb url={item.exercise.iconUrl ?? null} size={36} />
-                <Text variant="body" numberOfLines={1} style={styles.exerciseName}>
-                  {item.exercise.name}
-                </Text>
-                <Text variant="label" color="textSecondary">
-                  {prescription(item.sets, item.repetition, item.weight)}
-                </Text>
-              </View>
+              <ExerciseRow key={item.id} item={item} />
             ))}
             <Pressable
               onPress={onEdit}
@@ -165,6 +160,25 @@ export function SplitDay({ day, date, plan, isToday, expanded, onToggle, onEdit 
   );
 }
 
+/** One exercise of the expanded day: image, name with its target muscles, and sets × reps. */
+function ExerciseRow({ item }: { item: WorkoutExercise }) {
+  const catalogEntry = useCatalogExercise(item.exercise.id);
+  return (
+    <View style={styles.exercise}>
+      <ExerciseThumb url={item.exercise.iconUrl ?? null} size={36} />
+      <View style={styles.exerciseInfo}>
+        <Text variant="body" numberOfLines={1}>
+          {item.exercise.name}
+        </Text>
+        {catalogEntry && <MuscleTags targets={targetsOf(catalogEntry)} max={4} />}
+      </View>
+      <Text variant="label" color="textSecondary">
+        {prescription(item.sets, item.repetition, item.weight)}
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
@@ -173,18 +187,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   restCard: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
     alignItems: 'center',
     gap: Spacing.three,
     padding: Spacing.three,
-    paddingLeft: Spacing.three + 5,
   },
   pressed: {
     transform: [{ scale: 0.98 }],
   },
-  temper: {
-    width: 4,
+  splitDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   main: {
     flex: 1,
@@ -204,8 +217,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateNumber: {
-    fontSize: 20,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 20,
   },
   body: {
     flex: 1,
@@ -231,7 +244,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   list: {
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.two,
   },
   exercise: {
@@ -258,8 +270,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.two,
   },
-  exerciseName: {
+  exerciseInfo: {
     flex: 1,
     minWidth: 0,
+    gap: Spacing.one,
   },
 });

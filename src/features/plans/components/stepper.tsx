@@ -88,6 +88,6 @@ const styles = StyleSheet.create({
   value: {
     minWidth: 30,
     textAlign: 'center',
-    fontSize: 22,
+    fontSize: 19,
   },
 });

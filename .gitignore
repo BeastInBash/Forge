@@ -48,3 +48,6 @@ CI_CD.md
 
 # Google Play service account key
 google-service-account.json
+
+# Firebase config for Android push; EAS builds get it from the GOOGLE_SERVICES_JSON secret
+google-services.json

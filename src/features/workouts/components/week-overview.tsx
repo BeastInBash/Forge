@@ -28,7 +28,7 @@ function formatDuration(minutes: number) {
 }
 
 /**
- * Iron summary of the week: a band with one segment per day in its split's tempering
+ * Summary of the week: a band with one segment per day in its split's tempering
  * colour (rest days hollow, today marked), then sessions, sets and estimated time.
  */
 export function WeekOverview({ days, today, rangeLabel }: Props) {
@@ -38,20 +38,21 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
   const sets = plans.reduce((sum, plan) => sum + plan.exercises.reduce((s, e) => s + e.sets, 0), 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
       <View style={styles.header}>
         <View style={styles.eyebrow}>
           <IconBadge
             ios="calendar"
             material="calendar_month"
-            color={theme.accent}
-            background={theme.ironLine}
+            color={theme.text}
+            background={theme.background}
+            border={theme.line}
           />
-          <Text variant="caption" style={[styles.eyebrowText, { color: theme.ironTextSecondary }]}>
+          <Text variant="caption" style={[styles.eyebrowText, { color: theme.textSecondary }]}>
             This week · {rangeLabel}
           </Text>
         </View>
-        <Text variant="hero" style={{ color: theme.ironText }}>
+        <Text variant="hero" style={{ color: theme.text }}>
           {plans.length ? plural(plans.length, 'session') : 'No sessions yet'}
         </Text>
       </View>
@@ -65,13 +66,13 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
             <View
               style={[
                 styles.segment,
-                plan ? { backgroundColor: Temper[plan.split] } : surface.ironSunken,
+                plan ? { backgroundColor: Temper[plan.split] } : surface.sunken,
               ]}
             />
             <Text
               variant="caption"
               style={{
-                color: day === today ? theme.ironText : theme.ironTextSecondary,
+                color: day === today ? theme.text : theme.textSecondary,
                 fontWeight: day === today ? '700' : '400',
               }}>
               {day.charAt(0)}
@@ -81,7 +82,7 @@ export function WeekOverview({ days, today, rangeLabel }: Props) {
         ))}
       </View>
 
-      <View style={[styles.stats, { borderTopColor: theme.ironLine }]}>
+      <View style={[styles.stats, { borderTopColor: theme.line }]}>
         <Stat
           icon={{ ios: 'bed.double', material: 'bedtime' }}
           value={`${7 - plans.length}`}
@@ -114,11 +115,11 @@ function Stat({
   const theme = useTheme();
   return (
     <View style={styles.stat}>
-      <Icon {...icon} size={16} color={theme.ironTextSecondary} />
-      <Text variant="title" style={{ color: theme.ironText }}>
+      <Icon {...icon} size={16} color={theme.textSecondary} />
+      <Text variant="title" style={{ color: theme.text }}>
         {value}
       </Text>
-      <Text variant="caption" style={{ color: theme.ironTextSecondary }}>
+      <Text variant="caption" style={{ color: theme.textSecondary }}>
         {unit}
       </Text>
     </View>
@@ -167,7 +168,6 @@ const styles = StyleSheet.create({
   },
   stats: {
     flexDirection: 'row',
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.three,
   },
   stat: {

@@ -2,9 +2,11 @@ import { Image } from 'expo-image';
 import { openBrowserAsync } from 'expo-web-browser';
 import { useState, type ComponentProps } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { enter, reflow } from '@/constants/motion';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { apiURL } from '@/lib/auth-client';
 import { useSession } from '@/features/auth/session';
@@ -87,14 +89,16 @@ export function ProfileScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.textSecondary} />}>
       {user && (
-        <ProfileHeader
-          name={user.name}
-          email={user.email}
-          image={user.image}
-          bio={profile?.bio}
-          emailVerified={profile?.emailVerified}
-          createdAt={profile?.createdAt}
-        />
+        <Animated.View entering={enter(0)}>
+          <ProfileHeader
+            name={user.name}
+            email={user.email}
+            image={user.image}
+            bio={profile?.bio}
+            emailVerified={profile?.emailVerified}
+            createdAt={profile?.createdAt}
+          />
+        </Animated.View>
       )}
 
       {loading && (
@@ -123,77 +127,84 @@ export function ProfileScreen() {
         </View>
       )}
 
-      {profile && <ProfileDetails profile={profile} />}
+      {profile && (
+        <Animated.View entering={enter(1)} layout={reflow} style={styles.group}>
+          <ProfileDetails profile={profile} />
+        </Animated.View>
+      )}
 
-      <AppearanceSection />
+      {/* Slides down, rather than jumping, when the details above finish loading. */}
+      <Animated.View entering={enter(2)} layout={reflow} style={styles.group}>
+        <AppearanceSection />
 
-      <Section title="Legal">
-        <Pressable
-          onPress={() => openBrowserAsync(privacyPolicyURL)}
-          accessibilityRole="link"
-          style={({ pressed }) => pressed && styles.pressed}>
-          <Row
-            first
-            icon={<Icon ios="hand.raised.fill" material="privacy_tip" size={18} color={theme.text} />}
-            title="Privacy policy"
-            trailing={<Icon ios="arrow.up.right" material="open_in_new" size={16} color={theme.textSecondary} />}
-          />
-        </Pressable>
-      </Section>
+        <Section title="Legal">
+          <Pressable
+            onPress={() => openBrowserAsync(privacyPolicyURL)}
+            accessibilityRole="link"
+            style={({ pressed }) => pressed && styles.pressed}>
+            <Row
+              first
+              icon={<Icon ios="hand.raised.fill" material="privacy_tip" size={18} color={theme.text} />}
+              title="Privacy policy"
+              trailing={<Icon ios="arrow.up.right" material="open_in_new" size={16} color={theme.textSecondary} />}
+            />
+          </Pressable>
+        </Section>
 
-      <View style={styles.signOutBlock}>
-        {signOutError && (
-          <Text variant="label" color="danger" accessibilityRole="alert">
-            {signOutError}
-          </Text>
-        )}
-        <Pressable
-          onPress={handleSignOut}
-          disabled={signingOut}
-          accessibilityRole="button"
-          accessibilityState={{ busy: signingOut }}
-          style={({ pressed }) => [
-            styles.signOut,
-            { backgroundColor: theme.surface },
-            pressed ? surface.sunken : surface.soft,
-          ]}>
-          {signingOut ? (
-            <ActivityIndicator color={theme.danger} />
-          ) : (
-            <>
-              <Icon ios="rectangle.portrait.and.arrow.right" material="logout" size={18} color={theme.danger} />
-              <Text variant="bodyStrong" color="danger">
-                Sign out
-              </Text>
-            </>
+        <View style={styles.signOutBlock}>
+          {signOutError && (
+            <Text variant="label" color="danger" accessibilityRole="alert">
+              {signOutError}
+            </Text>
           )}
-        </Pressable>
-      </View>
+          <Pressable
+            onPress={handleSignOut}
+            disabled={signingOut}
+            accessibilityRole="button"
+            accessibilityState={{ busy: signingOut }}
+            style={({ pressed }) => [
+              styles.signOut,
+              { backgroundColor: theme.surface },
+              pressed ? surface.sunken : surface.soft,
+            ]}>
+            {signingOut ? (
+              <ActivityIndicator color={theme.danger} />
+            ) : (
+              <>
+                <Icon ios="rectangle.portrait.and.arrow.right" material="logout" size={18} color={theme.danger} />
+                <Text variant="bodyStrong" color="danger">
+                  Sign out
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
 
-      <View style={styles.signOutBlock}>
-        {deleteError && (
-          <Text variant="label" color="danger" accessibilityRole="alert">
-            {deleteError}
-          </Text>
-        )}
-        <Pressable
-          onPress={handleDelete}
-          disabled={deleting || signingOut}
-          accessibilityRole="button"
-          accessibilityState={{ busy: deleting }}
-          style={({ pressed }) => [styles.deleteAccount, pressed && styles.pressed]}>
-          {deleting ? (
-            <ActivityIndicator color={theme.danger} />
-          ) : (
-            <>
-              <Icon ios="trash" material="delete" size={16} color={theme.danger} />
-              <Text variant="label" color="danger">
-                Delete account
-              </Text>
-            </>
+        <View style={styles.signOutBlock}>
+          {deleteError && (
+            <Text variant="label" color="danger" accessibilityRole="alert">
+              {deleteError}
+            </Text>
           )}
-        </Pressable>
-      </View>
+          <Pressable
+            onPress={handleDelete}
+            disabled={deleting || signingOut}
+            accessibilityRole="button"
+            accessibilityState={{ busy: deleting }}
+            style={({ pressed }) => [styles.deleteAccount, pressed && styles.pressed]}>
+            {deleting ? (
+              <ActivityIndicator color={theme.danger} />
+            ) : (
+              <>
+                <Icon ios="trash" material="delete" size={16} color={theme.danger} />
+                <Text variant="label" color="danger">
+                  Delete account
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -324,10 +335,13 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.three,
     paddingBottom: Spacing.five,
-    gap: Spacing.four,
+    gap: Spacing.five,
+  },
+  group: {
+    gap: Spacing.five,
   },
   loading: {
     paddingVertical: Spacing.five,

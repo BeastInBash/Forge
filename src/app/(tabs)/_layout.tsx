@@ -25,7 +25,7 @@ const ICONS = {
 } satisfies Record<string, TabIcon>;
 
 /**
- * A flat tab bar on every platform: a full-width surface under a hairline, its tabs capped to the
+ * A flat tab bar on every platform: a borderless full-width surface, its tabs capped to the
  * content width, and the active tab marked with a mint tile.
  */
 export default function TabsLayout() {
@@ -47,7 +47,6 @@ export default function TabsLayout() {
               paddingHorizontal: gutter,
               paddingBottom: Math.max(insets.bottom, Spacing.two),
               backgroundColor: theme.surface,
-              borderTopColor: theme.line,
             },
           ])}>
           <TabTrigger name="(home)" href="/" asChild>
@@ -118,7 +117,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.one,
     paddingTop: Spacing.two,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   tab: {
     flex: 1,

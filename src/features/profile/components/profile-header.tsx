@@ -25,13 +25,13 @@ type Props = {
   createdAt?: string;
 };
 
-/** Cast-iron identity card: avatar, name, email, verification and membership, then the bio. */
+/** Identity card: avatar, name, email, verification and membership, then the bio. */
 export function ProfileHeader({ name, email, image, bio, emailVerified, createdAt }: Props) {
   const theme = useTheme();
   const surface = useSurface();
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.iron }, surface.iron]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }, surface.raised]}>
       <LinearGradient colors={TEMPER_BAND} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.band} />
       <View style={styles.body}>
         <View style={styles.identity}>
@@ -51,10 +51,10 @@ export function ProfileHeader({ name, email, image, bio, emailVerified, createdA
             )}
           </View>
           <View style={styles.names}>
-            <Text variant="title" numberOfLines={2} style={[styles.name, { color: theme.ironText }]}>
+            <Text variant="title" numberOfLines={2} style={[styles.name, { color: theme.text }]}>
               {name}
             </Text>
-            <Text variant="label" numberOfLines={1} style={{ color: theme.ironTextSecondary }}>
+            <Text variant="label" numberOfLines={1} style={{ color: theme.textSecondary }}>
               {email}
             </Text>
           </View>
@@ -83,13 +83,13 @@ export function ProfileHeader({ name, email, image, bio, emailVerified, createdA
         )}
 
         {bio !== undefined && (
-          <View style={[styles.bio, { borderTopColor: theme.ironLine }]}>
-            <Text variant="caption" style={[styles.bioLabel, { color: theme.ironTextSecondary }]}>
+          <View style={[styles.bio, { borderTopColor: theme.line }]}>
+            <Text variant="caption" style={[styles.bioLabel, { color: theme.textSecondary }]}>
               BIO
             </Text>
             <Text
               variant="body"
-              style={{ color: bio ? theme.ironText : theme.ironTextSecondary, fontStyle: bio ? 'normal' : 'italic' }}>
+              style={{ color: bio ? theme.text : theme.textSecondary, fontStyle: bio ? 'normal' : 'italic' }}>
               {bio || 'No bio yet.'}
             </Text>
           </View>
@@ -110,17 +110,16 @@ function Chip({
 }) {
   const theme = useTheme();
   const surface = useSurface();
-  const color = highlight ? theme.accent : theme.ironTextSecondary;
+  const color = highlight ? theme.up : theme.textSecondary;
   return (
     <View
       style={[
         styles.chip,
-        surface.ironSunken,
-        { backgroundColor: theme.iron },
-        highlight && { borderColor: theme.accent },
+        surface.sunken,
+        highlight && { borderColor: theme.up },
       ]}>
       <Icon ios={icon.ios} material={icon.material} size={14} color={color} />
-      <Text variant="caption" style={{ color: highlight ? theme.ironText : theme.ironTextSecondary }}>
+      <Text variant="caption" style={{ color: highlight ? theme.text : theme.textSecondary }}>
         {label}
       </Text>
     </View>
@@ -160,8 +159,8 @@ const styles = StyleSheet.create({
   },
   initialsText: {
     fontFamily: FontFamily.display,
-    fontSize: 26,
-    lineHeight: 32,
+    fontSize: 22,
+    lineHeight: 28,
   },
   names: {
     flex: 1,
@@ -169,8 +168,8 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   name: {
-    fontSize: 28,
-    lineHeight: 32,
+    fontSize: 22,
+    lineHeight: 28,
   },
   chips: {
     flexDirection: 'row',
@@ -187,7 +186,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   bio: {
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.three,
     gap: Spacing.one,
   },

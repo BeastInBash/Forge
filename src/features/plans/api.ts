@@ -1,4 +1,4 @@
-import { apiURL, authHeaders } from '@/lib/auth-client';
+import { apiRequest } from '@/lib/api';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
 import { splitFor } from './split';
@@ -20,13 +20,23 @@ type ApiPlan = {
   }[];
 };
 
-/** What the editor sends; exercises are catalog picks, in order. */
+/**
+ * One exercise of a plan, in order: a catalog pick by id, or (from a split template) a name the
+ * backend finds in the catalog, or adds to it, by its case-insensitive name.
+ */
+export type PlanExerciseInput = ({ exerciseId: string } | { exerciseName: string }) & {
+  sets: number;
+  repetition: number;
+  weight: number | null;
+};
+
+/** What the editor sends. */
 export type PlanInput = {
   day: Weekday;
   /** ISO 8601 date-time; only the time of day is shown. */
   time: string;
   muscleGroup: string;
-  exercises: { exerciseId: string; sets: number; repetition: number; weight: number | null }[];
+  exercises: PlanExerciseInput[];
 };
 
 function toPlan(plan: ApiPlan): WorkoutPlan {
@@ -51,43 +61,34 @@ function toPlan(plan: ApiPlan): WorkoutPlan {
   };
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(`${apiURL}${path}`, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...init?.headers },
-      credentials: 'include',
-    });
-  } catch {
-    throw new Error('Can’t reach Forge right now. Check your connection.');
-  }
-  const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.message || 'Something went wrong. Try again.');
-  return body.data;
-}
-
 function toBody(input: PlanInput) {
   return JSON.stringify({
     day: input.day,
     time: input.time,
     muscle_group: input.muscleGroup,
-    exercises: input.exercises,
+    exercises: input.exercises.map(({ sets, repetition, weight, ...exercise }) =>
+      'exerciseId' in exercise
+        ? { exerciseId: exercise.exerciseId, sets, repetition, weight }
+        : { exercise_name: exercise.exerciseName, sets, repetition, weight }
+    ),
   });
 }
 
-export const fetchPlans = async () => (await request<ApiPlan[]>('/api/v1/workout')).map(toPlan);
+export const fetchPlans = async () =>
+  (await apiRequest<ApiPlan[]>('/api/v1/workout')).map(toPlan);
 
 export const createPlan = async (input: PlanInput) =>
   toPlan(
-    await request<ApiPlan>('/api/v1/workout/create-workout', {
+    await apiRequest<ApiPlan>('/api/v1/workout/create-workout', {
       method: 'POST',
       body: toBody(input),
     })
   );
 
 export const updatePlan = async (id: string, input: PlanInput) =>
-  toPlan(await request<ApiPlan>(`/api/v1/workout/${id}`, { method: 'PUT', body: toBody(input) }));
+  toPlan(
+    await apiRequest<ApiPlan>(`/api/v1/workout/${id}`, { method: 'PUT', body: toBody(input) })
+  );
 
 export const deletePlan = (id: string) =>
-  request<null>(`/api/v1/workout/${id}`, { method: 'DELETE' });
+  apiRequest<null>(`/api/v1/workout/${id}`, { method: 'DELETE' });
