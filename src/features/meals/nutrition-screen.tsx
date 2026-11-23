@@ -20,6 +20,7 @@ import { summarize } from '@/features/body/summary';
 import { useBody } from '@/features/body/use-body';
 import { relativeDay } from '@/features/progress/format';
 import { WaterGoalCard } from '@/features/water/components/water-goal-card';
+import { useWaterDay } from '@/features/water/use-water-day';
 import { useWaterGoal } from '@/features/water/use-water-goal';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
@@ -55,6 +56,7 @@ export function NutritionScreen() {
     useMeals();
   const body = useBody();
   const water = useWaterGoal();
+  const waterDay = useWaterDay();
   const { day, refresh: refreshDay } = useMealDay();
   const bodySummary = summarize(body.measurements ?? {}, body.prefs);
   const goal = bodySummary.goal?.calories ?? bodySummary.maintenance;
@@ -65,19 +67,23 @@ export function NutritionScreen() {
   });
   const { protein, carbs, fat } = targets;
 
-  // The backend's day totals; until they load, the history's meals from today add up the same
-  const eaten = day
-    ? {
-        calories: day.total.energy.calories ?? 0,
-        protein: day.total.macros.protein ?? 0,
-        carbs: day.total.macros.carbs ?? 0,
-        fat: day.total.macros.fat ?? 0,
-      }
-    : sumMeals(mealsOn(meals ?? [], new Date()));
+  // The backend's day totals; until they load (or if they miss a meal the history already
+  // shows), the history's meals from today add up the same
+  const todaysMeals = mealsOn(meals ?? [], new Date());
+  const eaten =
+    day && day.mealCount >= todaysMeals.length
+      ? {
+          calories: day.total.energy.calories ?? 0,
+          protein: day.total.macros.protein ?? 0,
+          carbs: day.total.macros.carbs ?? 0,
+          fat: day.total.macros.fat ?? 0,
+        }
+      : sumMeals(todaysMeals);
   const days = meals ? byDay(meals) : [];
 
   function refreshAll() {
     refreshDay();
+    waterDay.refresh();
     return refresh();
   }
 
@@ -180,7 +186,11 @@ export function NutritionScreen() {
       ) : null}
 
       <Animated.View entering={enter(1)} layout={reflow}>
-        <WaterGoalCard goal={water.goal} onPress={() => router.push('/water-goal')} />
+        <WaterGoalCard
+          goal={water.goal}
+          day={waterDay.day}
+          onPress={() => router.push(water.goal ? '/water' : '/water-goal')}
+        />
       </Animated.View>
 
       {loading ? (

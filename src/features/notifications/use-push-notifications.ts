@@ -21,7 +21,8 @@ export function usePushNotifications(signedIn: boolean) {
     function open(response: NotificationResponse | null) {
       if (response?.actionIdentifier !== notifications.DEFAULT_ACTION_IDENTIFIER) return;
       const { type } = response.notification.request.content.data ?? {};
-      if (type === 'water-reminder') router.navigate('/nutrition');
+      // Straight to logging the drink the reminder asked for
+      if (type === 'water-reminder') router.navigate('/water');
       // Handled once: without this, signing in again would reopen the screen
       notifications.clearLastNotificationResponseAsync();
     }

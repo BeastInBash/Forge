@@ -26,3 +26,7 @@ export function reminderSummary(reminders: {
 
 /** 2500 → "2.5 L", 3000 → "3 L". */
 export const formatLitres = (ml: number) => `${Math.round(ml / 100) / 10} L`;
+
+/** Under a litre in ml, else litres: 250 → "250 ml", 1250 → "1.25 L". */
+export const formatWater = (ml: number) =>
+  ml < 1000 ? `${ml} ml` : `${Math.round(ml / 10) / 100} L`;

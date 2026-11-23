@@ -14,6 +14,7 @@ import {
   type Meal,
   type MealDay,
   type MealSummary,
+  type NutritionReport,
 } from './api';
 import { isoDay } from './today';
 
@@ -70,21 +71,57 @@ export function revalidateMeals(): Promise<void> {
   return listInFlight;
 }
 
+/** Bumped whenever a meal is added or removed, so an older day request can't overwrite it. */
+let dayVersion = 0;
+
+function fetchDay(): Promise<void> {
+  const version = dayVersion;
+  const request: Promise<void> = (async () => {
+    try {
+      const day = await fetchMealDay(isoDay(new Date()), deviceTimezone());
+      if (version === dayVersion) setState({ ...state, day });
+    } catch {
+      // Keep the last totals; logging and deleting already adjust them locally
+    }
+  })().finally(() => {
+    if (dayInFlight === request) dayInFlight = undefined;
+  });
+  dayInFlight = request;
+  return request;
+}
+
 /**
  * Refetches today's nutrient totals; overlapping calls share one request. Never throws: on
  * failure the last totals stay, and screens fall back to summing the history.
  */
 export function revalidateMealDay(): Promise<void> {
-  dayInFlight ??= (async () => {
-    try {
-      setState({ ...state, day: await fetchMealDay(isoDay(new Date()), deviceTimezone()) });
-    } catch {
-      // Keep the last totals
+  return dayInFlight ?? fetchDay();
+}
+
+/** `day`'s totals with `report` added (`sign` 1) or taken away (`sign` -1). */
+function adjustDay(day: MealDay, report: NutritionReport, sign: 1 | -1): MealDay {
+  const total = { ...day.total };
+  for (const group of Object.keys(report) as (keyof NutritionReport)[]) {
+    const sums = { ...total[group] };
+    for (const [key, amount] of Object.entries(report[group])) {
+      sums[key] = Math.max(0, (sums[key] ?? 0) + sign * amount);
     }
-  })().finally(() => {
-    dayInFlight = undefined;
-  });
-  return dayInFlight;
+    total[group] = sums;
+  }
+  return { ...day, total, mealCount: Math.max(0, day.mealCount + sign) };
+}
+
+/**
+ * Updates today's totals for a logged or deleted meal at once, then fetches the backend's exact
+ * sums with a fresh request (one already in flight started before the change).
+ */
+function changeDay(meal: Meal | undefined, sign: 1 | -1) {
+  const { day } = state;
+  if (day && meal && isoDay(new Date(meal.eatenAt)) === day.date) {
+    setState({ ...state, day: adjustDay(day, meal.total, sign) });
+  }
+  dayVersion++;
+  fetchDay();
 }
 
 /** Appends the next, older page of meals. Never throws. */
@@ -146,13 +183,13 @@ export function addMealLocally(meal: Meal) {
     meals: state.meals && [toSummary(meal), ...state.meals].sort(newestFirst),
     details: { ...state.details, [meal.id]: { meal } },
   });
-  revalidateMealDay();
+  changeDay(meal, 1);
 }
 
 export function removeMealLocally(id: string) {
-  const { [id]: _removed, ...details } = state.details;
+  const { [id]: removed, ...details } = state.details;
   setState({ ...state, meals: state.meals?.filter((m) => m.id !== id), details });
-  revalidateMealDay();
+  changeDay(removed?.meal, -1);
 }
 
 /** Cached meals are per user; drop them on sign-out. */
