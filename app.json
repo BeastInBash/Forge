@@ -45,8 +45,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Forge uses your photos to add images to exercises.",
-          "cameraPermission": false,
+          "photosPermission": "Forge uses your photos to add images to exercises and to read your meals' nutrition.",
+          "cameraPermission": "Forge uses the camera to photograph your meals and estimate their nutrition.",
           "microphonePermission": false
         }
       ],

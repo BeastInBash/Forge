@@ -1,7 +1,10 @@
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
+import type { ImagePickerAsset } from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -12,6 +15,7 @@ import {
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { Icon } from '@/components/ui/icon';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { Segmented } from '@/components/ui/segmented';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
@@ -21,7 +25,7 @@ import { errorMessage } from '@/features/auth/validation';
 import { relativeDay } from '@/features/progress/format';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
-import { logMeal, type MealTime } from './api';
+import { logMeal, recognizeMealPhoto, type MealTime } from './api';
 import { addMealLocally } from './meals-store';
 import { MEAL_TIMES, mealTimeFor } from './nutrients';
 
@@ -53,6 +57,9 @@ export function LogMealScreen() {
   const [daysBack, setDaysBack] = useState(0);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string>();
+  const [photo, setPhoto] = useState<ImagePickerAsset>();
+  const [photoNote, setPhotoNote] = useState<string>();
+  const [recognizing, setRecognizing] = useState(false);
   const amountRefs = useRef(new Map<number, TextInput | null>());
 
   function updateFood(key: number, change: Partial<DraftFood>) {
@@ -70,6 +77,58 @@ export function LogMealScreen() {
     const names = new Set(filled.map((food) => food.name.toLowerCase()));
     if (names.size !== filled.length) return 'Each food can only be listed once.';
     return Object.fromEntries(filled.map((food) => [food.name, food.amount]));
+  }
+
+  /** Takes or picks a meal photo, then fills the foods with what the AI saw in it. */
+  async function snapMeal(source: 'camera' | 'library') {
+    setFormError(undefined);
+    // Loaded on demand, as in add-exercise-screen: an older build without the module still starts.
+    let ImagePicker: typeof import('expo-image-picker');
+    try {
+      ImagePicker = await import('expo-image-picker');
+    } catch {
+      setFormError('This build can’t take photos yet. Update the app.');
+      return;
+    }
+    if (source === 'camera') {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        setFormError('Allow camera access in Settings to snap your meal.');
+        return;
+      }
+    }
+    // Quality 0.5 keeps a phone photo well under the backend's 4 MB limit; the AI needs no more.
+    const options = { mediaTypes: 'images', quality: 0.5 } as const;
+    const result =
+      source === 'camera'
+        ? await ImagePicker.launchCameraAsync(options)
+        : await ImagePicker.launchImageLibraryAsync(options);
+    if (result.canceled) return;
+
+    const image = result.assets[0];
+    setPhoto(image);
+    setPhotoNote(undefined);
+    setRecognizing(true);
+    try {
+      const found = (await recognizeMealPhoto(image)).slice(0, MAX_FOODS);
+      setFoods(
+        found.map((item) => ({
+          key: nextKey++,
+          name: item.food.slice(0, 60),
+          amount: item.amount.slice(0, 100),
+        })),
+      );
+      setPhotoNote(
+        `Found ${found.length} ${found.length === 1 ? 'food' : 'foods'}. Check the amounts, then save.`,
+      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (e) {
+      setPhoto(undefined);
+      setFormError(errorMessage(e));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setRecognizing(false);
+    }
   }
 
   async function save() {
@@ -140,6 +199,53 @@ export function LogMealScreen() {
             disabled={daysBack === 0}
             onPress={() => setDaysBack((d) => d - 1)}
           />
+        </View>
+
+        <View style={[styles.photoCard, { backgroundColor: theme.surface }, surface.raised]}>
+          <View style={styles.photoHeader}>
+            {photo ? (
+              <Image
+                source={photo.uri}
+                style={styles.thumb}
+                contentFit="cover"
+                accessibilityLabel="Your meal photo"
+              />
+            ) : (
+              <IconBadge
+                ios="camera"
+                material="photo_camera"
+                color={theme.text}
+                background={theme.background}
+                border={theme.line}
+                size={40}
+              />
+            )}
+            <View style={styles.flex}>
+              <Text variant="bodyStrong">Snap your meal</Text>
+              <Text variant="caption" color="textSecondary" accessibilityLiveRegion="polite">
+                {recognizing
+                  ? 'Looking at your photo — this takes a few seconds.'
+                  : (photoNote ?? 'AI lists the foods and amounts for you to check.')}
+              </Text>
+            </View>
+            {recognizing && <ActivityIndicator color={theme.textSecondary} />}
+          </View>
+          <View style={styles.photoButtons}>
+            <PhotoButton
+              ios="camera"
+              material="photo_camera"
+              label="Take photo"
+              disabled={recognizing || saving}
+              onPress={() => snapMeal('camera')}
+            />
+            <PhotoButton
+              ios="photo.on.rectangle"
+              material="photo_library"
+              label="Choose photo"
+              disabled={recognizing || saving}
+              onPress={() => snapMeal('library')}
+            />
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -236,7 +342,12 @@ export function LogMealScreen() {
             {formError}
           </Text>
         )}
-        <SubmitButton label="Analyse and save" loading={saving} onPress={save} />
+        <SubmitButton
+          label="Analyse and save"
+          loading={saving}
+          disabled={recognizing}
+          onPress={save}
+        />
         {saving && (
           <Text
             variant="caption"
@@ -248,6 +359,38 @@ export function LogMealScreen() {
         )}
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+function PhotoButton({
+  ios,
+  material,
+  label,
+  disabled,
+  onPress,
+}: {
+  ios: 'camera' | 'photo.on.rectangle';
+  material: 'photo_camera' | 'photo_library';
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+  const surface = useSurface();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.photoButton,
+        { backgroundColor: theme.surface },
+        pressed ? surface.sunken : surface.soft,
+        disabled && styles.disabled,
+      ]}>
+      <Icon ios={ios} material={material} size={18} color={theme.text} />
+      <Text variant="bodyStrong">{label}</Text>
+    </Pressable>
   );
 }
 
@@ -322,6 +465,36 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.three,
+  },
+  photoCard: {
+    gap: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: Radius.medium,
+    borderCurve: 'continuous',
+  },
+  photoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  thumb: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.small,
+  },
+  photoButtons: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  photoButton: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: Radius.small,
+    borderCurve: 'continuous',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
   },
   foodNumber: {
     alignSelf: 'flex-start',

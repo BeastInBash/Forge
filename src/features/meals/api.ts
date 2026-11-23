@@ -1,3 +1,6 @@
+import type { ImagePickerAsset } from 'expo-image-picker';
+
+import { appendImage } from '@/features/exercises/image-part';
 import { apiRequest } from '@/lib/api';
 
 export type MealTime = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -87,6 +90,21 @@ export const logMeal = (input: MealInput) =>
     body: JSON.stringify(input),
     timeoutMs: LOG_MEAL_TIMEOUT_MS,
   });
+
+/** A food the AI saw in a meal photo, to check and edit before logging. */
+export type PhotoFood = { food: string; amount: string };
+
+/** Sends a meal photo for the AI to list its foods with estimated amounts. Saves nothing. */
+export async function recognizeMealPhoto(image: ImagePickerAsset) {
+  const form = new FormData();
+  await appendImage(form, 'image', image);
+  const { foods } = await apiRequest<{ foods: PhotoFood[] }>('/api/v1/meals/photo', {
+    method: 'POST',
+    body: form,
+    timeoutMs: LOG_MEAL_TIMEOUT_MS,
+  });
+  return foods;
+}
 
 export const deleteMeal = (id: string) =>
   apiRequest<null>(`/api/v1/meals/${id}`, { method: 'DELETE' });
