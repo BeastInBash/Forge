@@ -180,6 +180,9 @@ function Plot({
   const xsKey = xs.join(',');
   const ysKey = ys.join(',');
   useEffect(() => {
+    // Rebuilt from the keys, which stand in for the arrays (new on every render) as dependencies
+    const xs = xsKey ? xsKey.split(',').map(Number) : [];
+    const ys = ysKey ? ysKey.split(',').map(Number) : [];
     const previous = drawn.current;
     const morph = previous?.key === seriesKey && previous.ys.length === ys.length;
     drawn.current = { key: seriesKey, ys };
@@ -196,8 +199,8 @@ function Plot({
         reduceMotion: ReduceMotion.System,
       })
     );
-    // xsKey/ysKey stand in for the arrays, which are new on every render.
-  }, [seriesKey, xsKey, ysKey, floor]);
+    // The shared values never change; they're listed only to satisfy exhaustive-deps
+  }, [seriesKey, xsKey, ysKey, floor, xsValue, fromYs, toYs, stagger, progress]);
 
   const currentYs = useDerivedValue(() => {
     const from = fromYs.get();

@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 
 import { getSnapshot, subscribe } from './session-store';
 
@@ -7,14 +7,15 @@ export function useWorkoutSession() {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
-/** The current time, refreshed every second while `running`. */
+const tickEverySecond = (onTick: () => void) => {
+  const id = setInterval(onTick, 1000);
+  return () => clearInterval(id);
+};
+const noTicks = () => () => {};
+/** Whole seconds, so the snapshot stays the same between ticks as useSyncExternalStore needs. */
+const currentSecond = () => Math.floor(Date.now() / 1000) * 1000;
+
+/** The current time (to the second), refreshed every second while `running`. */
 export function useNow(running: boolean) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!running) return;
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [running]);
-  return now;
+  return useSyncExternalStore(running ? tickEverySecond : noTicks, currentSecond, currentSecond);
 }

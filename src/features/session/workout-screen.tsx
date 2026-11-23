@@ -268,7 +268,9 @@ function Summary({ session }: { session: WorkoutSession }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const { done, total } = setCounts(session);
-  const finishedAt = session.finishedAt ?? Date.now();
+  // Read once on mount (render must stay pure); a finished session always has finishedAt anyway
+  const [mountedAt] = useState(Date.now);
+  const finishedAt = session.finishedAt ?? mountedAt;
   const logged = session.exercises.filter((e) => e.sets.some((s) => s.completedAt !== undefined));
 
   async function save() {
