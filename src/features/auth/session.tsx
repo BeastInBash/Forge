@@ -20,6 +20,7 @@ import { clearSession } from '@/features/session/session-store';
 import { clearWater } from '@/features/water/water-store';
 import { setUnauthorizedHandler } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
+import { clearOutbox, setOutboxEnabled } from '@/lib/outbox';
 
 export type Session = {
   user: { id: string; name: string; email: string; image?: string | null };
@@ -126,7 +127,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     clearBody();
     clearSession();
     clearWater();
+    // Saves not yet sent belong to this user; they must never go out under the next one
+    clearOutbox();
   }
+
+  // Queued saves are sent only while signed in, so they always carry this user's session
+  useEffect(() => {
+    setOutboxEnabled(signedIn);
+  }, [signedIn]);
 
   // The server no longer accepts this session (expired, or revoked on another device): drop it
   // here too, once, instead of every screen showing errors.

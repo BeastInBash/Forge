@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { IconBadge } from '@/components/ui/icon-badge';
 import { Text } from '@/components/ui/text';
 import { Radius, Spacing } from '@/constants/theme';
+import { errorMessage } from '@/features/auth/validation';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import type { WaterDay, WaterGoal } from '../api';
@@ -33,26 +34,28 @@ export function WaterGoalCard({
   const theme = useTheme();
   const surface = useSurface();
   const [adding, setAdding] = useState(false);
-  const [failed, setFailed] = useState(false);
+  /** Why the last glass failed, from the server when it said. */
+  const [failure, setFailure] = useState<string>();
   const consumedMl = day?.consumedMl ?? 0;
   const goalMl = goal?.dailyGoalMl;
 
   async function addGlass() {
     setAdding(true);
-    setFailed(false);
+    setFailure(undefined);
     try {
-      await drinkWater(GLASS_ML);
+      // Shows at once; the outbox sends it to the server in the background
+      drinkWater(GLASS_ML);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
+    } catch (e) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setFailed(true);
+      setFailure(`Couldn’t log that glass: ${errorMessage(e)}`);
     } finally {
       setAdding(false);
     }
   }
 
-  const status = failed
-    ? 'Couldn’t log that glass. Try again.'
+  const status = failure
+    ? failure
     : !goalMl
       ? 'Tap to set how much to drink a day'
       : consumedMl >= goalMl
@@ -122,7 +125,7 @@ export function WaterGoalCard({
         <Text
           variant="caption"
           style={{
-            color: failed
+            color: failure
               ? theme.danger
               : goalMl && consumedMl >= goalMl
                 ? theme.up

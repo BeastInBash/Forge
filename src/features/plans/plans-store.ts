@@ -5,6 +5,7 @@
  */
 
 import { errorMessage } from '@/features/auth/validation';
+import { createPersistedCache } from '@/lib/persisted-cache';
 import { WEEKDAYS } from '@/lib/week';
 import type { WorkoutPlan } from '@/types/training';
 
@@ -15,11 +16,19 @@ export type PlansState = { plans?: WorkoutPlan[]; error?: string };
 let state: PlansState = {};
 let inFlight: Promise<void> | undefined;
 const listeners = new Set<() => void>();
+/** The plans as last seen, kept on the device for the next launch. */
+const cache = createPersistedCache<WorkoutPlan[]>('plans');
 
 function setState(next: PlansState) {
   state = next;
   listeners.forEach((listener) => listener());
+  if (next.plans) cache.save(next.plans);
 }
+
+// Last launch's copy, so the week opens with it; plans already fetched win
+cache.load().then((saved) => {
+  if (saved && !state.plans) setState({ ...state, plans: saved });
+});
 
 const byWeekday = (a: WorkoutPlan, b: WorkoutPlan) =>
   WEEKDAYS.indexOf(a.day) - WEEKDAYS.indexOf(b.day);
@@ -58,4 +67,5 @@ export function removePlanLocally(id: string) {
 /** Cached plans are per user; drop them on sign-out. */
 export function clearPlans() {
   setState({});
+  cache.clear();
 }

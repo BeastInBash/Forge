@@ -6,6 +6,7 @@
 
 import { errorMessage } from '@/features/auth/validation';
 import { deviceTimezone } from '@/features/water/api';
+import { createPersistedCache } from '@/lib/persisted-cache';
 
 import {
   fetchMeal,
@@ -37,10 +38,29 @@ let dayInFlight: Promise<void> | undefined;
 const detailsInFlight = new Map<string, Promise<void>>();
 const listeners = new Set<() => void>();
 
+/**
+ * The history's loaded pages and today's totals as last seen, kept on the device for the next
+ * launch. Each meal's full analysis isn't kept; it loads when the meal is opened.
+ */
+type Saved = Pick<MealsState, 'meals' | 'nextBefore' | 'day'>;
+const cache = createPersistedCache<Saved>('meals');
+
 function setState(next: MealsState) {
   state = next;
   listeners.forEach((listener) => listener());
+  cache.save({ meals: next.meals, nextBefore: next.nextBefore, day: next.day });
 }
+
+// Last launch's copy, so the Nutrition tab opens with it; anything already fetched wins. Saved
+// totals from before midnight are ignored by `useMealDay`.
+cache.load().then((saved) => {
+  if (!saved) return;
+  setState({
+    ...state,
+    ...(state.meals ? {} : { meals: saved.meals, nextBefore: saved.nextBefore }),
+    day: state.day ?? saved.day,
+  });
+});
 
 function setDetail(id: string, next: DetailState) {
   setState({ ...state, details: { ...state.details, [id]: next } });
@@ -195,4 +215,5 @@ export function removeMealLocally(id: string) {
 /** Cached meals are per user; drop them on sign-out. */
 export function clearMeals() {
   setState({ loadingMore: false, details: {} });
+  cache.clear();
 }

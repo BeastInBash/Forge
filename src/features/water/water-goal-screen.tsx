@@ -15,10 +15,10 @@ import { useBody } from '@/features/body/use-body';
 import { registerForPush, useNotificationsBlocked } from '@/features/notifications/push';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
-import { deviceTimezone, saveWaterGoal, type WaterGoal, type WaterGoalInput } from './api';
+import { deviceTimezone, type WaterGoal, type WaterGoalInput } from './api';
 import { reminderSummary } from './format';
 import { useWaterGoal } from './use-water-goal';
-import { setWaterGoalLocally } from './water-store';
+import { setWaterGoal } from './water-store';
 
 /** The ruler's range in litres; the backend accepts 0.5–10 L. */
 const MIN_L = 0.5;
@@ -106,7 +106,8 @@ function GoalForm({
       timezone: deviceTimezone(),
     };
     try {
-      setWaterGoalLocally(await saveWaterGoal(input));
+      // Saved on the device at once; the outbox sends it to the server in the background
+      setWaterGoal(input);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       // Reminders are pushes, so this is the moment to ask; saving doesn't depend on the answer
       if (input.remindersEnabled) await registerForPush({ prompt: true });
