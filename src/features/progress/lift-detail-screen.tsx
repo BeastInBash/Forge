@@ -16,12 +16,12 @@ import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
-import { deleteLift, type Lift } from './api';
+import { type Lift } from './api';
 import { AnimatedNumber } from './components/animated-number';
 import { LiftChart } from './components/lift-chart';
 import { Segmented } from '@/components/ui/segmented';
 import { SessionRow } from './components/session-row';
-import { removeLiftLocally } from './lifts-store';
+import { removeLift } from './lifts-store';
 import {
   bestSet,
   BODYWEIGHT_METRICS,
@@ -299,9 +299,9 @@ export function LiftDetailScreen() {
                           }
                     }
                     onDelete={async () => {
-                      await deleteLift(lift.id);
+                      // Gone at once; the outbox tells the server in the background
                       setActive(null);
-                      removeLiftLocally(lift);
+                      removeLift(lift);
                     }}
                   />
                 );

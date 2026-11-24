@@ -48,7 +48,7 @@ const toExercise = (exercise: ApiExercise): LiftExercise => ({
   iconUrl: exercise.exercise_icon,
 });
 
-const toLift = (lift: ApiLift): Lift => ({
+export const toLift = (lift: ApiLift): Lift => ({
   id: lift.id,
   exerciseId: lift.exerciseId,
   performedAt: lift.performedAt,

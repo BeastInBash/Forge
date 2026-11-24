@@ -16,7 +16,6 @@ import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
-import { errorMessage } from '@/features/auth/validation';
 import { ExerciseThumb } from '@/features/exercises/components/exercise-thumb';
 import { useExercises } from '@/features/exercises/use-exercises';
 import { ExercisePicker } from '@/features/plans/components/exercise-picker';
@@ -25,9 +24,9 @@ import { Stepper } from '@/features/plans/components/stepper';
 import { usePlans } from '@/features/plans/use-plans';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
-import { logLift, type LiftExercise } from './api';
+import { type LiftExercise } from './api';
 import { relativeDay } from './format';
-import { addLiftLocally, getSnapshot } from './lifts-store';
+import { getSnapshot, saveLift } from './lifts-store';
 import { describeSets } from './metrics';
 
 type DraftSet = { key: number; weight: number | null; weightText: string; reps: number };
@@ -105,28 +104,22 @@ export function LogLiftScreen() {
     setSets((current) => current.map((set) => (set.key === key ? { ...set, ...change } : set)));
   }
 
-  async function save() {
+  function save() {
     setFormError(undefined);
     if (!chosen) {
       setFormError('Pick an exercise first.');
       return;
     }
     setSaving(true);
-    try {
-      const lift = await logLift({
-        exerciseId: chosen.id,
-        performedAt: performedAt(daysBack),
-        sets: sets.map(({ weight, reps }) => ({ weight, reps })),
-        note: note.trim() || undefined,
-      });
-      addLiftLocally(lift);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
-    } catch (e) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setFormError(errorMessage(e));
-      setSaving(false);
-    }
+    // Saved on the device at once; the outbox sends it to the server in the background
+    saveLift({
+      exerciseId: chosen.id,
+      performedAt: performedAt(daysBack),
+      sets: sets.map(({ weight, reps }) => ({ weight, reps })),
+      note: note.trim() || undefined,
+    });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    router.back();
   }
 
   const volume = sets.reduce((sum, set) => sum + (set.weight ?? 0) * set.reps, 0);

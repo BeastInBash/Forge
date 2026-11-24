@@ -21,15 +21,14 @@ import { Text } from '@/components/ui/text';
 import { enter, reflow, slideIn } from '@/constants/motion';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { FormError } from '@/features/auth/components/form-error';
-import { errorMessage } from '@/features/auth/validation';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
-import { deleteWaterLog, type WaterLog } from './api';
+import { type WaterLog } from './api';
 import { WaterProgress } from './components/water-progress';
 import { formatLitres, formatWater, reminderSummary } from './format';
 import { useWaterDay } from './use-water-day';
 import { useWaterGoal } from './use-water-goal';
-import { drinkWater, removeWaterLogLocally } from './water-store';
+import { drinkWater, removeDrink } from './water-store';
 
 const GLASS_ML = 250;
 /** Other common sizes: a small cup, a can, a bottle. */
@@ -47,8 +46,11 @@ export function WaterScreen() {
   const router = useRouter();
   const { goal } = useWaterGoal();
   const { day, error, loading, refreshing, refresh } = useWaterDay();
-  /** The amount being logged, so only that button shows a spinner. */
-  const [adding, setAdding] = useState<number>();
+  /**
+   * The amount being logged, for a spinner on its button. Drinks now save on the device at once
+   * (see the outbox), so nothing is ever waiting and this stays undefined.
+   */
+  const [adding] = useState<number>();
   const [customOpen, setCustomOpen] = useState(false);
   const [custom, setCustom] = useState('');
   const [formError, setFormError] = useState<string>();
@@ -56,21 +58,13 @@ export function WaterScreen() {
   const goalMl = day?.goalMl ?? goal?.dailyGoalMl ?? null;
   const consumedMl = day?.consumedMl ?? 0;
 
-  async function add(amountMl: number) {
-    if (adding !== undefined) return;
-    setAdding(amountMl);
+  function add(amountMl: number) {
     setFormError(undefined);
-    try {
-      await drinkWater(amountMl);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setCustom('');
-      setCustomOpen(false);
-    } catch (e) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setFormError(errorMessage(e));
-    } finally {
-      setAdding(undefined);
-    }
+    // Shows at once; the outbox sends it to the server in the background
+    drinkWater(amountMl);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCustom('');
+    setCustomOpen(false);
   }
 
   function addCustom() {
@@ -361,18 +355,12 @@ function DrinkRow({ log, index }: { log: WaterLog; index: number }) {
   const [error, setError] = useState(false);
   const at = time.format(new Date(log.drankAt));
 
-  async function remove() {
+  function remove() {
+    // Gone at once; the outbox tells the server in the background
     setDeleting(true);
     setError(false);
-    try {
-      await deleteWaterLog(log.id);
-      Haptics.selectionAsync();
-      removeWaterLogLocally(log.id);
-    } catch {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setError(true);
-      setDeleting(false);
-    }
+    Haptics.selectionAsync();
+    removeDrink(log.id);
   }
 
   return (

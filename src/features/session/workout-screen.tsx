@@ -14,8 +14,7 @@ import { PressScale } from '@/components/ui/press-scale';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { errorMessage } from '@/features/auth/validation';
-import { logLift } from '@/features/progress/api';
-import { addLiftLocally } from '@/features/progress/lifts-store';
+import { saveLift } from '@/features/progress/lifts-store';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 
 import { ExerciseCard } from './components/exercise-card';
@@ -277,17 +276,15 @@ function Summary({ session }: { session: WorkoutSession }) {
     setSaving(true);
     setError(undefined);
     try {
-      const lifts = await Promise.all(
-        logged.map((exercise) => {
-          const sets = exercise.sets.filter((set) => set.completedAt !== undefined);
-          return logLift({
-            exerciseId: exercise.exerciseId,
-            performedAt: new Date(Math.max(...sets.map((set) => set.completedAt!))).toISOString(),
-            sets: sets.map(({ weight, reps }) => ({ weight, reps })),
-          });
-        })
-      );
-      lifts.forEach(addLiftLocally);
+      // Saved on the device at once; the outbox sends them to the server in the background
+      for (const exercise of logged) {
+        const sets = exercise.sets.filter((set) => set.completedAt !== undefined);
+        saveLift({
+          exerciseId: exercise.exerciseId,
+          performedAt: new Date(Math.max(...sets.map((set) => set.completedAt!))).toISOString(),
+          sets: sets.map(({ weight, reps }) => ({ weight, reps })),
+        });
+      }
       markSavedToProgress();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {
