@@ -14,15 +14,13 @@ import { SectionLabel } from '@/components/ui/section-label';
 import { Text } from '@/components/ui/text';
 import { FontFamily, MaxContentWidth, Radius, Spacing, Temper } from '@/constants/theme';
 import { SubmitButton } from '@/features/auth/components/submit-button';
-import { errorMessage } from '@/features/auth/validation';
 import { useSurface, useTheme } from '@/hooks/use-theme';
 import { WEEKDAYS } from '@/lib/week';
 import type { Weekday, WorkoutPlan } from '@/types/training';
 
-import { createPlan, deletePlan, updatePlan } from './api';
 import { ExercisePicker } from './components/exercise-picker';
 import { PlanExerciseCard, type DraftExercise } from './components/plan-exercise-card';
-import { removePlanLocally, savePlanLocally } from './plans-store';
+import { removePlan, savePlan } from './plans-store';
 import { MUSCLE_GROUP_SUGGESTIONS, splitFor } from './split';
 import { usePlans } from './use-plans';
 
@@ -108,9 +106,7 @@ function PlanEditor({
   const [items, setItems] = useState<DraftExercise[]>(existing ? draftFrom(existing) : []);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [formError, setFormError] = useState<string>();
 
   const takenDays = new Set(plans.filter((p) => p.id !== existing?.id).map((p) => p.day));
   const errors = {
@@ -135,47 +131,26 @@ function PlanEditor({
     });
   }
 
-  async function save() {
+  // Saves show at once and reach the server in the background (see plans-store), so the editor
+  // closes straight away, even offline.
+  function save() {
     setSubmitted(true);
-    setFormError(undefined);
     if (errors.muscleGroup || errors.items || errors.day) return;
-    setSaving(true);
-    const input = {
-      day,
-      time: timeToIso(minutes),
-      muscleGroup: muscleGroup.trim(),
-      exercises: items.map(({ exerciseId, sets, repetition, weight }) => ({
-        exerciseId,
-        sets,
-        repetition,
-        weight,
-      })),
-    };
-    try {
-      savePlanLocally(existing ? await updatePlan(existing.id, input) : await createPlan(input));
-      router.back();
-    } catch (e) {
-      setFormError(errorMessage(e));
-      setSaving(false);
-    }
+    savePlan(
+      { day, time: timeToIso(minutes), muscleGroup: muscleGroup.trim(), exercises: items },
+      existing?.id
+    );
+    router.back();
   }
 
-  async function remove() {
+  function remove() {
     if (!existing) return;
     if (!confirmDelete) {
       setConfirmDelete(true);
       return;
     }
-    setSaving(true);
-    try {
-      await deletePlan(existing.id);
-      removePlanLocally(existing.id);
-      router.back();
-    } catch (e) {
-      setFormError(errorMessage(e));
-      setSaving(false);
-      setConfirmDelete(false);
-    }
+    removePlan(existing.id);
+    router.back();
   }
 
   return (
@@ -334,20 +309,19 @@ function PlanEditor({
           ) : null}
         </Section>
 
-        {(formError || (submitted && errors.day)) && (
+        {submitted && errors.day && (
           <Text variant="label" color="danger" accessibilityRole="alert">
-            {formError ?? errors.day}
+            {errors.day}
           </Text>
         )}
         <SubmitButton
           label={existing ? 'Save changes' : 'Create plan'}
-          loading={saving}
+          loading={false}
           onPress={save}
         />
         {existing && (
           <Pressable
             onPress={remove}
-            disabled={saving}
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.delete,

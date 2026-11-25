@@ -4,7 +4,7 @@ import type { Weekday, WorkoutPlan } from '@/types/training';
 import { splitFor } from './split';
 
 /** A plan as forge-backend returns it (`GET /api/v1/workout`). */
-type ApiPlan = {
+export type ApiPlan = {
   id: string;
   day: Weekday;
   time: string;
@@ -39,7 +39,7 @@ export type PlanInput = {
   exercises: PlanExerciseInput[];
 };
 
-function toPlan(plan: ApiPlan): WorkoutPlan {
+export function toPlan(plan: ApiPlan): WorkoutPlan {
   return {
     id: plan.id,
     day: plan.day,
@@ -61,8 +61,10 @@ function toPlan(plan: ApiPlan): WorkoutPlan {
   };
 }
 
-function toBody(input: PlanInput) {
-  return JSON.stringify({
+/** The JSON body forge-backend takes for a plan; a create may carry an id made on the device. */
+export function planBody(input: PlanInput, id?: string) {
+  return {
+    ...(id ? { id } : {}),
     day: input.day,
     time: input.time,
     muscle_group: input.muscleGroup,
@@ -71,8 +73,10 @@ function toBody(input: PlanInput) {
         ? { exerciseId: exercise.exerciseId, sets, repetition, weight }
         : { exercise_name: exercise.exerciseName, sets, repetition, weight }
     ),
-  });
+  };
 }
+
+const toBody = (input: PlanInput) => JSON.stringify(planBody(input));
 
 export const fetchPlans = async () =>
   (await apiRequest<ApiPlan[]>('/api/v1/workout')).map(toPlan);

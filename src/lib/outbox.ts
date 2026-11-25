@@ -27,12 +27,20 @@ export type OutboxEntry = {
   body?: unknown;
   /** The record the save is about (a lift or drink id), so it can be cancelled before it's sent. */
   recordId?: string;
+  /**
+   * Kept on the device only, never sent: what the store shows until the save arrives, when the
+   * body alone isn't enough (e.g. a plan's exercise names, which the body sends as ids).
+   */
+  local?: unknown;
   createdAt: number;
   /** Server errors (5xx) so far; time spent offline doesn't count. */
   serverErrors: number;
 };
 
-export type NewOutboxEntry = Pick<OutboxEntry, 'kind' | 'method' | 'path' | 'body' | 'recordId'>;
+export type NewOutboxEntry = Pick<
+  OutboxEntry,
+  'kind' | 'method' | 'path' | 'body' | 'recordId' | 'local'
+>;
 
 const KEY = 'outbox';
 /** Nobody is waiting on a background save, so it can give a sleeping database time to wake. */

@@ -4,7 +4,12 @@ import { WEEKDAYS } from '@/lib/week';
 import type { WorkoutPlan } from '@/types/training';
 
 import { createPlan, deletePlan, updatePlan } from './api';
-import { removePlanLocally, revalidatePlans, savePlanLocally } from './plans-store';
+import {
+  planSavesPending,
+  removePlanLocally,
+  revalidatePlans,
+  savePlanLocally,
+} from './plans-store';
 import { resolveExercise, type SplitTemplate } from './templates';
 
 const DEFAULT_MINUTES = 18 * 60; // 6:00 PM, as in the plan editor
@@ -21,12 +26,18 @@ function defaultTime() {
  * already on that day (keeping its time), and plans on the template's rest days are deleted.
  * Days run one at a time so a failure leaves the rest of the week as it was; the cache is then
  * refreshed from the server either way. Throws the first error.
+ *
+ * Unlike the editor it talks to the server directly (it needs the server's answer for exercises
+ * sent by name), so it waits for queued plan edits to arrive first.
  */
 export async function applyTemplate(
   template: SplitTemplate,
   plans: WorkoutPlan[],
   catalog: Exercise[] | undefined
 ) {
+  if (await planSavesPending()) {
+    throw new Error('Your recent plan changes are still saving. Try again once you’re online.');
+  }
   try {
     for (const day of WEEKDAYS) {
       const existing = plans.find((plan) => plan.day === day);
